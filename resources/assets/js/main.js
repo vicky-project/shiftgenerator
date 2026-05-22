@@ -230,7 +230,7 @@
 
   // Muat halaman awal
   const initialPath = window.location.pathname.replace(APP_BASE,
-    '') || '/employees';
+    '') || '/api/employees';
   navigateTo(initialPath,
     false);
 })();

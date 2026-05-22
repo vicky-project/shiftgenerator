@@ -32,7 +32,7 @@
 <script>
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
-<script src="{{ secure_url('/shift/js/core.js') }}"></script>
-<script src="{{ secure_url('/shift/js/page.js') }}"></script>
-<script src="{{ secure_url('/shift/js/main.js') }}"></script>
+<script src="{{ secure_url('apps/shift/js/core.js') }}"></script>
+<script src="{{ secure_url('apps/shift/js/page.js') }}"></script>
+<script src="{{ secure_url('apps/shift/js/main.js') }}"></script>
 @endpush

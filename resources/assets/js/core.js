@@ -10,7 +10,7 @@
 
   // =========== Konstanta ===========
   const API_BASE = window.API_BASE;
-  const APP_BASE = '/shift';
+  const APP_BASE = '/apps/shift';
 
   // =========== Fetch Helper ===========
   async function fetchAPI(url, options = {}) {

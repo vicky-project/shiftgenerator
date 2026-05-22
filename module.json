@@ -1,0 +1,11 @@
+{
+    "name": "ShiftGenerator",
+    "alias": "shiftgenerator",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ShiftGenerator\\Providers\\ShiftGeneratorServiceProvider"
+    ],
+    "files": []
+}

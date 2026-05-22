@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-use Illuminate\Support\Facades\Route;
-
 // Route untuk melayani asset JS dari modul
 Route::get('shift/js/{file}', function ($file) {
   $path = module_path('ShiftGenerator', 'resources/assets/js/' . $file);

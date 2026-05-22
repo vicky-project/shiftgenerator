@@ -17,7 +17,7 @@ Route::prefix('apps/shift')->group(function () {
   // Semua halaman SPA (fallback)
   Route::get('/{any?}',
     function () {
-      return view('shiftgenerator::spa');
+      return view('shiftgenerator::index');
     })->where('any',
     '.*');
 });

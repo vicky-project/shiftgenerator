@@ -61,12 +61,12 @@
       }
     },
     // Fetch karyawan
-    fetchEmployees: () => fetchAPI(`${API_BASE}/employees`),
+    fetchEmployees: () => fetchAPI(`${API_BASE}/api/employees`),
     // Fetch satu karyawan
-    fetchEmployee: (id) => fetchAPI(`${API_BASE}/employees/${id}`),
+    fetchEmployee: (id) => fetchAPI(`${API_BASE}/api/employees/${id}`),
     // Simpan karyawan (POST/PUT)
     saveEmployee: (data, id = null) => {
-      const url = id ? `${API_BASE}/employees/${id}`: `${API_BASE}/employees`;
+      const url = id ? `${API_BASE}/api/employees/${id}`: `${API_BASE}/api/employees`;
       const method = id ? 'PUT': 'POST';
       return fetchAPI(url, {
         method,
@@ -74,35 +74,35 @@
       });
     },
     // Hapus karyawan
-    deleteEmployee: (id) => fetchAPI(`${API_BASE}/employees/${id}`, {
+    deleteEmployee: (id) => fetchAPI(`${API_BASE}/api/employees/${id}`, {
       method: 'DELETE'
     }),
     // Fetch overrides
-    fetchOverrides: (employeeId) => fetchAPI(`${API_BASE}/employees/${employeeId}/overrides`),
+    fetchOverrides: (employeeId) => fetchAPI(`${API_BASE}/api/employees/${employeeId}/overrides`),
     // Tambah override
-    addOverride: (employeeId, startDate) => fetchAPI(`${API_BASE}/employees/${employeeId}/overrides`, {
+    addOverride: (employeeId, startDate) => fetchAPI(`${API_BASE}/api/employees/${employeeId}/overrides`, {
       method: 'POST',
       body: JSON.stringify({
         start_date: startDate
       })
     }),
     // Hapus override
-    deleteOverride: (id) => fetchAPI(`${API_BASE}/overrides/${id}`, {
+    deleteOverride: (id) => fetchAPI(`${API_BASE}/api/overrides/${id}`, {
       method: 'DELETE'
     }),
     // Generate roster
-    generateRoster: (start, end, holidays = []) => fetchAPI(`${API_BASE}/generate`, {
+    generateRoster: (start, end, holidays = []) => fetchAPI(`${API_BASE}/api/generate`, {
       method: 'POST',
       body: JSON.stringify({
         start_date: start, end_date: end, holidays
       })
     }),
     // Fetch schedules
-    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/schedules?start_date=${start}&end_date=${end}`),
+    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/schedules?start_date=${start}&end_date=${end}`),
     // Export Excel (mengembalikan blob)
     exportExcel: async (start, end) => {
       const token = state.token;
-      const response = await fetch(`${API_BASE}/export?start_date=${start}&end_date=${end}`, {
+      const response = await fetch(`${API_BASE}/api/export?start_date=${start}&end_date=${end}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.ms-excel'

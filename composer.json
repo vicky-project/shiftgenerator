@@ -1,30 +1,33 @@
 {
-    "name": "nwidart/shiftgenerator",
-    "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
-    "extra": {
-        "laravel": {
-            "providers": [],
-            "aliases": {
-
-            }
-        }
-    },
-    "autoload": {
-        "psr-4": {
-            "Modules\\ShiftGenerator\\": "app/",
-            "Modules\\ShiftGenerator\\Database\\Factories\\": "database/factories/",
-            "Modules\\ShiftGenerator\\Database\\Seeders\\": "database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Modules\\ShiftGenerator\\Tests\\": "tests/"
-        }
+  "name": "vicky-project/shiftgenerator-module",
+  "description": "",
+  "type": "laravel-module",
+  "authors": [{
+    "name": "Vicky Rahman",
+    "email": "pratamavr@gmail.com"
+  }],
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
     }
+  },
+  "require": {
+    "php": "^8.2",
+    "joshbrw/laravel-module-installer": "^1.0",
+    "maatwebsite/excel": "^3.1",
+    "vicky-project/telegram-module": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Modules\\ShiftGenerator\\": "app/",
+      "Modules\\ShiftGenerator\\Database\\Factories\\": "database/factories/",
+      "Modules\\ShiftGenerator\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\ShiftGenerator\\Tests\\": "tests/"
+    }
+  }
 }

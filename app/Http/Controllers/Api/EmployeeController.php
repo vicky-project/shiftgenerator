@@ -13,7 +13,15 @@ class EmployeeController extends Controller
   */
   public function index(Request $request) {
     $user = $request->user();
-    return Employee::where('telegram_user_id', $user->id)->get();
+    try {
+      return Employee::where('telegram_user_id', $user->id)->get();
+    } catch(\Exception $e) {
+      \Log::error("Error getting employees", [
+        'message' => $e->getMessage(),
+        'trace' => $e->getTrace()
+      ]);
+      return [];
+    }
   }
 
   /**

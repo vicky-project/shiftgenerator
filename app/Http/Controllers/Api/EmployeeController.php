@@ -15,7 +15,7 @@ class EmployeeController extends Controller
   */
   public function index(Request $request) {
     $user = $request->user();
-    return Employee::where('telegram_user_id', $user->id)->first();
+    return Employee::where('telegram_user_id', $user->id)->get();
   }
 
   /**

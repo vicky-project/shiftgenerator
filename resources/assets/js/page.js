@@ -288,11 +288,14 @@
       calendarInstance = null;
     }
 
-    // Bangun mapping tanggal → modifier class
-    const shiftMap = {};
+    // Bangun popups (seperti di Notes)
+    const popups = {};
     schedules.forEach(s => {
-      shiftMap[s.date] = s.shift === 'Day' ? 'shift-day':
-      s.shift === 'Night' ? 'shift-night': 'shift-off';
+      popups[s.date] = {
+        modifier: s.shift === 'Day' ? 'shift-day':
+        s.shift === 'Night' ? 'shift-night': 'shift-off',
+        html: `<div><strong>${s.shift}</strong> | ${escapeHtml(empData.employee.name)}</div>`
+      };
     });
 
     // Render dropdown
@@ -306,7 +309,6 @@
       </div>`;
     }
 
-    // Pastikan struktur kalender tetap, jangan hapus #calendar-instance
     container.innerHTML = dropdownHtml + '<div id="calendar-instance"></div>';
 
     const selectEl = document.getElementById('employee-select');
@@ -338,37 +340,10 @@
         calendarHeaderYear: 'text-color',
         dayBtn: 'text-color',
       },
+      popups: popups, // <-- ini yang akan menambahkan class
     });
 
     calendarInstance.init();
-
-    // Fungsi untuk apply class shift
-    const applyShiftClasses = () => {
-      const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
-      dateElements.forEach(el => {
-        // Hapus class shift sebelumnya
-        el.classList.remove('shift-day', 'shift-night', 'shift-off');
-        const date = el.getAttribute('data-vc-date');
-        if (shiftMap[date]) {
-          el.classList.add(shiftMap[date]);
-        }
-      });
-    };
-
-    // Jalankan setelah kalender pasti dirender (lebih lambat)
-    setTimeout(applyShiftClasses,
-      300);
-
-    // Tambahkan observer untuk jaga-jaga jika render ulang terjadi (navigasi bulan)
-    const targetNode = document.getElementById('calendar-instance');
-    if (targetNode) {
-      const observer = new MutationObserver(() => {
-        applyShiftClasses();
-      });
-      observer.observe(targetNode, {
-        childList: true, subtree: true
-      });
-    }
   }
 
   window.PageRender = {

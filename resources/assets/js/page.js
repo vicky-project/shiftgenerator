@@ -325,6 +325,7 @@
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstWeekday: 0,
+      firstDayOfWeek: 0,
       settings: {
         visibility: {
           daysOutsideMonth: true

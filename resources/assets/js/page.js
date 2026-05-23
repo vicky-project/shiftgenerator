@@ -10,8 +10,17 @@
 
   let calendarInstance = null;
 
+  // Fungsi untuk menghancurkan instance kalender (dipanggil saat navigasi)
+  function destroyCalendar() {
+    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
+      calendarInstance.destroy();
+      calendarInstance = null;
+    }
+  }
+
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList() {
+    destroyCalendar();
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
     let html = `<div class="d-flex justify-content-end mb-3">
@@ -48,6 +57,7 @@
 
   // ---------- Render form tambah/edit ----------
   async function renderEmployeeForm(params) {
+    destroyCalendar();
     const id = params?.id;
     const isEdit = !!id;
     document.getElementById('app-title').innerText = isEdit ? 'Edit Karyawan': 'Tambah Karyawan';
@@ -151,6 +161,7 @@
 
   // ---------- Render halaman override ----------
   async function renderOverrides(params) {
+    destroyCalendar();
     const employeeId = params.id;
     document.getElementById('app-title').innerText = 'Pengajuan Cuti';
     let employee;
@@ -201,6 +212,7 @@
 
   // ---------- Render halaman generate ----------
   function renderGenerate() {
+    destroyCalendar();
     document.getElementById('app-title').innerText = 'Generate Roster';
     const content = document.getElementById('app-content');
     content.innerHTML = `
@@ -282,10 +294,8 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
-      calendarInstance.destroy();
-      calendarInstance = null;
-    }
+    // Hancurkan instance lama sebelum membuat baru
+    destroyCalendar();
 
     // Bangun popups dengan format YYYY-MM-DD
     const popups = {};
@@ -376,6 +386,7 @@
     renderShiftCalendar,
     loadRosterData: async (start, end) => {
       await renderShiftCalendar(start, end);
-    }
+    },
+    destroyCalendar
   };
 })();

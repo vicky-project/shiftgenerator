@@ -30,7 +30,7 @@ class ShiftGeneratorService
     // Hapus jadwal lama dalam range ini (opsional, bisa juga replace)
     ShiftSchedule::whereBetween('date', [$startDate, $endDate])->delete();
 
-    $query = Employee::with('overrides')->get();
+    $query = Employee::with('overrides');
     if ($userId) {
       $query->where('telegram_user_id', $userId);
     }

@@ -295,7 +295,7 @@
       s.shift === 'Night' ? 'shift-night': 'shift-off';
     });
 
-    // Render dropdown pilih karyawan
+    // Render dropdown
     let dropdownHtml = '';
     if (data.employeeKeys.length > 1) {
       dropdownHtml = `
@@ -306,9 +306,9 @@
       </div>`;
     }
 
+    // Pastikan struktur kalender tetap, jangan hapus #calendar-instance
     container.innerHTML = dropdownHtml + '<div id="calendar-instance"></div>';
 
-    // Event listener dropdown
     const selectEl = document.getElementById('employee-select');
     if (selectEl) {
       selectEl.addEventListener('change', (e) => {
@@ -355,7 +355,11 @@
       });
     };
 
-    // Gunakan MutationObserver untuk mendeteksi render
+    // Jalankan setelah kalender pasti dirender (lebih lambat)
+    setTimeout(applyShiftClasses,
+      300);
+
+    // Tambahkan observer untuk jaga-jaga jika render ulang terjadi (navigasi bulan)
     const targetNode = document.getElementById('calendar-instance');
     if (targetNode) {
       const observer = new MutationObserver(() => {
@@ -365,9 +369,6 @@
         childList: true, subtree: true
       });
     }
-
-    // Jalankan juga sekali di awal
-    setTimeout(applyShiftClasses, 100);
   }
 
   window.PageRender = {

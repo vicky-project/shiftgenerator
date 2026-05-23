@@ -15,6 +15,7 @@
 
   // =========== Router ===========
   const routes = {
+    '/': () => navigateTo('/employees', false), // fallback
     '/employees': () => renderEmployeeList(),
     '/employees/create': () => renderEmployeeForm(),
     '/employees/:id/edit': (params) => renderEmployeeForm(params),
@@ -59,58 +60,65 @@
 
     // Toggle tombol back
     const btnBack = document.getElementById('btn-back');
-    btnBack.classList.toggle('d-none', path === '/employees' || path === '/generate');
+    if (btnBack) {
+      btnBack.classList.toggle('d-none', path === '/employees' || path === '/generate');
+    }
   }
 
   function updateNavActive(path) {
     document.querySelectorAll('[data-route]').forEach(link => {
       const routePath = link.dataset.route;
-      link.classList.toggle('active', path.startsWith(routePath));
+      if (routePath) {
+        link.classList.toggle('active', path.startsWith(routePath));
+      }
     });
   }
 
   // =========== Global Event Delegation ===========
-  document.addEventListener('click', async (e) => {
-    // 1. Navigasi via button dengan data-nav
-    const navButton = e.target.closest('[data-nav]');
-    if (navButton) {
-      const path = navButton.dataset.nav;
-      navigateTo(path);
-      return;
-    }
-
-    // 2. Tombol hapus karyawan
-    const deleteBtn = e.target.closest('[data-delete-employee]');
-    if (deleteBtn) {
-      const id = deleteBtn.dataset.deleteEmployee;
-      if (!confirm('Yakin hapus karyawan? Semua jadwal terkait akan ikut terhapus.')) return;
-      try {
-        await deleteEmployee(id);
-        showToast('Karyawan dihapus.', 'success');
-        navigateTo('/employees', false);
-      } catch (err) {
-        showToast('Gagal: ' + err.message, 'danger');
+  document.addEventListener('click',
+    async (e) => {
+      // 1. Navigasi via button dengan data-nav
+      const navButton = e.target.closest('[data-nav]');
+      if (navButton) {
+        const path = navButton.dataset.nav;
+        if (path) {
+          navigateTo(path);
+        }
+        return;
       }
-      return;
-    }
 
-    // 3. Tombol hapus override
-    const delOverrideBtn = e.target.closest('[data-delete-override]');
-    if (delOverrideBtn) {
-      const id = delOverrideBtn.dataset.deleteOverride;
-      if (!confirm('Hapus override ini?')) return;
-      try {
-        await deleteOverride(id);
-        showToast('Override dihapus.', 'success');
-        // Reload halaman override saat ini
-        const currentPath = window.location.pathname.replace(APP_BASE, '') || '/employees';
-        navigateTo(currentPath, false);
-      } catch (err) {
-        showToast('Gagal: ' + err.message, 'danger');
+      // 2. Tombol hapus karyawan
+      const deleteBtn = e.target.closest('[data-delete-employee]');
+      if (deleteBtn) {
+        const id = deleteBtn.dataset.deleteEmployee;
+        if (!confirm('Yakin hapus karyawan? Semua jadwal terkait akan ikut terhapus.')) return;
+        try {
+          await deleteEmployee(id);
+          showToast('Karyawan dihapus.', 'success');
+          navigateTo('/employees', false);
+        } catch (err) {
+          showToast('Gagal: ' + err.message, 'danger');
+        }
+        return;
       }
-      return;
-    }
-  });
+
+      // 3. Tombol hapus override
+      const delOverrideBtn = e.target.closest('[data-delete-override]');
+      if (delOverrideBtn) {
+        const id = delOverrideBtn.dataset.deleteOverride;
+        if (!confirm('Hapus override ini?')) return;
+        try {
+          await deleteOverride(id);
+          showToast('Override dihapus.', 'success');
+          // Reload halaman override saat ini
+          const currentPath = window.location.pathname.replace(APP_BASE, '') || '/employees';
+          navigateTo(currentPath, false);
+        } catch (err) {
+          showToast('Gagal: ' + err.message, 'danger');
+        }
+        return;
+      }
+    });
 
   // =========== Form Submission Delegation ===========
   document.addEventListener('submit',
@@ -205,29 +213,37 @@
     });
 
   // =========== Inisialisasi ===========
-  // Token dari URL (jika ada)
-  const urlParams = new URLSearchParams(window.location.search);
-  const tokenFromUrl = urlParams.get('token');
-  if (tokenFromUrl) {
-    setToken(tokenFromUrl);
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-
-  // Handle popstate (back/forward browser)
-  window.addEventListener('popstate', (e) => {
-    if (e.state && e.state.path) {
-      // e.state.path adalah path internal (tanpa APP_BASE) karena kita simpan seperti itu
-      navigateTo(e.state.path, false);
-    } else {
-      navigateTo('/employees', false);
+  function initApp() {
+    // Token dari URL (jika ada)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    if (tokenFromUrl) {
+      setToken(tokenFromUrl);
+      window.history.replaceState({}, '', window.location.pathname);
     }
-  });
 
-  // Muat halaman awal
-  let initialPath = window.location.pathname.replace(new RegExp('^' + APP_BASE),
-    '');
-  if (!initialPath || initialPath === '/') {
-    initialPath = '/employees';
+    // Handle popstate (back/forward browser)
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.path) {
+        navigateTo(e.state.path, false);
+      } else {
+        navigateTo('/employees', false);
+      }
+    });
+
+    // Muat halaman awal
+    let initialPath = window.location.pathname.replace(new RegExp('^' + APP_BASE),
+      '');
+    if (!initialPath || initialPath === '/') {
+      initialPath = '/employees';
+    }
+    navigateTo(initialPath, false);
   }
-  navigateTo(initialPath, false);
+
+  // Jalankan setelah DOM siap
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 })();

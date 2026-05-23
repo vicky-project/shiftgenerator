@@ -5,8 +5,8 @@
     fetchOverrides, addOverride, deleteOverride,
     generateRoster, fetchSchedules, exportExcel
   } = window.AppCore;
-  const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
-  const escapeHtml = window.TelegramApp?.escapeHtml || window.tgApp?.escapeHtml || ((str) => str);
+  const showToast = window.TelegramApp?.showToast || tgApp.showToast || ((msg, type) => console.log(msg));
+  const escapeHtml = window.TelegramApp?.escapeHtml || tgApp.escapeHtml || ((str) => str);
 
   let calendarInstance = null;
 

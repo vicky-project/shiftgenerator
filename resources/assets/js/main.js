@@ -165,6 +165,11 @@
             showToast('Roster dibuat.');
             // Tampilkan container dan render kalender
             document.getElementById('result-container').classList.remove('d-none');
+            window.__shiftData = {
+              window.__shiftData,
+              start: start,
+              end: end
+            };
             await PageRender.renderShiftCalendar(start, end);
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');

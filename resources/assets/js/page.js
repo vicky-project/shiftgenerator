@@ -5,8 +5,8 @@
     fetchOverrides, addOverride, deleteOverride,
     generateRoster, fetchSchedules, exportExcel
   } = window.AppCore;
-  const showToast = window.TelegramApp?.showToast || tgApp.showToast || ((msg, type) => console.log(msg));
-  const escapeHtml = window.TelegramApp?.escapeHtml || tgApp.escapeHtml || ((str) => str);
+  const showToast = window.tgApp?.showToast || window.TelegramApp?.showToast || ((msg, type) => console.log(msg));
+  const escapeHtml = window.tgApp?.escapeHtml || window.TelegramApp?.escapeHtml || ((str) => str);
 
   let calendarInstance = null;
 
@@ -287,10 +287,10 @@
       calendarInstance = null;
     }
 
-    // Bangun popups dengan format tanggal YYYY-MM-DD
+    // Bangun popups dengan format YYYY-MM-DD
     const popups = {};
     schedules.forEach(s => {
-      const dateKey = String(s.date).substring(0, 10); // pastikan format YYYY-MM-DD
+      const dateKey = String(s.date).substring(0, 10);
       popups[dateKey] = {
         modifier: s.shift === 'Day' ? 'shift-day':
         s.shift === 'Night' ? 'shift-night': 'shift-off',
@@ -298,7 +298,6 @@
       };
     });
 
-    // Render dropdown
     let dropdownHtml = '';
     if (data.employeeKeys.length > 1) {
       dropdownHtml = `
@@ -318,14 +317,12 @@
       });
     }
 
-    // Inisialisasi Vanilla Calendar Pro
     const {
       Calendar
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
-      firstWeekday: 0,
-      firstDayOfWeek: 0,
+      firstDayOfWeek: 1,
       settings: {
         visibility: {
           daysOutsideMonth: true
@@ -341,13 +338,17 @@
         calendarHeaderYear: 'text-color',
         dayBtn: 'text-color',
       },
+      dateMin: data.start,
+      dateMax: data.end,
+      displayDateMin: data.start,
+      displayDateMax: data.end,
       popups: popups,
     });
 
     calendarInstance.init();
 
-    // Fallback manual: jika popups tidak menambahkan class (misal bug versi), tambahkan class via observer
-    const applyModifierFallback = () => {
+    // Fallback manual jika popups tidak menambahkan class
+    const applyModifier = () => {
       const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
       dateElements.forEach(el => {
         const date = el.getAttribute('data-vc-date');
@@ -357,19 +358,14 @@
       });
     };
 
-    // Observer untuk perubahan DOM (misal navigasi bulan)
     const targetNode = document.getElementById('calendar-instance');
     if (targetNode) {
-      const observer = new MutationObserver(() => {
-        applyModifierFallback();
-      });
+      const observer = new MutationObserver(() => applyModifier());
       observer.observe(targetNode, {
         childList: true, subtree: true
       });
     }
-
-    // Jalankan sekali setelah init (dengan delay)
-    setTimeout(applyModifierFallback, 200);
+    setTimeout(applyModifier, 200);
   }
 
   window.PageRender = {
@@ -378,10 +374,8 @@
     renderOverrides,
     renderGenerate,
     renderShiftCalendar,
-    loadRosterData: async (start,
-      end) => {
-      await renderShiftCalendar(start,
-        end);
+    loadRosterData: async (start, end) => {
+      await renderShiftCalendar(start, end);
     }
   };
 })();

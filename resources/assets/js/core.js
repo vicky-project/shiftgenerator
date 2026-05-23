@@ -98,7 +98,14 @@
       })
     }),
     // Fetch schedules
-    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/schedules?start_date=${start}&end_date=${end}`),
+    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/schedules?start_date=${start}&end_date=${end}`)
+    .then(data => {
+      // Potong date menjadi YYYY-MM-DD untuk hindari zona waktu
+      return data.map(s => ({
+        ...s,
+        date: s.date?.substring(0, 10) || s.date
+      }));
+    }),
     // Export Excel (mengembalikan blob)
     exportExcel: async (start, end) => {
       const token = state.token;

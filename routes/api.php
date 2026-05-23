@@ -13,7 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::delete('overrides/{override}', [OverrideController::class, 'destroy']);
 
   // Employees
-  Route::apiResource('employees', EmployeeController::class)->except(['show']);
+  Route::apiResource('employees', EmployeeController::class);
   // Roster
   Route::post('generate', [ShiftController::class, 'generate']);
   Route::get('schedules', [ShiftController::class, 'schedules']);

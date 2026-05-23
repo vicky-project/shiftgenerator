@@ -9,7 +9,7 @@
   };
 
   // =========== Konstanta ===========
-  const API_BASE = window.API_BASE;
+  const API_BASE = window.API_BASE; // di-set dari view: app.url
   const APP_BASE = '/apps/shift';
 
   // =========== Fetch Helper ===========

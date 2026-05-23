@@ -1,17 +1,19 @@
 // page.js
 (function() {
   const {
-    state, APP_BASE, fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee, fetchOverrides, addOverride, deleteOverride, generateRoster, fetchSchedules, exportExcel
+    fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
+    fetchOverrides, addOverride, deleteOverride,
+    generateRoster, fetchSchedules, exportExcel
   } = window.AppCore;
   const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
   const escapeHtml = window.TelegramApp?.escapeHtml || window.tgApp?.escapeHtml || ((str) => str);
 
-  // Render daftar karyawan
+  // ---------- Render daftar karyawan ----------
   async function renderEmployeeList() {
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
     let html = `<div class="d-flex justify-content-end mb-3">
-    <a href="${APP_BASE}/employees/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</a>
+    <button data-nav="/employees/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
     </div>`;
     try {
       const employees = await fetchEmployees();
@@ -28,8 +30,8 @@
           <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
           </div>
           <div class="btn-group btn-group-sm">
-          <a href="${APP_BASE}/employees/${emp.id}/overrides" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</a>
-          <a href="${APP_BASE}/employees/${emp.id}/edit" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></a>
+          <button data-nav="/employees/${emp.id}/overrides" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
+          <button data-nav="/employees/${emp.id}/edit" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-outline-danger" data-delete-employee="${emp.id}"><i class="bi bi-trash"></i></button>
           </div>
           </div>
@@ -40,11 +42,9 @@
       html += `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
     }
     content.innerHTML = html;
-
-    // Event delegation untuk tombol hapus ditangani di main.js
   }
 
-  // Render form tambah/edit
+  // ---------- Render form tambah/edit ----------
   async function renderEmployeeForm(params) {
     const id = params?.id;
     const isEdit = !!id;
@@ -105,7 +105,7 @@
     </form>`;
   }
 
-  // Render halaman override cuti
+  // ---------- Render halaman override ----------
   async function renderOverrides(params) {
     const employeeId = params.id;
     document.getElementById('app-title').innerText = 'Pengajuan Cuti';
@@ -156,7 +156,7 @@
     await loadOverrides();
   }
 
-  // Render halaman generate
+  // ---------- Render halaman generate ----------
   function renderGenerate() {
     document.getElementById('app-title').innerText = 'Generate Roster';
     const content = document.getElementById('app-content');

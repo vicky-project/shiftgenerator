@@ -3,16 +3,6 @@
 @section('title', 'Shift Generator')
 
 @section('content')
-{{-- Loading Overlay Global --}}
-<div id="global-loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:10000; flex-direction:column;">
-  <div class="spinner-border text-light" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-  <div style="color:white; margin-top:10px;">
-    Memuat...
-  </div>
-</div>
-
 <div id="app-shell" class="d-flex flex-column min-vh-100">
   <div id="app-header" class="px-3 py-2 d-flex align-items-center border-bottom" style="background: var(--tg-theme-secondary-bg-color);">
     <button id="btn-back" class="btn btn-sm btn-outline-secondary me-2 d-none" onclick="window.goToPage('employees')">
@@ -30,6 +20,24 @@
     <button class="btn btn-link text-decoration-none text-center nav-link" data-nav="generate" data-route="generate">
       <i class="bi bi-calendar-check fs-5"></i><br><small>Generate</small>
     </button>
+  </div>
+</div>
+
+<!-- Modal Informasi Global -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: var(--tg-theme-secondary-bg-color); color: var(--tg-theme-text-color);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--tg-theme-section-separator-color);">
+        <h6 class="modal-title" id="infoModalLabel">Informasi</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(0.5);"></button>
+      </div>
+      <div class="modal-body" id="infoModalBody">
+        <!-- Konten akan diisi dinamis -->
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid var(--tg-theme-section-separator-color);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
   </div>
 </div>
 @endsection

@@ -280,20 +280,19 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
+    // Hancurkan instance lama
     if (calendarInstance && typeof calendarInstance.destroy === 'function') {
       calendarInstance.destroy();
     }
 
-    const popups = {};
+    // Bangun mapping tanggal → modifier class
+    const shiftMap = {};
     schedules.forEach(s => {
-      const modifier = s.shift === 'Day' ? 'shift-day':
+      shiftMap[s.date] = s.shift === 'Day' ? 'shift-day':
       s.shift === 'Night' ? 'shift-night': 'shift-off';
-      popups[s.date] = {
-        modifier: modifier,
-        html: `<div><strong>${s.shift}</strong></div>`
-      };
     });
 
+    // Render dropdown pilih karyawan
     let dropdownHtml = '';
     if (data.employeeKeys.length > 1) {
       dropdownHtml = `
@@ -306,6 +305,7 @@
 
     container.innerHTML = dropdownHtml + '<div id="calendar-instance"></div>';
 
+    // Event listener dropdown
     const selectEl = document.getElementById('employee-select');
     if (selectEl) {
       selectEl.addEventListener('change', (e) => {
@@ -313,20 +313,47 @@
       });
     }
 
+    // Inisialisasi Vanilla Calendar Pro
     const {
       Calendar
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
-      firstWeekday: 1,
-      monthsToSwitch: 1,
-      dateMin: data.start,
-      dateMax: data.end,
-      displayDateMin: data.start,
-      displayDateMax: data.end,
-      popups: popups,
+      firstDayOfWeek: 1, // Senin
+      settings: {
+        visibility: {
+          daysOutsideMonth: true,
+        },
+        selection: {
+          day: 'none', // Tidak bisa pilih (hanya tampil)
+        },
+      },
+      classes: {
+        // Styling dasar agar cocok dengan tema
+        calendar: 'vc-calendar-modern',
+        dayBtn: 'vc-date__btn',
+      },
+      onClickDate(self, event) {
+        // Opsional: bisa ditambahkan aksi klik jika diperlukan
+      },
     });
+
     calendarInstance.init();
+
+    // Tambahkan class warna shift ke setiap tanggal setelah render
+    const applyShiftClasses = () => {
+      const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
+      dateElements.forEach(el => {
+        const date = el.getAttribute('data-vc-date');
+        if (shiftMap[date]) {
+          el.classList.add(shiftMap[date]);
+        }
+      });
+    };
+
+    // Jalankan setelah DOM kalender ter-render (dengan sedikit delay)
+    setTimeout(applyShiftClasses,
+      150);
   }
 
   window.PageRender = {
@@ -335,8 +362,10 @@
     renderOverrides,
     renderGenerate,
     renderShiftCalendar,
-    loadRosterData: async (start, end) => {
-      await renderShiftCalendar(start, end);
+    loadRosterData: async (start,
+      end) => {
+      await renderShiftCalendar(start,
+        end);
     }
   };
 })();

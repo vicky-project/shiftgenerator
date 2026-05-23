@@ -222,7 +222,7 @@
     <div class="legend-item"><span class="legend-dot off"></span> Off</div>
     <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
     </div>
-    <div id="shift-calendar-wrapper" style="all: initial; isolation: isolate;">
+    <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
     </div>
     <div class="d-flex justify-content-end">
@@ -285,6 +285,7 @@
     // Hancurkan instance lama
     if (calendarInstance && typeof calendarInstance.destroy === 'function') {
       calendarInstance.destroy();
+      calendarInstance = null;
     }
 
     // Bangun mapping tanggal → modifier class
@@ -321,31 +322,32 @@
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
-      firstDayOfWeek: 1, // Senin
+      firstDayOfWeek: 1,
       settings: {
         visibility: {
           daysOutsideMonth: true,
         },
         selection: {
-          day: 'none', // Tidak bisa pilih (hanya tampil)
+          day: 'none',
         },
       },
       classes: {
-        // Styling dasar agar cocok dengan tema
-        calendar: 'vc-calendar-modern',
-        dayBtn: 'vc-date__btn',
-      },
-      onClickDate(self, event) {
-        // Opsional: bisa ditambahkan aksi klik jika diperlukan
+        calendar: 'bg-transparent',
+        calendarHeader: 'bg-transparent',
+        calendarHeaderMonth: 'text-color',
+        calendarHeaderYear: 'text-color',
+        dayBtn: 'text-color',
       },
     });
 
     calendarInstance.init();
 
-    // Tambahkan class warna shift ke setiap tanggal setelah render
+    // Fungsi untuk apply class shift
     const applyShiftClasses = () => {
       const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
       dateElements.forEach(el => {
+        // Hapus class shift sebelumnya
+        el.classList.remove('shift-day', 'shift-night', 'shift-off');
         const date = el.getAttribute('data-vc-date');
         if (shiftMap[date]) {
           el.classList.add(shiftMap[date]);
@@ -353,9 +355,19 @@
       });
     };
 
-    // Jalankan setelah DOM kalender ter-render (dengan sedikit delay)
-    setTimeout(applyShiftClasses,
-      150);
+    // Gunakan MutationObserver untuk mendeteksi render
+    const targetNode = document.getElementById('calendar-instance');
+    if (targetNode) {
+      const observer = new MutationObserver(() => {
+        applyShiftClasses();
+      });
+      observer.observe(targetNode, {
+        childList: true, subtree: true
+      });
+    }
+
+    // Jalankan juga sekali di awal
+    setTimeout(applyShiftClasses, 100);
   }
 
   window.PageRender = {

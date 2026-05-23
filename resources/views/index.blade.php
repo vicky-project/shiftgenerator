@@ -58,7 +58,7 @@
 
 @push('styles')
 <!-- Vanilla Calendar Pro CSS -->
-<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
   --shift-primary: #4A90E2;
@@ -168,6 +168,13 @@
     color: var(--shift-primary);
   }
 
+  /* ========== KALENDER ========== */
+  #shift-calendar-wrapper {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    padding: 0.5rem;
+  }
+
   /* Warna shift untuk kalender */
   .shift-day .vc-date__btn {
     background-color: #2ecc71 !important;
@@ -190,7 +197,7 @@
     border-radius: 6px !important;
   }
 
-  /* Hover state untuk tombol shift */
+  /* Hover state */
   .shift-day .vc-date__btn:hover,
   .shift-night .vc-date__btn:hover,
   .shift-off .vc-date__btn:hover,
@@ -228,6 +235,11 @@
   }
   #calendar-legend .legend-dot.holiday {
     background: #e74c3c;
+  }
+
+  /* Text color helper */
+  .text-color {
+    color: var(--tg-theme-text-color) !important;
   }
 </style>
 @endpush

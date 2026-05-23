@@ -282,19 +282,19 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Hancurkan instance lama
     if (calendarInstance && typeof calendarInstance.destroy === 'function') {
       calendarInstance.destroy();
       calendarInstance = null;
     }
 
-    // Bangun popups (seperti di Notes)
+    // Bangun popups dengan format tanggal YYYY-MM-DD
     const popups = {};
     schedules.forEach(s => {
-      popups[s.date] = {
+      const dateKey = String(s.date).substring(0, 10); // pastikan format YYYY-MM-DD
+      popups[dateKey] = {
         modifier: s.shift === 'Day' ? 'shift-day':
         s.shift === 'Night' ? 'shift-night': 'shift-off',
-        html: `<div><strong>${s.shift}</strong> | ${escapeHtml(empData.employee.name)}</div>`
+        html: `<div><strong>${s.shift}</strong></div>`
       };
     });
 
@@ -327,10 +327,10 @@
       firstDayOfWeek: 1,
       settings: {
         visibility: {
-          daysOutsideMonth: true,
+          daysOutsideMonth: true
         },
         selection: {
-          day: 'none',
+          day: 'none'
         },
       },
       classes: {
@@ -340,10 +340,35 @@
         calendarHeaderYear: 'text-color',
         dayBtn: 'text-color',
       },
-      popups: popups, // <-- ini yang akan menambahkan class
+      popups: popups,
     });
 
     calendarInstance.init();
+
+    // Fallback manual: jika popups tidak menambahkan class (misal bug versi), tambahkan class via observer
+    const applyModifierFallback = () => {
+      const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
+      dateElements.forEach(el => {
+        const date = el.getAttribute('data-vc-date');
+        if (popups[date] && popups[date].modifier) {
+          el.classList.add(popups[date].modifier);
+        }
+      });
+    };
+
+    // Observer untuk perubahan DOM (misal navigasi bulan)
+    const targetNode = document.getElementById('calendar-instance');
+    if (targetNode) {
+      const observer = new MutationObserver(() => {
+        applyModifierFallback();
+      });
+      observer.observe(targetNode, {
+        childList: true, subtree: true
+      });
+    }
+
+    // Jalankan sekali setelah init (dengan delay)
+    setTimeout(applyModifierFallback, 200);
   }
 
   window.PageRender = {

@@ -57,6 +57,8 @@
 @endpush
 
 @push('styles')
+<!-- Vanilla Calendar Pro CSS -->
+<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
 <style>
 :root {
   --shift-primary: #4A90E2;
@@ -165,18 +167,6 @@
   [data-info-title]:hover {
     color: var(--shift-primary);
   }
-  @push('styles')
-  <!-- Vanilla Calendar Pro CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
-
-  <style>
-:root {
-    --shift-primary: #4A90E2;
-    --shift-primary-hover: #357ABD;
-    --shift-danger: #E74C3C;
-    --shift-warning: #F39C12;
-    --shift-info: #3498DB;
-  }
 
   /* Warna shift untuk kalender */
   .shift-day .vc-date__btn {
@@ -239,12 +229,5 @@
   #calendar-legend .legend-dot.holiday {
     background: #e74c3c;
   }
-
-  /* Tab bar - tanpa background */
-  #app-tabbar .nav-link {
-    /* ... */
-  }
-</style>
-@endpush
 </style>
 @endpush

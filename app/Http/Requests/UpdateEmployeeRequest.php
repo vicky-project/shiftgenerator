@@ -3,7 +3,7 @@
 namespace Modules\ShiftGenerator\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Valiation\Rule;
+use Illuminate\Validation\Rule;
 use Modules\ShiftGenerator\Enums\ShiftType;
 
 class UpdateEmployeeRequest extends FormRequest

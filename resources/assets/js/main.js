@@ -38,7 +38,6 @@
   }
 
   async function navigateTo(path, addToHistory = true) {
-    console.log('[navigateTo] path:', path); // DEBUG
     const fullPath = APP_BASE + (path.startsWith('/') ? path: '/' + path);
     if (addToHistory) {
       window.history.pushState({
@@ -55,7 +54,6 @@
         document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat halaman: ${err.message}</div>`;
       }
     } else {
-      console.warn('[navigateTo] Route tidak ditemukan untuk path:', path);
       document.getElementById('app-content').innerHTML = `<div class="alert alert-warning">Halaman tidak ditemukan (${path}).</div>`;
     }
 
@@ -64,7 +62,6 @@
     if (btnBack) {
       const isRoot = (path === '/employees' || path === '/generate');
       btnBack.classList.toggle('d-none', isRoot);
-      console.log('[navigateTo] Tombol back ' + (isRoot ? 'disembunyikan': 'ditampilkan'));
     }
   }
 
@@ -211,7 +208,6 @@
 
   // =========== Inisialisasi ===========
   function initApp() {
-    console.log('[initApp] Mulai inisialisasi');
     // Token dari URL (jika ada)
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
@@ -228,10 +224,12 @@
       }
     });
 
-    let initialPath = window.location.pathname.replace(new RegExp('^' + APP_BASE),
-      '');
-    console.log('[initApp] initialPath:',
-      initialPath);
+    // Ambil path internal dengan mencari APP_BASE di pathname
+    let initialPath = '/';
+    const baseIndex = window.location.pathname.indexOf(APP_BASE);
+    if (baseIndex !== -1) {
+      initialPath = window.location.pathname.substring(baseIndex + APP_BASE.length);
+    }
     if (!initialPath || initialPath === '/') {
       initialPath = '/employees';
     }

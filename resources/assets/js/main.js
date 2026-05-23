@@ -8,9 +8,9 @@
     renderEmployeeList, renderEmployeeForm, renderOverrides,
     renderGenerate, loadRosterData
   } = window.PageRender;
-  const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
-  const showLoading = window.TelegramApp?.showLoading || ((msg) => console.log('loading:', msg));
-  const hideLoading = window.TelegramApp?.hideLoading || (() => console.log('hide loading'));
+  const showToast = window.TelegramApp?.showToast || tgApp.showToast || ((msg, type) => console.log(msg));
+  const showLoading = tgApp.showLoading || ((msg) => console.log('loading:', msg));
+  const hideLoading = tgApp.hideLoading || (() => console.log('hide loading'));
 
   let currentPage = 'employees';
   let currentParams = null;

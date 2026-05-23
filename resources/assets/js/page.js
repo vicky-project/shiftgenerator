@@ -91,7 +91,7 @@
     <i class="bi bi-info-circle"></i>
     </button>
     </label>
-    <input type="date" name="shift_start_date" class="form-control" value="${employee ? employee.shift_start_date: ''}" required>
+    <input type="date" name="shift_start_date" class="form-control" value="${employee?.shift_start_date ? String(employee.shift_start_date).substring(0, 10): ''}" required>
     </div>
     <div class="col">
     <label class="form-label">
@@ -141,7 +141,7 @@
     <i class="bi bi-info-circle"></i>
     </button>
     </label>
-    <input type="date" name="pattern_start_date" class="form-control" value="${employee ? employee.pattern_start_date: ''}" required>
+    <input type="date" name="pattern_start_date" class="form-control" value="${employee?.pattern_start_date ? String(employee.pattern_start_date).substring(0, 10): ''}" required>
     </div>
     <button type="submit" class="btn btn-primary w-100">Simpan</button>
     </form>`;

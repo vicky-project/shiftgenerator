@@ -2,9 +2,11 @@
 
 namespace Modules\ShiftGenerator\Http\Controllers\Api;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Modules\ShiftGenerator\Models\Employee;
+use Modules\ShiftGenerator\Http\Requests\StoreEmployeeRequest;
+use Modules\ShiftGenerator\Http\Requests\UpdateEmployeeRequest;
 
 class EmployeeController extends Controller
 {
@@ -13,35 +15,17 @@ class EmployeeController extends Controller
   */
   public function index(Request $request) {
     $user = $request->user();
-    try {
-      return Employee::where('telegram_user_id', $user->id)->get();
-    } catch(\Exception $e) {
-      \Log::error("Error getting employees", [
-        'message' => $e->getMessage(),
-        'trace' => $e->getTrace()
-      ]);
-      return [];
-    }
+    return Employee::where('telegram_user_id', $user->id)->first();
   }
 
   /**
   * Simpan karyawan baru.
   */
-  public function store(Request $request) {
-    $validated = $request->validate([
-      'name' => 'required|string|max:255',
-      'nrp' => 'required|string|max:50|unique:employees,nrp',
-      'shift_pattern' => 'required|string|max:100',
-      'shift_start_date' => 'required|date',
-      'shift_start' => 'required|in:Day,Night',
-      'work_days' => 'required|integer|min:1',
-      'leave_days' => 'required|integer|min:1',
-      'pattern_start_date' => 'required|date',
-    ]);
+  public function store(StoreEmployeeRequest $request) {
+    $data = $request->validated();
+    $data['telegram_user_id'] = $request->user()->id;
 
-    $user = $request->user();
-    $validated['telegram_user_id'] = $user->id;
-    $employee = Employee::create($validated);
+    $employee = Employee::create($data);
 
     return response()->json($employee, 201);
   }
@@ -58,21 +42,10 @@ class EmployeeController extends Controller
   /**
   * Perbarui data karyawan.
   */
-  public function update(Request $request, Employee $employee) {
-    $this->authorizeEmployee($request, $employee);
+  public function update(UpdateEmployeeRequest $request, Employee $employee) {
+    $this->authorizeEmployee($request $employee);
 
-    $validated = $request->validate([
-      'name' => 'sometimes|string|max:255',
-      'nrp' => 'sometimes|string|max:50|unique:employees,nrp,' . $employee->id,
-      'shift_pattern' => 'sometimes|string|max:100',
-      'shift_start_date' => 'sometimes|date',
-      'shift_start' => 'sometimes|in:Day,Night',
-      'work_days' => 'sometimes|integer|min:1',
-      'leave_days' => 'sometimes|integer|min:1',
-      'pattern_start_date' => 'sometimes|date',
-    ]);
-
-    $employee->update($validated);
+    $employee->update($request->validated());
 
     return response()->json($employee);
   }

@@ -175,34 +175,41 @@
     padding: 0.5rem;
   }
 
-  /* Warna shift untuk kalender */
-  .shift-day .vc-date__btn {
-    background-color: #2ecc71 !important;
-    color: #fff !important;
-    border-radius: 6px !important;
-  }
-  .shift-night .vc-date__btn {
-    background-color: #3498db !important;
-    color: #fff !important;
-    border-radius: 6px !important;
-  }
-  .shift-off .vc-date__btn {
-    background-color: #bdc3c7 !important;
-    color: #555 !important;
-    border-radius: 6px !important;
-  }
-  .shift-holiday .vc-date__btn {
-    background-color: #e74c3c !important;
-    color: #fff !important;
-    border-radius: 6px !important;
+  /* Pastikan tombol tanggal bisa memiliki dot */
+  .vc-date__btn {
+    position: relative;
   }
 
-  /* Hover state */
-  .shift-day .vc-date__btn:hover,
-  .shift-night .vc-date__btn:hover,
-  .shift-off .vc-date__btn:hover,
-  .shift-holiday .vc-date__btn:hover {
-    opacity: 0.85;
+  /* Dot di bawah tanggal */
+  .shift-day .vc-date__btn::after,
+  .shift-night .vc-date__btn::after,
+  .shift-off .vc-date__btn::after,
+  .shift-holiday .vc-date__btn::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .shift-day .vc-date__btn::after {
+    background-color: #2ecc71;
+  }
+
+  .shift-night .vc-date__btn::after {
+    background-color: #3498db;
+  }
+
+  .shift-off .vc-date__btn::after {
+    background-color: #bdc3c7;
+  }
+
+  .shift-holiday .vc-date__btn::after {
+    background-color: #e74c3c;
   }
 
   /* Legenda */

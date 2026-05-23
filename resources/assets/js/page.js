@@ -71,16 +71,37 @@
     <input type="text" name="nrp" class="form-control" value="${employee ? escapeHtml(employee.nrp): ''}" required>
     </div>
     <div class="mb-3">
-    <label class="form-label">Pola Shift</label>
+    <label class="form-label">
+    Pola Shift
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Pola Shift"
+    data-info-content="<p>String yang mewakili shift harian dalam satu siklus.</p><ul><li><strong>D</strong> = Day (siang)</li><li><strong>N</strong> = Night (malam)</li><li><strong>O</strong> atau <strong>-</strong> = Off (libur)</li></ul><p>Contoh: <code>DDDDDDDDNNNNNO</code> berarti 8 Day, 5 Night, 1 Off.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <input type="text" name="shift_pattern" class="form-control" value="${employee ? escapeHtml(employee.shift_pattern): 'DDDDDDDDNNNNNO'}" required>
     </div>
     <div class="row mb-3">
     <div class="col">
-    <label class="form-label">Shift Start Date</label>
+    <label class="form-label">
+    Shift Start Date
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Shift Start Date"
+    data-info-content="<p>Tanggal acuan dimulainya pola shift. Pada tanggal ini, karyawan dianggap mulai bekerja dengan shift yang dipilih di sampingnya (<strong>Shift Start</strong>).</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <input type="date" name="shift_start_date" class="form-control" value="${employee ? employee.shift_start_date: ''}" required>
     </div>
     <div class="col">
-    <label class="form-label">Shift Start</label>
+    <label class="form-label">
+    Shift Start
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Shift Start"
+    data-info-content="<p>Shift pada <strong>Shift Start Date</strong>. Pilih <strong>Day</strong> atau <strong>Night</strong>. Posisi ini akan menjadi awal perhitungan siklus pola.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <select name="shift_start" class="form-select">
     <option value="Day" ${employee && employee.shift_start === 'Day' ? 'selected': ''}>Day</option>
     <option value="Night" ${employee && employee.shift_start === 'Night' ? 'selected': ''}>Night</option>
@@ -89,16 +110,37 @@
     </div>
     <div class="row mb-3">
     <div class="col">
-    <label class="form-label">Work Days</label>
+    <label class="form-label">
+    Work Days
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Work Days"
+    data-info-content="<p>Jumlah hari kerja berturut-turut dalam satu siklus kerja-cuti (hitungan kalender, termasuk offday). Setelah hari kerja habis, masuk ke masa cuti (<strong>Leave Days</strong>).</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <input type="number" name="work_days" class="form-control" value="${employee ? employee.work_days: 70}">
     </div>
     <div class="col">
-    <label class="form-label">Leave Days</label>
+    <label class="form-label">
+    Leave Days
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Leave Days"
+    data-info-content="<p>Jumlah hari cuti setelah masa kerja (<strong>Work Days</strong>). Cuti ini otomatis berulang setiap siklus.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <input type="number" name="leave_days" class="form-control" value="${employee ? employee.leave_days: 14}">
     </div>
     </div>
     <div class="mb-3">
-    <label class="form-label">Pattern Start Date</label>
+    <label class="form-label">
+    Pattern Start Date
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Pattern Start Date"
+    data-info-content="<p>Tanggal dimulainya siklus kerja-cuti pertama. Sistem akan menghitung ${employee ? employee.work_days: 70} hari kerja (atau sesuai <strong>Work Days</strong>) mulai tanggal ini, lalu otomatis cuti selama ${employee ? employee.leave_days: 14} hari.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
     <input type="date" name="pattern_start_date" class="form-control" value="${employee ? employee.pattern_start_date: ''}" required>
     </div>
     <button type="submit" class="btn btn-primary w-100">Simpan</button>

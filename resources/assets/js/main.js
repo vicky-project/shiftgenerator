@@ -89,6 +89,15 @@
 
     window.goToPage = goTo;
 
+    // Fungsi untuk menampilkan modal informasi
+    window.showInfoModal = function(title,
+      content) {
+      document.getElementById('infoModalLabel').innerText = title || 'Informasi';
+      document.getElementById('infoModalBody').innerHTML = content || '';
+      const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+      modal.show();
+    };
+
     // =========== Event Delegation ===========
     document.addEventListener('click',
       async (e) => {
@@ -183,6 +192,14 @@
           } finally {
             hideLoading();
           }
+          return;
+        }
+
+        const infoBtn = e.target.closest('[data-info-title]');
+        if (infoBtn) {
+          const title = infoBtn.dataset.infoTitle || 'Informasi';
+          const content = infoBtn.dataset.infoContent || '';
+          window.showInfoModal(title, content);
           return;
         }
       });

@@ -154,5 +154,15 @@
   .alert {
     border-radius: 8px;
   }
+  /* Tombol info */
+  [data-info-title] {
+    color: var(--tg-theme-hint-color);
+    text-decoration: none;
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+  [data-info-title]:hover {
+    color: var(--shift-primary);
+  }
 </style>
 @endpush

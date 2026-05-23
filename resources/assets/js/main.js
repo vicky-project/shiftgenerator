@@ -9,16 +9,15 @@
     renderGenerate, loadRosterData
   } = window.PageRender;
   const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
-  const showLoading = window.TelegramApp?.showLoading || (() => {});
-  const hideLoading = window.TelegramApp?.hideLoading || (() => {});
+  const showLoading = window.TelegramApp?.showLoading || ((msg) => console.log('loading:', msg));
+  const hideLoading = window.TelegramApp?.hideLoading || (() => console.log('hide loading'));
 
-  // State sederhana
   let currentPage = 'employees';
   let currentParams = null;
 
-  // Fungsi navigasi
   async function goTo(navString) {
-    // Parse string: bisa "halaman" atau "halaman:id"
+    showLoading('Memuat halaman...');
+
     const [page, param] = navString.split(':');
     currentPage = page;
     currentParams = param ? {
@@ -50,6 +49,8 @@
         }
       } catch (err) {
         document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
+      } finally {
+        hideLoading();
       }
     }
 
@@ -72,41 +73,40 @@
       });
     }
 
-    // Expose goTo untuk tombol back di view
     window.goToPage = goTo;
 
-    // =========== Event Delegation ===========
+    // Event delegation
     document.addEventListener('click',
       async (e) => {
-        // Navigasi via data-nav
         const navButton = e.target.closest('[data-nav]');
         if (navButton) {
-          const nav = navButton.dataset.nav.trim();
-          goTo(nav);
+          goTo(navButton.dataset.nav.trim());
           return;
         }
 
-        // Hapus karyawan
         const deleteBtn = e.target.closest('[data-delete-employee]');
         if (deleteBtn) {
           const id = deleteBtn.dataset.deleteEmployee;
           if (!confirm('Yakin hapus karyawan? Semua jadwal terkait akan ikut terhapus.')) return;
           try {
+            showLoading('Menghapus...');
             await deleteEmployee(id);
             showToast('Karyawan dihapus.', 'success');
             goTo('employees');
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
           }
           return;
         }
 
-        // Hapus override
         const delOverrideBtn = e.target.closest('[data-delete-override]');
         if (delOverrideBtn) {
           const id = delOverrideBtn.dataset.deleteOverride;
           if (!confirm('Hapus override ini?')) return;
           try {
+            showLoading('Menghapus...');
             await deleteOverride(id);
             showToast('Override dihapus.', 'success');
             if (currentPage === 'overrides' && currentParams) {
@@ -116,11 +116,13 @@
             }
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
           }
           return;
         }
 
-        // Tombol Generate & Export (ada di #app-content)
+        // Generate & Export
         if (e.target.id === 'btn-generate') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
@@ -146,6 +148,7 @@
         if (e.target.id === 'btn-export') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
+          showLoading('Menyiapkan file...');
           try {
             const blob = await exportExcel(start, end);
             const url = window.URL.createObjectURL(blob);
@@ -159,12 +162,14 @@
             showToast('File terunduh.');
           } catch (err) {
             showToast('Export error: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
           }
           return;
         }
       });
 
-    // Form submission
+    // Form submissions
     document.addEventListener('submit',
       async (e) => {
         if (e.target.id === 'employee-form') {
@@ -174,12 +179,15 @@
           data.work_days = parseInt(data.work_days);
           data.leave_days = parseInt(data.leave_days);
           const id = currentParams?.id || null;
+          showLoading('Menyimpan...');
           try {
             await window.AppCore.saveEmployee(data, id);
             showToast('Data tersimpan.', 'success');
             goTo('employees');
           } catch (err) {
             showToast('Error: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
           }
           return;
         }
@@ -189,6 +197,7 @@
           const startDate = e.target.start_date.value;
           const employeeId = currentParams?.id;
           if (!employeeId) return;
+          showLoading('Menambahkan...');
           try {
             await addOverride(employeeId, startDate);
             showToast('Override ditambahkan.', 'success');
@@ -196,12 +205,13 @@
             goTo(`overrides:${employeeId}`);
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
           }
           return;
         }
       });
 
-    // Inisialisasi
     function initApp() {
       const urlParams = new URLSearchParams(window.location.search);
       const tokenFromUrl = urlParams.get('token');

@@ -324,7 +324,7 @@
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
-      firstWeekday: 1,
+      firstWeekday: 0,
       settings: {
         visibility: {
           daysOutsideMonth: true

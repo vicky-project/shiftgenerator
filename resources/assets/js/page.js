@@ -13,7 +13,7 @@
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
     let html = `<div class="d-flex justify-content-end mb-3">
-    <button data-nav="/employees/create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
+    <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
     </div>`;
     try {
       const employees = await fetchEmployees();
@@ -30,8 +30,8 @@
           <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
           </div>
           <div class="btn-group btn-group-sm">
-          <button data-nav="/employees/${emp.id}/overrides" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
-          <button data-nav="/employees/${emp.id}/edit" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></button>
+          <button data-nav="overrides:${emp.id}" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
+          <button data-nav="edit-employee:${emp.id}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-outline-danger" data-delete-employee="${emp.id}"><i class="bi bi-trash"></i></button>
           </div>
           </div>
@@ -129,7 +129,6 @@
     </div>
     <div id="override-list"><div class="text-center text-muted py-3">Memuat...</div></div>`;
 
-    // Fungsi lokal untuk load overrides
     async function loadOverrides() {
       try {
         const overrides = await fetchOverrides(employeeId);

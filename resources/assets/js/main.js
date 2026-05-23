@@ -32,30 +32,33 @@
   }
 
   async function navigateTo(path, addToHistory = true) {
+    // Gabungkan dengan APP_BASE agar URL browser tetap di /apps/shift/...
+    const fullPath = APP_BASE + (path.startsWith('/') ? path: '/' + path);
+
     if (addToHistory) {
       window.history.pushState({
         path
-      }, '', path);
+      }, '', fullPath);
     }
+
     updateNavActive(path);
     const route = matchRoute(path);
+
     if (route) {
       try {
         await route.handler(route.params);
       } catch (err) {
-        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat halaman: ${err.message}</div>`;
+        document.getElementById('app-content').innerHTML =
+        `<div class="alert alert-danger">Gagal memuat halaman: ${err.message}</div>`;
       }
     } else {
-      document.getElementById('app-content').innerHTML = `<div class="alert alert-warning">Halaman tidak ditemukan.</div>`;
+      document.getElementById('app-content').innerHTML =
+      `<div class="alert alert-warning">Halaman tidak ditemukan.</div>`;
     }
 
-    // Toggle back button
+    // Toggle tombol back
     const btnBack = document.getElementById('btn-back');
-    if (path !== '/employees' && path !== '/generate') {
-      btnBack.classList.remove('d-none');
-    } else {
-      btnBack.classList.add('d-none');
-    }
+    btnBack.classList.toggle('d-none', path === '/employees' || path === '/generate');
   }
 
   function updateNavActive(path) {
@@ -230,7 +233,7 @@
 
   // Muat halaman awal
   const initialPath = window.location.pathname.replace(APP_BASE,
-    '') || '/api/employees';
+    '') || '/employees';
   navigateTo(initialPath,
     false);
 })();

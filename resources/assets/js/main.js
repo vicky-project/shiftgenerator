@@ -163,7 +163,9 @@
           try {
             await generateRoster(start, end, holidays);
             showToast('Roster dibuat.');
-            await loadRosterData(start, end);
+            // Tampilkan container dan render kalender
+            document.getElementById('result-container').classList.remove('d-none');
+            await PageRender.renderShiftCalendar(start, end);
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
           } finally {

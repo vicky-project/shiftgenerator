@@ -5,8 +5,10 @@
     fetchOverrides, addOverride, deleteOverride,
     generateRoster, fetchSchedules, exportExcel
   } = window.AppCore;
-  const showToast = window.TelegramApp?.showToast || tgApp.showToast || ((msg, type) => console.log(msg));
-  const escapeHtml = window.TelegramApp?.escapeHtml || tgApp.escapeHtml || ((str) => str);
+  const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
+  const escapeHtml = window.TelegramApp?.escapeHtml || window.tgApp?.escapeHtml || ((str) => str);
+
+  let calendarInstance = null;
 
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList() {
@@ -214,34 +216,127 @@
     </div>
     </div>
     <div id="result-container" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-    <h6>Hasil Roster</h6>
-    <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
+    <div id="calendar-legend">
+    <div class="legend-item"><span class="legend-dot day"></span> Day</div>
+    <div class="legend-item"><span class="legend-dot night"></span> Night</div>
+    <div class="legend-item"><span class="legend-dot off"></span> Off</div>
+    <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
     </div>
-    <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
-    <table class="table table-sm table-bordered">
-    <thead><tr><th>Tanggal</th><th>NRP</th><th>Nama</th><th>Shift</th></tr></thead>
-    <tbody id="roster-body"></tbody>
-    </table>
+    <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
+    <div class="d-flex justify-content-end">
+    <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
     </div>
     </div>`;
   }
 
-  // Publikasi render functions
+  // ---------- Render kalender dengan data shift ----------
+  async function renderShiftCalendar(start, end) {
+    const container = document.getElementById('shift-calendar');
+    if (!container) return;
+
+    let schedules = [];
+    try {
+      schedules = await fetchSchedules(start, end);
+    } catch (err) {
+      container.innerHTML = `<div class="alert alert-danger">Gagal memuat data roster.</div>`;
+      return;
+    }
+
+    if (!schedules.length) {
+      container.innerHTML = `<div class="alert alert-warning">Belum ada data roster. Silakan generate terlebih dahulu.</div>`;
+      return;
+    }
+
+    const byEmployee = {};
+    schedules.forEach(s => {
+      const empKey = `${s.employee.nrp} - ${s.employee.name}`;
+      if (!byEmployee[empKey]) {
+        byEmployee[empKey] = {
+          schedules: [],
+          employee: s.employee
+        };
+      }
+      byEmployee[empKey].schedules.push(s);
+    });
+
+    const employeeKeys = Object.keys(byEmployee);
+    if (employeeKeys.length === 0) return;
+
+    window.__shiftData = {
+      byEmployee,
+      employeeKeys,
+      start,
+      end
+    };
+    renderCalendarForEmployee(0);
+  }
+
+  function renderCalendarForEmployee(index) {
+    const container = document.getElementById('shift-calendar');
+    const data = window.__shiftData;
+    if (!data || !data.employeeKeys.length) return;
+
+    const empKey = data.employeeKeys[index];
+    const empData = data.byEmployee[empKey];
+    const schedules = empData.schedules;
+
+    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
+      calendarInstance.destroy();
+    }
+
+    const popups = {};
+    schedules.forEach(s => {
+      const modifier = s.shift === 'Day' ? 'shift-day':
+      s.shift === 'Night' ? 'shift-night': 'shift-off';
+      popups[s.date] = {
+        modifier: modifier,
+        html: `<div><strong>${s.shift}</strong></div>`
+      };
+    });
+
+    let dropdownHtml = '';
+    if (data.employeeKeys.length > 1) {
+      dropdownHtml = `
+      <div class="mb-3">
+      <select id="employee-select" class="form-select">
+      ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
+      </select>
+      </div>`;
+    }
+
+    container.innerHTML = dropdownHtml + '<div id="calendar-instance"></div>';
+
+    const selectEl = document.getElementById('employee-select');
+    if (selectEl) {
+      selectEl.addEventListener('change', (e) => {
+        renderCalendarForEmployee(parseInt(e.target.value));
+      });
+    }
+
+    const {
+      Calendar
+    } = window.VanillaCalendarPro;
+    calendarInstance = new Calendar('#calendar-instance', {
+      type: 'default',
+      firstWeekday: 1,
+      monthsToSwitch: 1,
+      dateMin: data.start,
+      dateMax: data.end,
+      displayDateMin: data.start,
+      displayDateMax: data.end,
+      popups: popups,
+    });
+    calendarInstance.init();
+  }
+
   window.PageRender = {
     renderEmployeeList,
     renderEmployeeForm,
     renderOverrides,
     renderGenerate,
+    renderShiftCalendar,
     loadRosterData: async (start, end) => {
-      try {
-        const data = await fetchSchedules(start, end);
-        const tbody = document.getElementById('roster-body');
-        tbody.innerHTML = data.map(s => `<tr><td>${s.date}</td><td>${escapeHtml(s.employee.nrp)}</td><td>${escapeHtml(s.employee.name)}</td><td>${s.shift}</td></tr>`).join('');
-        document.getElementById('result-container').classList.remove('d-none');
-      } catch (err) {
-        showToast('Gagal memuat data roster.', 'danger');
-      }
+      await renderShiftCalendar(start, end);
     }
   };
 })();

@@ -50,6 +50,7 @@
 <script>
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
+<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
 <script src="{{ secure_url('/apps/shift/js/core.js') }}"></script>
 <script src="{{ secure_url('/apps/shift/js/page.js') }}"></script>
 <script src="{{ secure_url('/apps/shift/js/main.js') }}"></script>
@@ -164,5 +165,86 @@
   [data-info-title]:hover {
     color: var(--shift-primary);
   }
+  @push('styles')
+  <!-- Vanilla Calendar Pro CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
+
+  <style>
+:root {
+    --shift-primary: #4A90E2;
+    --shift-primary-hover: #357ABD;
+    --shift-danger: #E74C3C;
+    --shift-warning: #F39C12;
+    --shift-info: #3498DB;
+  }
+
+  /* Warna shift untuk kalender */
+  .shift-day .vc-date__btn {
+    background-color: #2ecc71 !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+  }
+  .shift-night .vc-date__btn {
+    background-color: #3498db !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+  }
+  .shift-off .vc-date__btn {
+    background-color: #bdc3c7 !important;
+    color: #555 !important;
+    border-radius: 6px !important;
+  }
+  .shift-holiday .vc-date__btn {
+    background-color: #e74c3c !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+  }
+
+  /* Hover state untuk tombol shift */
+  .shift-day .vc-date__btn:hover,
+  .shift-night .vc-date__btn:hover,
+  .shift-off .vc-date__btn:hover,
+  .shift-holiday .vc-date__btn:hover {
+    opacity: 0.85;
+  }
+
+  /* Legenda */
+  #calendar-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  #calendar-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+  #calendar-legend .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  #calendar-legend .legend-dot.day {
+    background: #2ecc71;
+  }
+  #calendar-legend .legend-dot.night {
+    background: #3498db;
+  }
+  #calendar-legend .legend-dot.off {
+    background: #bdc3c7;
+  }
+  #calendar-legend .legend-dot.holiday {
+    background: #e74c3c;
+  }
+
+  /* Tab bar - tanpa background */
+  #app-tabbar .nav-link {
+    /* ... */
+  }
+</style>
+@endpush
 </style>
 @endpush

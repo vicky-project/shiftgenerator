@@ -3,6 +3,16 @@
 @section('title', 'Shift Generator')
 
 @section('content')
+{{-- Loading Overlay Global --}}
+<div id="global-loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:10000; flex-direction:column;">
+  <div class="spinner-border text-light" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <div style="color:white; margin-top:10px;">
+    Memuat...
+  </div>
+</div>
+
 <div id="app-shell" class="d-flex flex-column min-vh-100">
   <div id="app-header" class="px-3 py-2 d-flex align-items-center border-bottom" style="background: var(--tg-theme-secondary-bg-color);">
     <button id="btn-back" class="btn btn-sm btn-outline-secondary me-2 d-none" onclick="window.goToPage('employees')">
@@ -49,16 +59,16 @@
 
   /* Tab bar - tanpa background, hanya teks */
   #app-tabbar .nav-link {
-    color: var(--tg-theme-hint-color);
+    color: var(--tg-theme-hint-color) !important;
     transition: color 0.2s;
-    border: none;
-    background: transparent;
+    border: none !important;
+    background: transparent !important;
     padding: 0.5rem;
     border-radius: 8px;
   }
   #app-tabbar .nav-link.active {
     color: var(--shift-primary) !important;
-    font-weight: 500;
+    font-weight: 600;
     background: transparent !important;
   }
   #app-tabbar .nav-link.active i {

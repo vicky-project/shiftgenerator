@@ -1,4 +1,4 @@
-// main.js
+// main.js (final dengan tgApp langsung)
 (function() {
   const {
     setToken, deleteEmployee, addOverride, deleteOverride,
@@ -8,13 +8,27 @@
     renderEmployeeList, renderEmployeeForm, renderOverrides,
     renderGenerate, loadRosterData
   } = window.PageRender;
-  const showToast = window.TelegramApp?.showToast || tgApp.showToast || ((msg, type) => console.log(msg));
-  const showLoading = tgApp.showLoading || ((msg) => console.log('loading:', msg));
-  const hideLoading = tgApp.hideLoading || (() => console.log('hide loading'));
+
+  // Gunakan tgApp langsung dari layout Telegram Mini App
+  const showToast = tgApp.showToast || ((msg, type) => console.log(msg));
+  const showLoading = tgApp.showLoading || ((msg) => {
+    const overlay = document.getElementById('global-loading');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      const msgEl = overlay.querySelector('div:last-child');
+      if (msgEl) msgEl.innerText = msg || 'Memuat...';
+    }
+  });
+  const hideLoading = tgApp.hideLoading || (() => {
+    const overlay = document.getElementById('global-loading');
+    if (overlay) overlay.style.display = 'none';
+  });
+  const escapeHtml = tgApp.escapeHtml || ((str) => str);
 
   let currentPage = 'employees';
   let currentParams = null;
 
+  // Fungsi navigasi halaman
   async function goTo(navString) {
     showLoading('Memuat halaman...');
 
@@ -75,15 +89,18 @@
 
     window.goToPage = goTo;
 
-    // Event delegation
+    // =========== Event Delegation ===========
     document.addEventListener('click',
       async (e) => {
+        // 1. Navigasi via data-nav
         const navButton = e.target.closest('[data-nav]');
         if (navButton) {
-          goTo(navButton.dataset.nav.trim());
+          const nav = navButton.dataset.nav.trim();
+          goTo(nav);
           return;
         }
 
+        // 2. Hapus karyawan
         const deleteBtn = e.target.closest('[data-delete-employee]');
         if (deleteBtn) {
           const id = deleteBtn.dataset.deleteEmployee;
@@ -101,6 +118,7 @@
           return;
         }
 
+        // 3. Hapus override
         const delOverrideBtn = e.target.closest('[data-delete-override]');
         if (delOverrideBtn) {
           const id = delOverrideBtn.dataset.deleteOverride;
@@ -122,7 +140,7 @@
           return;
         }
 
-        // Generate & Export
+        // 4. Generate & Export
         if (e.target.id === 'btn-generate') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
@@ -169,7 +187,7 @@
         }
       });
 
-    // Form submissions
+    // =========== Form Submissions ===========
     document.addEventListener('submit',
       async (e) => {
         if (e.target.id === 'employee-form') {
@@ -212,6 +230,7 @@
         }
       });
 
+    // =========== Inisialisasi ===========
     function initApp() {
       const urlParams = new URLSearchParams(window.location.search);
       const tokenFromUrl = urlParams.get('token');
@@ -219,6 +238,7 @@
         setToken(tokenFromUrl);
         window.history.replaceState({}, '', window.location.pathname);
       }
+      // Tampilkan halaman awal
       goTo('employees');
     }
 

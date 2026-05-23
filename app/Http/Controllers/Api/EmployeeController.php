@@ -43,7 +43,7 @@ class EmployeeController extends Controller
   * Perbarui data karyawan.
   */
   public function update(UpdateEmployeeRequest $request, Employee $employee) {
-    $this->authorizeEmployee($request $employee);
+    $this->authorizeEmployee($request, $employee);
 
     $employee->update($request->validated());
 

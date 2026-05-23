@@ -8,7 +8,7 @@
   const showToast = window.TelegramApp?.showToast || window.tgApp?.showToast || ((msg, type) => console.log(msg));
   const escapeHtml = window.TelegramApp?.escapeHtml || window.tgApp?.escapeHtml || ((str) => str);
 
-  // ---------- Render daftar karyawan ----------
+  // Render daftar karyawan
   async function renderEmployeeList() {
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
@@ -44,7 +44,7 @@
     content.innerHTML = html;
   }
 
-  // ---------- Render form tambah/edit ----------
+  // Render form tambah/edit
   async function renderEmployeeForm(params) {
     const id = params?.id;
     const isEdit = !!id;
@@ -105,7 +105,7 @@
     </form>`;
   }
 
-  // ---------- Render halaman override ----------
+  // Render halaman override
   async function renderOverrides(params) {
     const employeeId = params.id;
     document.getElementById('app-title').innerText = 'Pengajuan Cuti';
@@ -155,7 +155,7 @@
     await loadOverrides();
   }
 
-  // ---------- Render halaman generate ----------
+  // Render halaman generate
   function renderGenerate() {
     document.getElementById('app-title').innerText = 'Generate Roster';
     const content = document.getElementById('app-content');
@@ -185,7 +185,6 @@
     </div>`;
   }
 
-  // Publikasi render functions
   window.PageRender = {
     renderEmployeeList,
     renderEmployeeForm,
@@ -195,11 +194,7 @@
       try {
         const data = await fetchSchedules(start, end);
         const tbody = document.getElementById('roster-body');
-        let rows = '';
-        data.forEach(s => {
-          rows += `<tr><td>${s.date}</td><td>${escapeHtml(s.employee.nrp)}</td><td>${escapeHtml(s.employee.name)}</td><td>${s.shift}</td></tr>`;
-        });
-        tbody.innerHTML = rows;
+        tbody.innerHTML = data.map(s => `<tr><td>${s.date}</td><td>${escapeHtml(s.employee.nrp)}</td><td>${escapeHtml(s.employee.name)}</td><td>${s.shift}</td></tr>`).join('');
         document.getElementById('result-container').classList.remove('d-none');
       } catch (err) {
         showToast('Gagal memuat data roster.', 'danger');

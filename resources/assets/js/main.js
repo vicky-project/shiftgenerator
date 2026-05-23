@@ -12,14 +12,19 @@
   const showLoading = window.TelegramApp?.showLoading || (() => {});
   const hideLoading = window.TelegramApp?.hideLoading || (() => {});
 
-  // State sederhana untuk halaman saat ini
-  let currentPage = 'employees'; // 'employees', 'generate', 'form', 'overrides', dll.
+  // State sederhana
+  let currentPage = 'employees';
   let currentParams = null;
 
-  // Fungsi untuk mengubah halaman
-  async function goTo(page, params = null) {
+  // Fungsi navigasi
+  async function goTo(navString) {
+    // Parse string: bisa "halaman" atau "halaman:id"
+    const [page, param] = navString.split(':');
     currentPage = page;
-    currentParams = params;
+    currentParams = param ? {
+      id: param
+    }: null;
+
     updateBackButton();
     updateTabActive();
 
@@ -32,10 +37,10 @@
           await renderEmployeeForm();
           break;
         case 'edit-employee':
-          await renderEmployeeForm(params);
+          await renderEmployeeForm(currentParams);
           break;
         case 'overrides':
-          await renderOverrides(params);
+          await renderOverrides(currentParams);
           break;
         case 'generate':
           renderGenerate();
@@ -44,27 +49,22 @@
           document.getElementById('app-content').innerHTML = '<div class="alert alert-warning">Halaman tidak ditemukan.</div>';
         }
       } catch (err) {
-        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat halaman: ${err.message}</div>`;
+        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
       }
     }
 
-    // Perbarui visibilitas tombol kembali
     function updateBackButton() {
       const btnBack = document.getElementById('btn-back');
       if (!btnBack) return;
-      if (currentPage === 'employees' || currentPage === 'generate') {
-        btnBack.classList.add('d-none');
-      } else {
-        btnBack.classList.remove('d-none');
-      }
+      const hide = (currentPage === 'employees' || currentPage === 'generate');
+      btnBack.classList.toggle('d-none', hide);
     }
 
-    // Perbarui tab aktif
     function updateTabActive() {
       document.querySelectorAll('[data-route]').forEach(el => {
-        const route = el.dataset.route;
         el.classList.remove('active');
-        if (route === 'employees' && (currentPage === 'employees' || currentPage === 'create-employee' || currentPage === 'edit-employee' || currentPage === 'overrides')) {
+        const route = el.dataset.route;
+        if (route === 'employees' && ['employees', 'create-employee', 'edit-employee', 'overrides'].includes(currentPage)) {
           el.classList.add('active');
         } else if (route === 'generate' && currentPage === 'generate') {
           el.classList.add('active');
@@ -72,27 +72,21 @@
       });
     }
 
-    // =========== Global Event Delegation ===========
+    // Expose goTo untuk tombol back di view
+    window.goToPage = goTo;
+
+    // =========== Event Delegation ===========
     document.addEventListener('click',
       async (e) => {
-        // 1. Navigasi via button data-nav
+        // Navigasi via data-nav
         const navButton = e.target.closest('[data-nav]');
         if (navButton) {
-          const nav = navButton.dataset.nav; // format: "page:params" atau "page"
-          const [page,
-            param] = nav.split(':');
-          let params = null;
-          if (param) {
-            // jika ada parameter, bisa berupa id misalnya "edit-employee:123"
-            params = {
-              id: param
-            };
-          }
-          goTo(page, params);
+          const nav = navButton.dataset.nav.trim();
+          goTo(nav);
           return;
         }
 
-        // 2. Tombol hapus karyawan
+        // Hapus karyawan
         const deleteBtn = e.target.closest('[data-delete-employee]');
         if (deleteBtn) {
           const id = deleteBtn.dataset.deleteEmployee;
@@ -107,7 +101,7 @@
           return;
         }
 
-        // 3. Tombol hapus override
+        // Hapus override
         const delOverrideBtn = e.target.closest('[data-delete-override]');
         if (delOverrideBtn) {
           const id = delOverrideBtn.dataset.deleteOverride;
@@ -115,9 +109,8 @@
           try {
             await deleteOverride(id);
             showToast('Override dihapus.', 'success');
-            // muat ulang halaman override dengan parameter yang sama
             if (currentPage === 'overrides' && currentParams) {
-              goTo('overrides', currentParams);
+              goTo(`overrides:${currentParams.id}`);
             } else {
               goTo('employees');
             }
@@ -127,7 +120,7 @@
           return;
         }
 
-        // Tombol Generate & Export di halaman generate
+        // Tombol Generate & Export (ada di #app-content)
         if (e.target.id === 'btn-generate') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
@@ -171,7 +164,7 @@
         }
       });
 
-    // =========== Form Submission Delegation ===========
+    // Form submission
     document.addEventListener('submit',
       async (e) => {
         if (e.target.id === 'employee-form') {
@@ -200,9 +193,7 @@
             await addOverride(employeeId, startDate);
             showToast('Override ditambahkan.', 'success');
             e.target.reset();
-            goTo('overrides', {
-              id: employeeId
-            });
+            goTo(`overrides:${employeeId}`);
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
           }
@@ -210,19 +201,14 @@
         }
       });
 
-    // =========== Inisialisasi ===========
+    // Inisialisasi
     function initApp() {
-      // Token dari URL (jika ada)
       const urlParams = new URLSearchParams(window.location.search);
       const tokenFromUrl = urlParams.get('token');
       if (tokenFromUrl) {
         setToken(tokenFromUrl);
-        // Hapus token dari URL tanpa reload
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
+        window.history.replaceState({}, '', window.location.pathname);
       }
-
-      // Tampilkan halaman utama
       goTo('employees');
     }
 

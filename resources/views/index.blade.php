@@ -11,7 +11,7 @@
     <h5 id="app-title" class="mb-0">Shift Generator</h5>
   </div>
   <div id="app-content" class="flex-fill p-3">
-    <!-- Konten akan di-render oleh JavaScript -->
+    <!-- Konten di-render oleh JS -->
   </div>
   <div id="app-tabbar" class="border-top py-2 d-flex justify-content-around" style="background: var(--tg-theme-secondary-bg-color);">
     <button class="btn btn-link text-decoration-none text-center nav-link" data-nav="employees" data-route="employees">

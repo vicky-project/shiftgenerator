@@ -38,7 +38,7 @@
   }
 
   async function navigateTo(path, addToHistory = true) {
-    // Build full path untuk address bar
+    console.log('[navigateTo] path:', path); // DEBUG
     const fullPath = APP_BASE + (path.startsWith('/') ? path: '/' + path);
     if (addToHistory) {
       window.history.pushState({
@@ -55,13 +55,16 @@
         document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat halaman: ${err.message}</div>`;
       }
     } else {
-      document.getElementById('app-content').innerHTML = `<div class="alert alert-warning">Halaman tidak ditemukan.</div>`;
+      console.warn('[navigateTo] Route tidak ditemukan untuk path:', path);
+      document.getElementById('app-content').innerHTML = `<div class="alert alert-warning">Halaman tidak ditemukan (${path}).</div>`;
     }
 
-    // Toggle tombol back
+    // Atur visibilitas tombol back
     const btnBack = document.getElementById('btn-back');
     if (btnBack) {
-      btnBack.classList.toggle('d-none', path === '/employees' || path === '/generate');
+      const isRoot = (path === '/employees' || path === '/generate');
+      btnBack.classList.toggle('d-none', isRoot);
+      console.log('[navigateTo] Tombol back ' + (isRoot ? 'disembunyikan': 'ditampilkan'));
     }
   }
 
@@ -110,7 +113,6 @@
         try {
           await deleteOverride(id);
           showToast('Override dihapus.', 'success');
-          // Reload halaman override saat ini
           const currentPath = window.location.pathname.replace(APP_BASE, '') || '/employees';
           navigateTo(currentPath, false);
         } catch (err) {
@@ -123,7 +125,6 @@
   // =========== Form Submission Delegation ===========
   document.addEventListener('submit',
     async (e) => {
-      // Form karyawan
       if (e.target.id === 'employee-form') {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -143,7 +144,6 @@
         return;
       }
 
-      // Form override
       if (e.target.id === 'override-form') {
         e.preventDefault();
         const startDate = e.target.start_date.value;
@@ -155,7 +155,6 @@
           await addOverride(employeeId, startDate);
           showToast('Override ditambahkan.', 'success');
           e.target.reset();
-          // reload halaman override
           navigateTo(`/employees/${employeeId}/overrides`, false);
         } catch (err) {
           showToast('Gagal: ' + err.message, 'danger');
@@ -164,10 +163,9 @@
       }
     });
 
-  // =========== Tombol Generate & Export (di dalam #app-content) ===========
+  // =========== Tombol Generate & Export ===========
   document.getElementById('app-content').addEventListener('click',
     async (e) => {
-      // Generate
       if (e.target.id === 'btn-generate') {
         const start = document.getElementById('start_date')?.value;
         const end = document.getElementById('end_date')?.value;
@@ -190,7 +188,6 @@
         return;
       }
 
-      // Export
       if (e.target.id === 'btn-export') {
         const start = document.getElementById('start_date')?.value;
         const end = document.getElementById('end_date')?.value;
@@ -214,6 +211,7 @@
 
   // =========== Inisialisasi ===========
   function initApp() {
+    console.log('[initApp] Mulai inisialisasi');
     // Token dari URL (jika ada)
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
@@ -222,7 +220,6 @@
       window.history.replaceState({}, '', window.location.pathname);
     }
 
-    // Handle popstate (back/forward browser)
     window.addEventListener('popstate', (e) => {
       if (e.state && e.state.path) {
         navigateTo(e.state.path, false);
@@ -231,16 +228,16 @@
       }
     });
 
-    // Muat halaman awal
     let initialPath = window.location.pathname.replace(new RegExp('^' + APP_BASE),
       '');
+    console.log('[initApp] initialPath:',
+      initialPath);
     if (!initialPath || initialPath === '/') {
       initialPath = '/employees';
     }
     navigateTo(initialPath, false);
   }
 
-  // Jalankan setelah DOM siap
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {

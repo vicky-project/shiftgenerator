@@ -166,7 +166,7 @@
             // Tampilkan container dan render kalender
             document.getElementById('result-container').classList.remove('d-none');
             window.__shiftData = {
-              window.__shiftData,
+              ...window.__shiftData,
               start: start,
               end: end
             };

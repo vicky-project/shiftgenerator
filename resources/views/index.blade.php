@@ -25,6 +25,10 @@
 @endsection
 
 @push('scripts')
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+  eruda.init();
+</script>
 <script>
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>

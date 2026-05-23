@@ -222,7 +222,9 @@
     <div class="legend-item"><span class="legend-dot off"></span> Off</div>
     <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
     </div>
+    <div id="shift-calendar-wrapper" style="all: initial; isolation: isolate;">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
+    </div>
     <div class="d-flex justify-content-end">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
     </div>

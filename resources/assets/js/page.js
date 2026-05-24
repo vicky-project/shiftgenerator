@@ -263,8 +263,20 @@
 
     if (!schedules.length) {
       container.innerHTML = `<div class="alert alert-warning">Belum ada data roster. Silakan generate terlebih dahulu.</div>`;
+      // Jika tidak ada data, jangan hancurkan instance. Biarkan kalender sebelumnya tetap tampil.
       return;
     }
+
+    // Hapus container kalender yang mungkin sudah ada, lalu buat elemen baru
+    const oldInstance = document.getElementById('calendar-instance');
+    if (oldInstance) {
+      oldInstance.remove();
+    }
+
+    // Buat elemen baru untuk kalender
+    const calendarEl = document.createElement('div');
+    calendarEl.id = 'calendar-instance';
+    container.appendChild(calendarEl);
 
     const byEmployee = {};
     schedules.forEach(s => {
@@ -299,92 +311,111 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Hancurkan instance lama
-    destroyCalendar();
-
     // Bangun popups
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
       popups[dateKey] = {
-        modifier: s.shift === 'Day' ? 'shift-day':
-        s.shift === 'Night' ? 'shift-night': 'shift-off',
+        modifier: s.shift === 'Day' ? 'shift-day': (s.shift === 'Night' ? 'shift-night': 'shift-off'),
         html: `<div><strong>${s.shift}</strong></div>`
       };
     });
 
-    let dropdownHtml = '';
+    // Jika ada dropdown karyawan, render ulang area dropdown
     if (data.employeeKeys.length > 1) {
-      dropdownHtml = `
-      <div class="mb-3">
-      <select id="employee-select" class="form-select">
-      ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
-      </select>
-      </div>`;
-    }
+      const existingDropdown = document.getElementById('employee-select');
+      if (!existingDropdown) {
+        // Buat dropdown baru di atas kalender
+        const dropdownHtml = `
+        <div class="mb-3" id="dropdown-wrapper">
+        <select id="employee-select" class="form-select">
+        ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
+        </select>
+        </div>`;
+        container.insertAdjacentHTML('afterbegin', dropdownHtml);
+      } else {
+        // Perbarui selected option
+        existingDropdown.value = index;
+      }
 
-    container.innerHTML = dropdownHtml + '<div id="calendar-instance"></div>';
-
-    const selectEl = document.getElementById('employee-select');
-    if (selectEl) {
-      selectEl.addEventListener('change', (e) => {
-        renderCalendarForEmployee(parseInt(e.target.value));
-      });
+      // Pasang event listener untuk dropdown
+      const selectEl = document.getElementById('employee-select');
+      if (selectEl) {
+        selectEl.addEventListener('change', (e) => {
+          renderCalendarForEmployee(parseInt(e.target.value));
+        });
+      }
     }
 
     const start = data.start || new Date().toISOString().substring(0, 10);
     const end = data.end || new Date().toISOString().substring(0, 10);
 
-    const {
-      Calendar
-    } = window.VanillaCalendarPro;
-    calendarInstance = new Calendar('#calendar-instance', {
-      type: 'default',
-      firstDayOfWeek: 0,
-      firstWeekDay: 0,
-      settings: {
-        visibility: {
-          daysOutsideMonth: true
-        },
-        selection: {
-          day: 'none'
-        },
-      },
-      classes: {
-        calendar: 'bg-transparent',
-        calendarHeader: 'bg-transparent',
-        calendarHeaderMonth: 'text-color',
-        calendarHeaderYear: 'text-color',
-        dayBtn: 'text-color',
-      },
-      dateMin: start,
-      dateMax: end,
-      displayDateMin: start,
-      displayDateMax: end,
-      popups: popups,
-    });
-
-    calendarInstance.init();
-
-    // Fallback modifier
-    const applyModifier = () => {
-      const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
-      dateElements.forEach(el => {
-        const date = el.getAttribute('data-vc-date');
-        if (popups[date] && popups[date].modifier) {
-          el.classList.add(popups[date].modifier);
-        }
+    // Jika instance sudah ada, gunakan update()
+    if (calendarInstance) {
+      calendarInstance.update({
+        dateMin: start,
+        dateMax: end,
+        displayDateMin: start,
+        displayDateMax: end,
+        popups: popups,
       });
-    };
+    } else {
+      // Buat instance baru
+      const {
+        Calendar
+      } = window.VanillaCalendarPro;
+      const calendarEl = document.getElementById('calendar-instance');
+      if (!calendarEl) return;
 
-    const targetNode = document.getElementById('calendar-instance');
-    if (targetNode) {
-      currentObserver = new MutationObserver(() => applyModifier());
-      currentObserver.observe(targetNode, {
-        childList: true, subtree: true
+      calendarInstance = new Calendar('#calendar-instance', {
+        type: 'default',
+        firstDayOfWeek: 1,
+        settings: {
+          visibility: {
+            daysOutsideMonth: true
+          },
+          selection: {
+            day: 'none'
+          },
+        },
+        classes: {
+          calendar: 'bg-transparent',
+          calendarHeader: 'bg-transparent',
+          calendarHeaderMonth: 'text-color',
+          calendarHeaderYear: 'text-color',
+          dayBtn: 'text-color',
+        },
+        dateMin: start,
+        dateMax: end,
+        displayDateMin: start,
+        displayDateMax: end,
+        popups: popups,
       });
+
+      calendarInstance.init();
+
+      // Fallback modifier untuk observer
+      const applyModifier = () => {
+        const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
+        dateElements.forEach(el => {
+          const date = el.getAttribute('data-vc-date');
+          if (popups[date] && popups[date].modifier) {
+            el.classList.add(popups[date].modifier);
+          }
+        });
+      };
+
+      // Observer untuk perubahan DOM (misal navigasi bulan)
+      const targetNode = document.getElementById('calendar-instance');
+      if (targetNode) {
+        if (currentObserver) currentObserver.disconnect();
+        currentObserver = new MutationObserver(() => applyModifier());
+        currentObserver.observe(targetNode, {
+          childList: true, subtree: true
+        });
+      }
+      setTimeout(applyModifier, 200);
     }
-    setTimeout(applyModifier, 200);
   }
 
   window.PageRender = {

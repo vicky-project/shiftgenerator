@@ -11,7 +11,7 @@
   let calendarInstance = null;
   let currentObserver = null;
 
-  // Fungsi untuk menghancurkan instance kalender dan observer (hanya saat navigasi)
+  // ---------- destroyCalendar ----------
   function destroyCalendar() {
     if (currentObserver) {
       currentObserver.disconnect();
@@ -27,13 +27,12 @@
     if (dropdownWrapper) dropdownWrapper.remove();
   }
 
-  // Helper untuk menerapkan modifier class ke elemen kalender
+  // ---------- applyModifiers ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
     dateElements.forEach(el => {
       const date = el.getAttribute('data-vc-date');
-      // Hapus semua kelas shift & holiday yang mungkin sudah ada
       el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-holiday');
       if (popups[date] && popups[date].modifier) {
         const classes = popups[date].modifier.split(' ');
@@ -310,8 +309,6 @@
       holidays: window.__shiftData?.holidays || []
     };
 
-    renderHolidayBox(start, end, window.__shiftData.holidays);
-
     if (!document.getElementById('calendar-instance')) {
       container.innerHTML = '';
       const dropdownWrapper = document.createElement('div');
@@ -325,12 +322,18 @@
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
 
-  function renderHolidayBox(start, end, holidays) {
+  // ---------- Tampilkan libur untuk bulan tertentu ----------
+  function renderHolidayBoxForMonth(year, month, holidays) {
     const box = document.getElementById('holiday-box');
     const list = document.getElementById('holiday-list');
     if (!box || !list) return;
 
-    const filtered = holidays.filter(h => h.date >= start && h.date <= end);
+    // month: 0‑based
+    const filtered = holidays.filter(h => {
+      const d = new Date(h.date + 'T00:00:00');
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+
     if (filtered.length === 0) {
       box.classList.add('d-none');
       return;
@@ -344,6 +347,7 @@
       `).join('');
   }
 
+  // ---------- Render kalender untuk satu karyawan ----------
   function renderCalendarForEmployee(index) {
     const data = window.__shiftData;
     if (!data || !data.employeeKeys.length) return;
@@ -361,7 +365,6 @@
       const dateKey = String(s.date).substring(0, 10);
       let modifier = s.shift === 'Day' ? 'shift-day':
       s.shift === 'Night' ? 'shift-night': 'shift-off';
-      // Tambahkan kelas holiday jika tanggal tersebut libur
       if (holidayDates.has(dateKey)) {
         modifier += ' shift-holiday';
       }
@@ -373,7 +376,7 @@
 
     window.__currentPopups = popups;
 
-    // Dropdown (tidak berubah)
+    // Dropdown
     const dropdownWrapper = document.getElementById('dropdown-wrapper');
     if (dropdownWrapper) {
       if (data.employeeKeys.length > 1) {
@@ -414,10 +417,11 @@
         displayDateMax: end,
         popups: popups,
         selectedWeekends: [0],
-        firstDayOfWeek: 0,
-        firstWeekday: 0,
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
+        onClickArrow(self, event) {
+          renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, data.holidays);
+        },
       }, {
         dates: true,
         month: true,
@@ -427,14 +431,16 @@
       setTimeout(() => applyModifiers(), 50);
       setTimeout(() => applyModifiers(), 200);
       setTimeout(() => applyModifiers(), 400);
+
+      // Tampilkan libur bulan awal
+      renderHolidayBoxForMonth(startDate.getFullYear(), startDate.getMonth(), data.holidays);
     } else {
       const {
         Calendar
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 0,
-        firstWeekday: 0,
+        firstDayOfWeek: 1,
         selectedWeekends: [0],
         settings: {
           visibility: {
@@ -456,6 +462,9 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
+        onClickArrow(self, event) {
+          renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, data.holidays);
+        },
       });
 
       calendarInstance.init();
@@ -469,6 +478,11 @@
         });
       }
       setTimeout(() => applyModifiers(), 200);
+
+      // Tampilkan libur bulan awal
+      const initialYear = startDate.getFullYear();
+      const initialMonth = startDate.getMonth();
+      renderHolidayBoxForMonth(initialYear, initialMonth, data.holidays);
     }
   }
 

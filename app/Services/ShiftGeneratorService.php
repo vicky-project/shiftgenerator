@@ -93,8 +93,15 @@ class ShiftGeneratorService
       $offset = $pos;
     }
 
-    $position = (($dayDiff + $offset -1) % $patternLength + $patternLength) % $patternLength;
+    $position = (($dayDiff + $offset) % $patternLength + $patternLength) % $patternLength;
     $char = $pattern[$position];
+    \Log::debug('Shift '. $char, [
+      'posisi' => $position,
+      'daydiff' => $dayDiff,
+      'offset' =* $offset,
+      'patterlength' => $patternLength,
+      'date' => $date->toLocaleString()
+    ]);
 
     return match ($char) {
       'D' => 'Day',

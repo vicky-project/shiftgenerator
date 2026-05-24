@@ -11,18 +11,6 @@
   let calendarInstance = null;
   let currentObserver = null;
 
-  // Fungsi untuk menghancurkan instance kalender dan observer
-  function destroyCalendar() {
-    if (currentObserver) {
-      currentObserver.disconnect();
-      currentObserver = null;
-    }
-    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
-      calendarInstance.destroy();
-      calendarInstance = null;
-    }
-  }
-
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList() {
     destroyCalendar();
@@ -263,21 +251,10 @@
 
     if (!schedules.length) {
       container.innerHTML = `<div class="alert alert-warning">Belum ada data roster. Silakan generate terlebih dahulu.</div>`;
-      // Jika tidak ada data, jangan hancurkan instance. Biarkan kalender sebelumnya tetap tampil.
       return;
     }
 
-    // Hapus container kalender yang mungkin sudah ada, lalu buat elemen baru
-    const oldInstance = document.getElementById('calendar-instance');
-    if (oldInstance) {
-      oldInstance.remove();
-    }
-
-    // Buat elemen baru untuk kalender
-    const calendarEl = document.createElement('div');
-    calendarEl.id = 'calendar-instance';
-    container.appendChild(calendarEl);
-
+    // Kelompokkan per karyawan
     const byEmployee = {};
     schedules.forEach(s => {
       const empKey = `${s.employee.nrp} - ${s.employee.name}`;
@@ -299,58 +276,83 @@
       start,
       end
     };
-    renderCalendarForEmployee(0);
+
+    // **Hanya buat struktur kalender jika belum ada**
+    if (!document.getElementById('calendar-instance')) {
+      // Hapus isi container (pesan sebelumnya) dan bangun struktur awal
+      container.innerHTML = '';
+
+      const dropdownWrapper = document.createElement('div');
+      dropdownWrapper.id = 'dropdown-wrapper';
+      container.appendChild(dropdownWrapper);
+
+      const calendarEl = document.createElement('div');
+      calendarEl.id = 'calendar-instance';
+      container.appendChild(calendarEl);
+    }
+
+    // Render karyawan pertama (atau index yang disimpan)
+    renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
 
   function renderCalendarForEmployee(index) {
-    const container = document.getElementById('shift-calendar');
     const data = window.__shiftData;
     if (!data || !data.employeeKeys.length) return;
+
+    data.currentIndex = index;
 
     const empKey = data.employeeKeys[index];
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Bangun popups
+    // Bangun popups baru
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
       popups[dateKey] = {
-        modifier: s.shift === 'Day' ? 'shift-day': (s.shift === 'Night' ? 'shift-night': 'shift-off'),
+        modifier: s.shift === 'Day' ? 'shift-day':
+        s.shift === 'Night' ? 'shift-night': 'shift-off',
         html: `<div><strong>${s.shift}</strong></div>`
       };
     });
 
-    // Jika ada dropdown karyawan, render ulang area dropdown
-    if (data.employeeKeys.length > 1) {
-      const existingDropdown = document.getElementById('employee-select');
-      if (!existingDropdown) {
-        // Buat dropdown baru di atas kalender
-        const dropdownHtml = `
-        <div class="mb-3" id="dropdown-wrapper">
-        <select id="employee-select" class="form-select">
-        ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
-        </select>
-        </div>`;
-        container.insertAdjacentHTML('afterbegin', dropdownHtml);
+    // Kelola dropdown karyawan
+    const dropdownWrapper = document.getElementById('dropdown-wrapper');
+    if (dropdownWrapper) {
+      if (data.employeeKeys.length > 1) {
+        let selectEl = document.getElementById('employee-select');
+        if (!selectEl) {
+          dropdownWrapper.innerHTML = `
+          <div class="mb-3">
+          <select id="employee-select" class="form-select">
+          ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
+          </select>
+          </div>`;
+          selectEl = document.getElementById('employee-select');
+          selectEl.addEventListener('change', (e) => {
+            renderCalendarForEmployee(parseInt(e.target.value));
+          });
+        } else {
+          selectEl.value = index;
+          // Perbarui opsi jika jumlah karyawan berubah
+          if (selectEl.options.length !== data.employeeKeys.length) {
+            selectEl.innerHTML = data.employeeKeys.map((k, i) =>
+              `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`
+            ).join('');
+          }
+        }
       } else {
-        // Perbarui selected option
-        existingDropdown.value = index;
-      }
-
-      // Pasang event listener untuk dropdown
-      const selectEl = document.getElementById('employee-select');
-      if (selectEl) {
-        selectEl.addEventListener('change', (e) => {
-          renderCalendarForEmployee(parseInt(e.target.value));
-        });
+        dropdownWrapper.innerHTML = '';
       }
     }
 
     const start = data.start || new Date().toISOString().substring(0, 10);
     const end = data.end || new Date().toISOString().substring(0, 10);
 
-    // Jika instance sudah ada, gunakan update()
+    const calendarEl = document.getElementById('calendar-instance');
+    if (!calendarEl) return;
+
+    // Jika instance sudah ada, UPDATE (jangan destroy)
     if (calendarInstance) {
       calendarInstance.update({
         dateMin: start,
@@ -359,14 +361,13 @@
         displayDateMax: end,
         popups: popups,
       });
+      // Terapkan modifier setelah update
+      setTimeout(() => applyModifiers(popups), 200);
     } else {
-      // Buat instance baru
+      // Buat instance baru (hanya pertama kali)
       const {
         Calendar
       } = window.VanillaCalendarPro;
-      const calendarEl = document.getElementById('calendar-instance');
-      if (!calendarEl) return;
-
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
         firstDayOfWeek: 1,
@@ -394,28 +395,45 @@
 
       calendarInstance.init();
 
-      // Fallback modifier untuk observer
-      const applyModifier = () => {
-        const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
-        dateElements.forEach(el => {
-          const date = el.getAttribute('data-vc-date');
-          if (popups[date] && popups[date].modifier) {
-            el.classList.add(popups[date].modifier);
-          }
-        });
-      };
-
-      // Observer untuk perubahan DOM (misal navigasi bulan)
+      // Observer untuk navigasi bulan
       const targetNode = document.getElementById('calendar-instance');
       if (targetNode) {
         if (currentObserver) currentObserver.disconnect();
-        currentObserver = new MutationObserver(() => applyModifier());
+        currentObserver = new MutationObserver(() => applyModifiers(popups));
         currentObserver.observe(targetNode, {
           childList: true, subtree: true
         });
       }
-      setTimeout(applyModifier, 200);
+      setTimeout(() => applyModifiers(popups), 200);
     }
+  }
+
+  function applyModifiers(popups) {
+    const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
+    dateElements.forEach(el => {
+      const date = el.getAttribute('data-vc-date');
+      el.classList.remove('shift-day', 'shift-night', 'shift-off');
+      if (popups[date] && popups[date].modifier) {
+        el.classList.add(popups[date].modifier);
+      }
+    });
+  }
+
+  // destroyCalendar hanya dipakai saat navigasi meninggalkan halaman generate
+  function destroyCalendar() {
+    if (currentObserver) {
+      currentObserver.disconnect();
+      currentObserver = null;
+    }
+    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
+      calendarInstance.destroy();
+      calendarInstance = null;
+    }
+    // Hapus elemen kalender dari DOM (opsional, karena akan di-recreate jika kembali)
+    const calendarEl = document.getElementById('calendar-instance');
+    if (calendarEl) calendarEl.remove();
+    const dropdownWrapper = document.getElementById('dropdown-wrapper');
+    if (dropdownWrapper) dropdownWrapper.remove();
   }
 
   window.PageRender = {

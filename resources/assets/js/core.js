@@ -94,7 +94,7 @@
     generateRoster: (start, end) => fetchAPI(`${API_BASE}/api/generate`, {
       method: 'POST',
       body: JSON.stringify({
-        start_date: start, end_date: end, holidays
+        start_date: start, end_date: end
       })
     }),
     // Fetch schedules

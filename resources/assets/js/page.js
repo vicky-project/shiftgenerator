@@ -273,6 +273,7 @@
     let schedules = [];
     try {
       schedules = await fetchSchedules(start, end);
+      console.log('Schedule diterima', schedules.slice(0, 5));
     } catch (err) {
       container.innerHTML = `<div class="alert alert-danger">Gagal memuat data roster.</div>`;
       return;

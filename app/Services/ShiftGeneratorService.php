@@ -100,7 +100,7 @@ class ShiftGeneratorService
       'daydiff' => $dayDiff,
       'offset' => $offset,
       'patterlength' => $patternLength,
-      'date' => $date->toLocaleString()
+      'date' => $date->format('d-m-Y')
     ]);
 
     return match ($char) {

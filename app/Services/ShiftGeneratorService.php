@@ -93,7 +93,7 @@ class ShiftGeneratorService
       $offset = $pos;
     }
 
-    $position = (($dayDiff + $offset +1) % $patternLength + $patternLength) % $patternLength;
+    $position = (($dayDiff + $offset -1) % $patternLength + $patternLength) % $patternLength;
     $char = $pattern[$position];
 
     return match ($char) {

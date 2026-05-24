@@ -10,26 +10,72 @@ class HolidayService
   const CACHE_KEY = 'shiftgenerator.holidays';
   const CACHE_DURATION = 525600; // 1 tahun dalam menit
 
+  protected string $apiUrl = 'https://use.api.co.id/holidays/indonesia/';
+  protected ?string $apiKey;
+
+  public function __construct() {
+    $this->apiKey = config('shiftgenerator.holiday.holiday_api_key') ?? env('HOLIDAY_API_KEY');
+  }
+
   /**
-  * Ambil semua data hari libur (tanggal + nama).
+  * Ambil semua data hari libur (tanggal + nama) dari API, di-cache.
   */
   public function getHolidays(): array
   {
     return Cache::remember(self::CACHE_KEY, self::CACHE_DURATION, function () {
-      $response = Http::get('https://vickyserver.my.id/data/local_data.json');
-      if ($response->failed()) {
-        \Log::error('Gagal mengambil data libur nasional', ['status' => $response->status()]);
-        return [];
+      // Ambil data dari tahun 2020 hingga 2027 agar mencakup rentang roster
+      $allHolidays = [];
+      $currentYear = (int) date('Y');
+      for ($year = 2020; $year <= $currentYear + 2; $year++) {
+        $holidays = $this->fetchYear($year);
+        $allHolidays = array_merge($allHolidays, $holidays);
       }
-      $data = $response->json();
-      $holidays = $data['holidays'] ?? [];
-      return array_map(fn($item) => [
-        'date' => $item['date'],
-        'name' => $item['name'],
-      ], $holidays);
+      return $allHolidays;
     });
   }
 
+  /**
+  * Fetch data libur untuk satu tahun dari API.
+  */
+  protected function fetchYear(int $year): array
+  {
+    $response = Http::withHeaders([
+      'x-api-co-id' => $this->apiKey,
+    ])->get($this->apiUrl,
+      [
+        'year' => $year,
+        'start_date' => "{$year}-01-01",
+        'end_date' => "{$year}-12-31",
+        'page' => 1,
+      ]);
+
+    if ($response->failed()) {
+      \Log::error('Gagal mengambil data libur nasional', [
+        'year' => $year,
+        'status' => $response->status(),
+      ]);
+      return [];
+    }
+
+    $data = $response->json();
+
+    if (!($data['is_success'] ?? false)) {
+      \Log::error('API libur nasional gagal', ['response' => $data]);
+      return [];
+    }
+
+    $holidays = $data['data'] ?? [];
+
+    // Kembalikan hanya tanggal dan nama
+    return array_map(fn($item) => [
+      'date' => $item['date'],
+      'name' => $item['name'],
+    ], $holidays);
+  }
+
+  /**
+  * Hapus cache (untuk force refresh manual).
+  */
   public function clearCache(): void
   {
     Cache::forget(self::CACHE_KEY);

@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\ShiftGenerator\Services;
 
 use Carbon\Carbon;
@@ -14,27 +15,22 @@ class ShiftGeneratorService
   * @param string $startDate  Y-m-d
   * @param string $endDate    Y-m-d
   * @param array  $holidays   array of Y-m-d (tanggal merah)
+  * @param int|null $userId   ID user Telegram (untuk filter karyawan)
   * @return int jumlah record yang dibuat
   */
-  public function generate(
-    string $startDate,
-    string $endDate,
-    array $holidays = [],
-    ?int $userId = null
-  ): int
+  public function generate(string $startDate, string $endDate, array $holidays = [], ?int $userId = null): int
   {
-    $start = Carbon::parse($startDate);
-    $end = Carbon::parse($endDate);
+    $start = Carbon::parse($startDate)->startOfDay();
+    $end = Carbon::parse($endDate)->startOfDay();
     $holidaySet = collect($holidays)->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
 
-    // Hapus jadwal lama dalam range ini (opsional, bisa juga replace)
+    // Hapus jadwal lama dalam range ini
     ShiftSchedule::whereBetween('date', [$startDate, $endDate])->delete();
 
-    $query = Employee::with('overrides');
-    if ($userId) {
-      $query->where('telegram_user_id', $userId);
-    }
-    $employees = $query->get();
+    $employees = Employee::with('leaves')
+    ->when($userId, fn($q) => $q->where('telegram_user_id', $userId))
+    ->get();
+
     $insertData = [];
 
     foreach ($employees as $employee) {
@@ -92,8 +88,12 @@ class ShiftGeneratorService
       return 'Off'; // fallback
     }
 
-    $refDate = $employee->shift_start_date;
-    $dayDiff = $refDate->diffInDays($date, false); // negatif jika sebelum refDate
+    // Pastikan refDate dan currentDate menggunakan startOfDay() untuk perbandingan murni tanggal
+    $refDate = $employee->shift_start_date->startOfDay();
+    $currentDate = $date->copy()->startOfDay();
+
+    // Selisih hari (bisa negatif jika tanggal sebelum refDate)
+    $dayDiff = $refDate->diffInDays($currentDate, false);
 
     // offset berdasarkan shift_start
     $needle = $employee->shift_start === 'Day' ? 'D' : 'N';
@@ -126,35 +126,37 @@ class ShiftGeneratorService
     {
       $leaveLength = $employee->leave_days;
       $workLength = $employee->work_days;
-      $current = $employee->pattern_start_date;
-      $overrides = $employee->overrides->toArray(); // array of ['start_date' => 'Y-m-d']
-      // Ubah ke Carbon dan urutkan
-      $overrideDates = collect($overrides)->map(fn($ov) => Carbon::parse($ov['start_date']))->sort()->values()->toArray();
+      $current = $employee->pattern_start_date->startOfDay();
+      $overrides = $employee->leaves->sortBy('start_date')->values()->toArray();
 
       $periods = [];
+      $overrideIndex = 0;
+      $overrideCount = count($overrides);
 
       // Kita perlu mencari semua periode cuti yang mungkin overlap dengan range
-      // Caranya: lakukan simulasi dari current hingga melewati rangeEnd.
       while ($current->lte($rangeEnd)) {
         $normalStart = $current->copy()->addDays($workLength);
         $normalEnd = $normalStart->copy()->addDays($leaveLength - 1);
 
         // Cek apakah ada override yang start_date-nya dalam rentang normalStart ±14
         $chosenOverride = null;
-        $chosenIndex = null;
-        foreach ($overrideDates as $index => $ovDate) {
-          $diff = $normalStart->diffInDays($ovDate, false);
+        while ($overrideIndex < $overrideCount) {
+          $ovStart = Carbon::parse($overrides[$overrideIndex]['start_date'])->startOfDay();
+          $diff = $normalStart->diffInDays($ovStart, false);
           if (abs($diff) <= 14) {
-            $chosenOverride = $ovDate;
-            $chosenIndex = $index;
+            $chosenOverride = $ovStart;
+            $overrideIndex++;
+            break;
+          } elseif ($ovStart->lt($normalStart)) {
+            // override sudah lewat, lanjutkan
+            $overrideIndex++;
+          } else {
             break;
           }
         }
 
         if ($chosenOverride) {
           $leaveStart = $chosenOverride->copy();
-          // hapus override yang sudah digunakan
-          array_splice($overrideDates, $chosenIndex, 1);
         } else {
           $leaveStart = $normalStart->copy();
         }
@@ -170,7 +172,7 @@ class ShiftGeneratorService
         }
 
         // Reset current ke sehari setelah akhir cuti ini
-        $current = $leaveEnd->copy()->addDay();
+        $current = $leaveEnd->copy()->addDay()->startOfDay();
       }
 
       return $periods;

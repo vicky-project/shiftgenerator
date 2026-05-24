@@ -357,7 +357,6 @@
 
     // Bangun popups dan simpan di variabel global untuk observer
     const popups = {};
-    const holidays = data.holidays || [];
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
       const isHoliday = holidayDates.has(dateKey);

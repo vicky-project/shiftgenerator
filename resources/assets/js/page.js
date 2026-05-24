@@ -9,9 +9,14 @@
   const escapeHtml = window.tgApp?.escapeHtml || window.TelegramApp?.escapeHtml || ((str) => str);
 
   let calendarInstance = null;
+  let currentObserver = null;
 
-  // Fungsi untuk menghancurkan instance kalender (dipanggil saat navigasi)
+  // Fungsi untuk menghancurkan instance kalender dan observer
   function destroyCalendar() {
+    if (currentObserver) {
+      currentObserver.disconnect();
+      currentObserver = null;
+    }
     if (calendarInstance && typeof calendarInstance.destroy === 'function') {
       calendarInstance.destroy();
       calendarInstance = null;
@@ -294,10 +299,10 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Hancurkan instance lama sebelum membuat baru
+    // Hancurkan instance lama
     destroyCalendar();
 
-    // Bangun popups dengan format YYYY-MM-DD
+    // Bangun popups
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
@@ -327,12 +332,16 @@
       });
     }
 
+    const start = data.start || new Date().toISOString().substring(0, 10);
+    const end = data.end || new Date().toISOString().substring(0, 10);
+
     const {
       Calendar
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstDayOfWeek: 0,
+      firstWeekDay: 0,
       settings: {
         visibility: {
           daysOutsideMonth: true
@@ -348,16 +357,16 @@
         calendarHeaderYear: 'text-color',
         dayBtn: 'text-color',
       },
-      dateMin: data.start,
-      dateMax: data.end,
-      displayDateMin: data.start,
-      displayDateMax: data.end,
+      dateMin: start,
+      dateMax: end,
+      displayDateMin: start,
+      displayDateMax: end,
       popups: popups,
     });
 
     calendarInstance.init();
 
-    // Fallback manual jika popups tidak menambahkan class
+    // Fallback modifier
     const applyModifier = () => {
       const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
       dateElements.forEach(el => {
@@ -370,8 +379,8 @@
 
     const targetNode = document.getElementById('calendar-instance');
     if (targetNode) {
-      const observer = new MutationObserver(() => applyModifier());
-      observer.observe(targetNode, {
+      currentObserver = new MutationObserver(() => applyModifier());
+      currentObserver.observe(targetNode, {
         childList: true, subtree: true
       });
     }

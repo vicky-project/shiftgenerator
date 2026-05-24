@@ -1,4 +1,4 @@
-// main.js (final dengan tgApp langsung)
+// main.js
 (function() {
   const {
     setToken, deleteEmployee, addOverride, deleteOverride,
@@ -6,7 +6,7 @@
   } = window.AppCore;
   const {
     renderEmployeeList, renderEmployeeForm, renderOverrides,
-    renderGenerate, loadRosterData
+    renderGenerate, loadRosterData, destroyCalendar
   } = window.PageRender;
 
   // Gunakan tgApp langsung dari layout Telegram Mini App
@@ -23,7 +23,6 @@
     const overlay = document.getElementById('global-loading');
     if (overlay) overlay.style.display = 'none';
   });
-  const escapeHtml = tgApp.escapeHtml || ((str) => str);
 
   let currentPage = 'employees';
   let currentParams = null;
@@ -165,12 +164,13 @@
             showToast('Roster dibuat.');
             // Tampilkan container dan render kalender
             document.getElementById('result-container').classList.remove('d-none');
+            // Simpan start/end ke shiftData (tanpa menghapus data sebelumnya jika ada)
             window.__shiftData = {
-              ...window.__shiftData,
+              ...(window.__shiftData || {}),
               start: start,
               end: end
             };
-            await PageRender.renderShiftCalendar(start, end);
+            await loadRosterData(start, end);
           } catch (err) {
             showToast('Gagal: ' + err.message, 'danger');
           } finally {
@@ -202,6 +202,7 @@
           return;
         }
 
+        // Tombol info
         const infoBtn = e.target.closest('[data-info-title]');
         if (infoBtn) {
           const title = infoBtn.dataset.infoTitle || 'Informasi';

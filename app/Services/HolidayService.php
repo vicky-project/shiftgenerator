@@ -22,6 +22,7 @@ class HolidayService
         return [];
       }
       $data = $response->json();
+      \Log::debug('Data holidays', $data ?? []);
       $holidays = $data['holidays'] ?? [];
       return array_map(fn($item) => [
         'date' => $item['date'],

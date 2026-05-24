@@ -93,18 +93,6 @@ class ShiftGeneratorService
     $position = (($dayDiff + $offset) % $patternLength + $patternLength) % $patternLength;
     $char = $pattern[$position];
 
-    \Log::debug('Shift calculation', [
-      'employee_id' => $employee->id,
-      'date' => $date->format('Y-m-d'),
-      'dayDiff' => $dayDiff,
-      'offset' => $offset,
-      'position' => $position,
-      'char' => $char,
-      'pattern' => $pattern,
-      'shift_start' => $employee->shift_start,
-      'shift_start_date' => $refDate->format('Y-m-d'),
-    ]);
-
     return match ($char) {
       'D' => 'Day',
       'N' => 'Night',

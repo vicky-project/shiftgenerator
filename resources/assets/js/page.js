@@ -1,4 +1,4 @@
-// page.js
+// page.js (final dengan perbaikan onClickArrow)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -328,7 +328,6 @@
     const list = document.getElementById('holiday-list');
     if (!box || !list) return;
 
-    // month: 0‑based
     const filtered = holidays.filter(h => {
       const d = new Date(h.date + 'T00:00:00');
       return d.getFullYear() === year && d.getMonth() === month;
@@ -359,7 +358,6 @@
     const holidays = data.holidays || [];
     const holidayDates = new Set(holidays.map(h => h.date));
 
-    // Bangun popups — modifier bisa berisi dua kelas sekaligus
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
@@ -409,6 +407,17 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
+    // Closure untuk onClickArrow yang mengambil data terbaru
+    const arrowHandler = (self, event) => {
+      const currentData = window.__shiftData;
+      if (currentData && currentData.holidays) {
+        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, currentData.holidays);
+      } else {
+        const box = document.getElementById('holiday-box');
+        if (box) box.classList.add('d-none');
+      }
+    };
+
     if (calendarInstance) {
       calendarInstance.set({
         dateMin: start,
@@ -419,9 +428,7 @@
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
-        onClickArrow(self, event) {
-          renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, data.holidays);
-        },
+        onClickArrow: arrowHandler,
       }, {
         dates: true,
         month: true,
@@ -432,8 +439,7 @@
       setTimeout(() => applyModifiers(), 200);
       setTimeout(() => applyModifiers(), 400);
 
-      // Tampilkan libur bulan awal
-      renderHolidayBoxForMonth(startDate.getFullYear(), startDate.getMonth(), data.holidays);
+      renderHolidayBoxForMonth(startDate.getFullYear(), startDate.getMonth(), holidays);
     } else {
       const {
         Calendar
@@ -462,9 +468,7 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        onClickArrow(self, event) {
-          renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, data.holidays);
-        },
+        onClickArrow: arrowHandler,
       });
 
       calendarInstance.init();
@@ -479,10 +483,9 @@
       }
       setTimeout(() => applyModifiers(), 200);
 
-      // Tampilkan libur bulan awal
       const initialYear = startDate.getFullYear();
       const initialMonth = startDate.getMonth();
-      renderHolidayBoxForMonth(initialYear, initialMonth, data.holidays);
+      renderHolidayBoxForMonth(initialYear, initialMonth, holidays);
     }
   }
 

@@ -33,9 +33,11 @@
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
     dateElements.forEach(el => {
       const date = el.getAttribute('data-vc-date');
-      el.classList.remove('shift-day', 'shift-night', 'shift-off');
+      // Hapus semua kelas shift & holiday yang mungkin sudah ada
+      el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-holiday');
       if (popups[date] && popups[date].modifier) {
-        el.classList.add(popups[date].modifier);
+        const classes = popups[date].modifier.split(' ');
+        el.classList.add(...classes);
       }
     });
   }
@@ -347,30 +349,31 @@
     if (!data || !data.employeeKeys.length) return;
 
     data.currentIndex = index;
-
     const empKey = data.employeeKeys[index];
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
     const holidays = data.holidays || [];
     const holidayDates = new Set(holidays.map(h => h.date));
 
-    // Bangun popups dan simpan di variabel global untuk observer
+    // Bangun popups — modifier bisa berisi dua kelas sekaligus
     const popups = {};
-    schedules.forEach(function(s) {
+    schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
-      const isHoliday = holidayDates.has(dateKey);
-      const modifier = isHoliday ? 'shift-holiday':
-      (s.shift === 'Day' ? 'shift-day':
-        s.shift === 'Night' ? 'shift-night': 'shift-off');
-      const label = isHoliday ? `Libur – ${holidays.find(h => h.date === dateKey)?.name || ''}`: s.shift;
+      let modifier = s.shift === 'Day' ? 'shift-day':
+      s.shift === 'Night' ? 'shift-night': 'shift-off';
+      // Tambahkan kelas holiday jika tanggal tersebut libur
+      if (holidayDates.has(dateKey)) {
+        modifier += ' shift-holiday';
+      }
       popups[dateKey] = {
         modifier: modifier,
-        html: `<div><strong>${label}</strong></div>`
+        html: `<div><strong>${s.shift}</strong></div>`
       };
     });
+
     window.__currentPopups = popups;
 
-    // Dropdown
+    // Dropdown (tidak berubah)
     const dropdownWrapper = document.getElementById('dropdown-wrapper');
     if (dropdownWrapper) {
       if (data.employeeKeys.length > 1) {
@@ -404,7 +407,6 @@
     const startDate = new Date(start + 'T00:00:00');
 
     if (calendarInstance) {
-      // Update pengaturan dengan set()
       calendarInstance.set({
         dateMin: start,
         dateMax: end,
@@ -419,12 +421,10 @@
         year: true,
       });
 
-      // Terapkan modifier setelah set/update dengan beberapa retry
       setTimeout(() => applyModifiers(), 50);
       setTimeout(() => applyModifiers(), 200);
       setTimeout(() => applyModifiers(), 400);
     } else {
-      // Buat instance baru
       const {
         Calendar
       } = window.VanillaCalendarPro;

@@ -201,20 +201,32 @@
     pointer-events: none;
   }
 
+  /* DOT WARNA SHIFT */
   .shift-day .vc-date__btn::after {
     background-color: #2ecc71;
   }
-
   .shift-night .vc-date__btn::after {
     background-color: #3498db;
   }
-
   .shift-off .vc-date__btn::after {
     background-color: #bdc3c7;
   }
 
-  .shift-holiday .vc-date__btn::after {
-    background-color: #e74c3c !important;
+  /* ANGKA MERAH UNTUK LIBUR */
+  .shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
+  }
+
+  /* Pastikan dot tetap sesuai shift meskipun libur */
+  .shift-holiday.shift-day .vc-date__btn::after {
+    background-color: #2ecc71;
+  }
+  .shift-holiday.shift-night .vc-date__btn::after {
+    background-color: #3498db;
+  }
+  .shift-holiday.shift-off .vc-date__btn::after {
+    background-color: #bdc3c7;
   }
 
   /* Legenda */

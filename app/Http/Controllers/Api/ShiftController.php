@@ -27,6 +27,7 @@ class ShiftController extends Controller
     );
 
     $holidays = $holidayService->getHolidays();
+    \Log::debug("Holidays", $holidays ?? [])
 
     return response()->json([
       'message' => "Roster berhasil dibuat: {$count} entri.",

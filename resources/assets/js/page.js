@@ -21,7 +21,6 @@
       calendarInstance.destroy();
       calendarInstance = null;
     }
-    // Hapus elemen kalender dan dropdown wrapper (opsional, untuk kebersihan)
     const calendarEl = document.getElementById('calendar-instance');
     if (calendarEl) calendarEl.remove();
     const dropdownWrapper = document.getElementById('dropdown-wrapper');
@@ -29,7 +28,8 @@
   }
 
   // Helper untuk menerapkan modifier class ke elemen kalender
-  function applyModifiers(popups) {
+  function applyModifiers() {
+    const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
     dateElements.forEach(el => {
       const date = el.getAttribute('data-vc-date');
@@ -283,7 +283,6 @@
       return;
     }
 
-    // Kelompokkan per karyawan
     const byEmployee = {};
     schedules.forEach(s => {
       const empKey = `${s.employee.nrp} - ${s.employee.name}`;
@@ -306,7 +305,6 @@
       end
     };
 
-    // Hanya buat struktur kalender jika belum ada
     if (!document.getElementById('calendar-instance')) {
       container.innerHTML = '';
       const dropdownWrapper = document.createElement('div');
@@ -330,7 +328,7 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Bangun popups
+    // Bangun popups dan simpan di variabel global untuk observer
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
@@ -340,8 +338,9 @@
         html: `<div><strong>${s.shift}</strong></div>`
       };
     });
+    window.__currentPopups = popups;
 
-    // Kelola dropdown karyawan
+    // Dropdown
     const dropdownWrapper = document.getElementById('dropdown-wrapper');
     if (dropdownWrapper) {
       if (data.employeeKeys.length > 1) {
@@ -374,8 +373,8 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    // Jika instance sudah ada, gunakan set() untuk mengubah pengaturan, lalu update() untuk mereset tampilan
     if (calendarInstance) {
+      // Update pengaturan dengan set()
       calendarInstance.set({
         dateMin: start,
         dateMax: end,
@@ -390,16 +389,18 @@
         year: true,
       });
 
-      // Terapkan modifier setelah update (dengan delay untuk memastikan DOM terupdate)
-      setTimeout(() => applyModifiers(popups), 200);
+      // Terapkan modifier setelah set/update dengan beberapa retry
+      setTimeout(() => applyModifiers(), 50);
+      setTimeout(() => applyModifiers(), 200);
+      setTimeout(() => applyModifiers(), 400);
     } else {
-      // Buat instance baru (pertama kali)
+      // Buat instance baru
       const {
         Calendar
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 0,
+        firstDayOfWeek: 1,
         settings: {
           visibility: {
             daysOutsideMonth: true
@@ -424,16 +425,15 @@
 
       calendarInstance.init();
 
-      // Observer untuk navigasi bulan
       const targetNode = document.getElementById('calendar-instance');
       if (targetNode) {
         if (currentObserver) currentObserver.disconnect();
-        currentObserver = new MutationObserver(() => applyModifiers(popups));
+        currentObserver = new MutationObserver(() => applyModifiers());
         currentObserver.observe(targetNode, {
           childList: true, subtree: true
         });
       }
-      setTimeout(() => applyModifiers(popups), 200);
+      setTimeout(() => applyModifiers(), 200);
     }
   }
 

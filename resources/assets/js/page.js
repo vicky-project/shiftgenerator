@@ -337,11 +337,14 @@
     }
 
     box.classList.remove('d-none');
-    list.innerHTML = filtered.map(h => `
-      <span class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2">
+    list.innerHTML = `
+    <div class="d-flex flex-nowrap gap-2 overflow-auto pb-2" style="max-width: 100%; -webkit-overflow-scrolling: touch;">
+    ${filtered.map(h => `
+      <span class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2 text-nowrap flex-shrink-0">
       ${h.date} – ${escapeHtml(h.name)}
       </span>
-      `).join('');
+      `).join('')}
+    </div>`;
   }
 
   function renderCalendarForEmployee(index) {

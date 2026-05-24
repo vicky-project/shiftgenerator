@@ -261,6 +261,18 @@
     background: #e74c3c;
   }
 
+  /* Scrollbar tipis untuk daftar hari libur */
+  #holiday-list .overflow-auto::-webkit-scrollbar {
+    height: 4px;
+  }
+  #holiday-list .overflow-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #holiday-list .overflow-auto::-webkit-scrollbar-thumb {
+    background-color: var(--tg-theme-hint-color);
+    border-radius: 4px;
+  }
+
   /* Text color helper */
   .text-color {
     color: var(--tg-theme-text-color) !important;

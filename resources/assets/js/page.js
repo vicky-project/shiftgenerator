@@ -357,7 +357,7 @@
 
     // Bangun popups dan simpan di variabel global untuk observer
     const popups = {};
-    schedules.forEach(s => {
+    schedules.forEach(function(s) {
       const dateKey = String(s.date).substring(0, 10);
       const isHoliday = holidayDates.has(dateKey);
       const modifier = isHoliday ? 'shift-holiday':

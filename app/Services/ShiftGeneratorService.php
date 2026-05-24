@@ -4,6 +4,7 @@ namespace Modules\ShiftGenerator\Services;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
@@ -88,7 +89,7 @@ class ShiftGeneratorService
     $dayDiff = $refDate->diffInDays($currentDate, false);
 
     // Tentukan karakter target berdasarkan shift_start
-    $targetChar = ($employee->shift_start === 'Day') ? 'D' : 'N';
+    $targetChar = ($employee->shift_start === ShiftType::Day) ? 'D' : 'N';
 
     // Cari indeks pertama karakter target dalam pola
     $offset = strpos($pattern, $targetChar);

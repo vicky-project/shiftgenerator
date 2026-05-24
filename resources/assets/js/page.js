@@ -11,6 +11,35 @@
   let calendarInstance = null;
   let currentObserver = null;
 
+  // Fungsi untuk menghancurkan instance kalender dan observer (hanya saat navigasi)
+  function destroyCalendar() {
+    if (currentObserver) {
+      currentObserver.disconnect();
+      currentObserver = null;
+    }
+    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
+      calendarInstance.destroy();
+      calendarInstance = null;
+    }
+    // Hapus elemen kalender dan dropdown wrapper (opsional, untuk kebersihan)
+    const calendarEl = document.getElementById('calendar-instance');
+    if (calendarEl) calendarEl.remove();
+    const dropdownWrapper = document.getElementById('dropdown-wrapper');
+    if (dropdownWrapper) dropdownWrapper.remove();
+  }
+
+  // Helper untuk menerapkan modifier class ke elemen kalender
+  function applyModifiers(popups) {
+    const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
+    dateElements.forEach(el => {
+      const date = el.getAttribute('data-vc-date');
+      el.classList.remove('shift-day', 'shift-night', 'shift-off');
+      if (popups[date] && popups[date].modifier) {
+        el.classList.add(popups[date].modifier);
+      }
+    });
+  }
+
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList() {
     destroyCalendar();
@@ -277,21 +306,17 @@
       end
     };
 
-    // **Hanya buat struktur kalender jika belum ada**
+    // Hanya buat struktur kalender jika belum ada
     if (!document.getElementById('calendar-instance')) {
-      // Hapus isi container (pesan sebelumnya) dan bangun struktur awal
       container.innerHTML = '';
-
       const dropdownWrapper = document.createElement('div');
       dropdownWrapper.id = 'dropdown-wrapper';
       container.appendChild(dropdownWrapper);
-
       const calendarEl = document.createElement('div');
       calendarEl.id = 'calendar-instance';
       container.appendChild(calendarEl);
     }
 
-    // Render karyawan pertama (atau index yang disimpan)
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
 
@@ -305,7 +330,7 @@
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
 
-    // Bangun popups baru
+    // Bangun popups
     const popups = {};
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
@@ -334,7 +359,6 @@
           });
         } else {
           selectEl.value = index;
-          // Perbarui opsi jika jumlah karyawan berubah
           if (selectEl.options.length !== data.employeeKeys.length) {
             selectEl.innerHTML = data.employeeKeys.map((k, i) =>
               `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`
@@ -348,29 +372,34 @@
 
     const start = data.start || new Date().toISOString().substring(0, 10);
     const end = data.end || new Date().toISOString().substring(0, 10);
+    const startDate = new Date(start + 'T00:00:00');
 
-    const calendarEl = document.getElementById('calendar-instance');
-    if (!calendarEl) return;
-
-    // Jika instance sudah ada, UPDATE (jangan destroy)
+    // Jika instance sudah ada, gunakan set() untuk mengubah pengaturan, lalu update() untuk mereset tampilan
     if (calendarInstance) {
-      calendarInstance.update({
+      calendarInstance.set({
         dateMin: start,
         dateMax: end,
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
+        year: startDate.getFullYear(),
+        month: startDate.getMonth(),
+      }, {
+        dates: true,
+        month: true,
+        year: true,
       });
-      // Terapkan modifier setelah update
+
+      // Terapkan modifier setelah update (dengan delay untuk memastikan DOM terupdate)
       setTimeout(() => applyModifiers(popups), 200);
     } else {
-      // Buat instance baru (hanya pertama kali)
+      // Buat instance baru (pertama kali)
       const {
         Calendar
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 1,
+        firstDayOfWeek: 0,
         settings: {
           visibility: {
             daysOutsideMonth: true
@@ -406,34 +435,6 @@
       }
       setTimeout(() => applyModifiers(popups), 200);
     }
-  }
-
-  function applyModifiers(popups) {
-    const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
-    dateElements.forEach(el => {
-      const date = el.getAttribute('data-vc-date');
-      el.classList.remove('shift-day', 'shift-night', 'shift-off');
-      if (popups[date] && popups[date].modifier) {
-        el.classList.add(popups[date].modifier);
-      }
-    });
-  }
-
-  // destroyCalendar hanya dipakai saat navigasi meninggalkan halaman generate
-  function destroyCalendar() {
-    if (currentObserver) {
-      currentObserver.disconnect();
-      currentObserver = null;
-    }
-    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
-      calendarInstance.destroy();
-      calendarInstance = null;
-    }
-    // Hapus elemen kalender dari DOM (opsional, karena akan di-recreate jika kembali)
-    const calendarEl = document.getElementById('calendar-instance');
-    if (calendarEl) calendarEl.remove();
-    const dropdownWrapper = document.getElementById('dropdown-wrapper');
-    if (dropdownWrapper) dropdownWrapper.remove();
   }
 
   window.PageRender = {

@@ -158,7 +158,7 @@
           }
           showLoading('Menghasilkan roster...');
           try {
-            const result = await generateRoster(start, end, []); // kirim array kosong
+            const result = await generateRoster(start, end); // kirim array kosong
             showToast('Roster dibuat.');
             document.getElementById('result-container').classList.remove('d-none');
             window.__shiftData = {

@@ -91,7 +91,7 @@
       method: 'DELETE'
     }),
     // Generate roster
-    generateRoster: (start, end, holidays = []) => fetchAPI(`${API_BASE}/api/generate`, {
+    generateRoster: (start, end) => fetchAPI(`${API_BASE}/api/generate`, {
       method: 'POST',
       body: JSON.stringify({
         start_date: start, end_date: end, holidays

@@ -14,31 +14,24 @@ class ShiftController extends Controller
   /**
   * Generate roster shift untuk karyawan milik user login.
   */
-  public function generate(
-    Request $request,
-    ShiftGeneratorService $service,
-    HolidayService $holidayService
-  ) {
+  public function generate(Request $request, ShiftGeneratorService $service, HolidayService $holidayService) {
     $validated = $request->validate([
       'start_date' => 'required|date|date_format:Y-m-d',
       'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
-      'holidays' => 'sometimes|array',
-      'holidays.*' => 'date|date_format:Y-m-d',
     ]);
-
-    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidayDates();
 
     $count = $service->generate(
       $validated['start_date'],
       $validated['end_date'],
-      $holidays,
       $request->user()->id
     );
+
+    $holidays = $holidayService->getHolidays();
 
     return response()->json([
       'message' => "Roster berhasil dibuat: {$count} entri.",
       'count' => $count,
-      'holidays' => $holidays
+      'holidays' => $holidays,
     ]);
   }
 

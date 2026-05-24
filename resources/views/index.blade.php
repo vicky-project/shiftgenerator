@@ -214,7 +214,7 @@
   }
 
   .shift-holiday .vc-date__btn::after {
-    background-color: #e74c3c;
+    background-color: #e74c3c !important;
   }
 
   /* Legenda */

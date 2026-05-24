@@ -19,32 +19,30 @@ class ShiftGeneratorService
   * @param int|null $userId   ID user Telegram (untuk filter karyawan)
   * @return int jumlah record yang dibuat
   */
-  public function generate(string $startDate, string $endDate, array $holidays = [], ?int $userId = null): int
+  public function generate(string $startDate, string $endDate, ?int $userId = null): int
   {
     $start = Carbon::parse($startDate)->startOfDay();
     $end = Carbon::parse($endDate)->startOfDay();
-    $holidaySet = collect($holidays)->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
 
-    // Hapus jadwal lama dalam range ini
-    ShiftSchedule::whereBetween('date', [$startDate, $endDate])->delete();
+    // Hapus hanya data milik user yang sedang login
+    ShiftSchedule::whereBetween('date', [$startDate, $endDate])
+    ->whereHas('employee', fn($q) => $q->where('telegram_user_id', $userId))
+    ->delete();
 
     $employees = Employee::when($userId, fn($q) => $q->where('telegram_user_id', $userId))->get();
-
     $insertData = [];
 
     foreach ($employees as $employee) {
       foreach (CarbonPeriod::create($start, $end) as $date) {
-        $dateStr = $date->format('Y-m-d');
-        $shift = $this->determineShift($employee, $date, $holidaySet);
+        $shift = $this->determineShift($employee, $date); // tanpa holiday
         $insertData[] = [
           'employee_id' => $employee->id,
-          'date' => $dateStr,
+          'date' => $date->format('Y-m-d'),
           'shift' => $shift,
         ];
       }
     }
 
-    // Bulk insert untuk performa
     foreach (array_chunk($insertData, 500) as $chunk) {
       ShiftSchedule::insert($chunk);
     }
@@ -52,22 +50,15 @@ class ShiftGeneratorService
     return count($insertData);
   }
 
+
   /**
   * Tentukan shift untuk seorang karyawan pada suatu tanggal.
   */
-  private function determineShift(Employee $employee, Carbon $date, array $holidays): string
+  private function determineShift(Employee $employee, Carbon $date): string
   {
-    // 1. Hari libur nasional -> Off
-    if (in_array($date->format('Y-m-d'), $holidays)) {
-      return 'Off';
-    }
-
-    // 2. Jika tanggal termasuk dalam masa cuti siklus -> Off
     if ($this->isInCycleLeave($employee, $date)) {
       return 'Off';
     }
-
-    // 3. Hitung shift dari pola
     return $this->calculatePatternShift($employee, $date);
   }
 

@@ -257,6 +257,10 @@
     <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
     </div>
+    <div id="holiday-box" class="mt-3 d-none">
+    <h6>Hari Libur Nasional</h6>
+    <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
+    </div>
     <div class="d-flex justify-content-end">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
     </div>
@@ -301,8 +305,11 @@
       byEmployee,
       employeeKeys,
       start,
-      end
+      end,
+      holidays: window.__shiftData?.holidays || []
     };
+
+    renderHolidayBox(start, end, window.__shiftData.holidays);
 
     if (!document.getElementById('calendar-instance')) {
       container.innerHTML = '';
@@ -317,6 +324,25 @@
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
 
+  function renderHolidayBox(start, end, holidays) {
+    const box = document.getElementById('holiday-box');
+    const list = document.getElementById('holiday-list');
+    if (!box || !list) return;
+
+    const filtered = holidays.filter(h => h.date >= start && h.date <= end);
+    if (filtered.length === 0) {
+      box.classList.add('d-none');
+      return;
+    }
+
+    box.classList.remove('d-none');
+    list.innerHTML = filtered.map(h => `
+      <span class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2">
+      ${h.date} – ${escapeHtml(h.name)}
+      </span>
+      `).join('');
+  }
+
   function renderCalendarForEmployee(index) {
     const data = window.__shiftData;
     if (!data || !data.employeeKeys.length) return;
@@ -326,21 +352,22 @@
     const empKey = data.employeeKeys[index];
     const empData = data.byEmployee[empKey];
     const schedules = empData.schedules;
+    const holidays = data.holidays || [];
+    const holidayDates = new Set(holidays.map(h => h.date));
 
     // Bangun popups dan simpan di variabel global untuk observer
     const popups = {};
     const holidays = data.holidays || [];
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
-      let modifier;
-      if (holidays.includes(dateKey)) {
-        modifier = 'shift-holiday';
-      } else {
-        modifier = s.shift === 'Day' ? 'shift-day': s.shift === 'Night' ? 'shift-night': 'shift-off';
-      }
+      const isHoliday = holidayDates.has(dateKey);
+      const modifier = isHoliday ? 'shift-holiday':
+      (s.shift === 'Day' ? 'shift-day':
+        s.shift === 'Night' ? 'shift-night': 'shift-off');
+      const label = isHoliday ? `Libur – ${holidays.find(h => h.date === dateKey)?.name || ''}`: s.shift;
       popups[dateKey] = {
         modifier: modifier,
-        html: `<div><strong>${s.shift}</strong></div>`
+        html: `<div><strong>${label}</strong></div>`
       };
     });
     window.__currentPopups = popups;

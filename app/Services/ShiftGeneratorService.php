@@ -98,7 +98,7 @@ class ShiftGeneratorService
     \Log::debug('Shift '. $char, [
       'posisi' => $position,
       'daydiff' => $dayDiff,
-      'offset' =* $offset,
+      'offset' => $offset,
       'patterlength' => $patternLength,
       'date' => $date->toLocaleString()
     ]);

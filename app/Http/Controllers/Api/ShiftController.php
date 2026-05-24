@@ -4,6 +4,7 @@ namespace Modules\ShiftGenerator\Http\Controllers\Api;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Modules\ShiftGenerator\Services\HolidayService;
 use Modules\ShiftGenerator\Services\ShiftGeneratorService;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -13,7 +14,11 @@ class ShiftController extends Controller
   /**
   * Generate roster shift untuk karyawan milik user login.
   */
-  public function generate(Request $request, ShiftGeneratorService $service) {
+  public function generate(
+    Request $request,
+    ShiftGeneratorService $service,
+    HolidayService $holidayService
+  ) {
     $validated = $request->validate([
       'start_date' => 'required|date|date_format:Y-m-d',
       'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
@@ -21,16 +26,19 @@ class ShiftController extends Controller
       'holidays.*' => 'date|date_format:Y-m-d',
     ]);
 
+    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidayDates();
+
     $count = $service->generate(
       $validated['start_date'],
       $validated['end_date'],
-      $validated['holidays'] ?? [],
+      $holidays,
       $request->user()->id
     );
 
     return response()->json([
       'message' => "Roster berhasil dibuat: {$count} entri.",
-      'count' => $count
+      'count' => $count,
+      'holidays' => $holidays
     ]);
   }
 

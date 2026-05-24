@@ -152,23 +152,20 @@
         if (e.target.id === 'btn-generate') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
-          const holidaysStr = document.getElementById('holidays')?.value || '';
           if (!start || !end) {
             showToast('Isi rentang tanggal.', 'warning');
             return;
           }
-          const holidays = holidaysStr.split(',').map(s => s.trim()).filter(s => s);
           showLoading('Menghasilkan roster...');
           try {
-            await generateRoster(start, end, holidays);
+            const result = await generateRoster(start, end, []); // kirim array kosong
             showToast('Roster dibuat.');
-            // Tampilkan container dan render kalender
             document.getElementById('result-container').classList.remove('d-none');
-            // Simpan start/end ke shiftData (tanpa menghapus data sebelumnya jika ada)
             window.__shiftData = {
               ...(window.__shiftData || {}),
               start: start,
-              end: end
+              end: end,
+              holidays: result.holidays || [] // simpan holidays dari response
             };
             await loadRosterData(start, end);
           } catch (err) {

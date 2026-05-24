@@ -244,8 +244,6 @@
     <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control"></div>
     <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control"></div>
     </div>
-    <div class="mt-2"><label class="form-label">Hari Libur Nasional (YYYY-MM-DD, koma)</label>
-    <input type="text" id="holidays" class="form-control" placeholder="2026-08-17, 2026-12-25"></div>
     <button class="btn btn-success mt-3 w-100" id="btn-generate"><i class="bi bi-gear"></i> Generate</button>
     </div>
     </div>
@@ -331,11 +329,17 @@
 
     // Bangun popups dan simpan di variabel global untuk observer
     const popups = {};
+    const holidays = data.holidays || [];
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
+      let modifier;
+      if (holidays.includes(dateKey)) {
+        modifier = 'shift-holiday';
+      } else {
+        modifier = s.shift === 'Day' ? 'shift-day': s.shift === 'Night' ? 'shift-night': 'shift-off';
+      }
       popups[dateKey] = {
-        modifier: s.shift === 'Day' ? 'shift-day':
-        s.shift === 'Night' ? 'shift-night': 'shift-off',
+        modifier: modifier,
         html: `<div><strong>${s.shift}</strong></div>`
       };
     });

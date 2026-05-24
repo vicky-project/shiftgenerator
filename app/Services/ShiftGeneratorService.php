@@ -77,30 +77,40 @@ class ShiftGeneratorService
   {
     $pattern = $employee->shift_pattern;
     $patternLength = strlen($pattern);
+
     if ($patternLength === 0) {
-      return 'Off'; // fallback
+      \Log::warning('Pola shift kosong untuk karyawan ' . $employee->id);
+      return 'Off';
     }
 
     $refDate = $employee->shift_start_date->startOfDay();
     $currentDate = $date->copy()->startOfDay();
-
     $dayDiff = $refDate->diffInDays($currentDate, false);
 
-    $needle = $employee->shift_start === 'Day' ? 'D' : 'N';
-    $offset = 0;
-    $pos = strpos($pattern, $needle);
-    if ($pos !== false) {
-      $offset = $pos;
+    // Tentukan karakter target berdasarkan shift_start
+    $targetChar = ($employee->shift_start === 'Day') ? 'D' : 'N';
+
+    // Cari indeks pertama karakter target dalam pola
+    $offset = strpos($pattern, $targetChar);
+    if ($offset === false) {
+      \Log::error("Pola shift tidak mengandung karakter '$targetChar' untuk karyawan {$employee->id}");
+      return 'Off';
     }
 
+    // Hitung posisi dalam siklus dengan offset, amankan dari negatif
     $position = (($dayDiff + $offset) % $patternLength + $patternLength) % $patternLength;
     $char = $pattern[$position];
-    \Log::debug('Shift '. $char, [
-      'posisi' => $position,
-      'daydiff' => $dayDiff,
+
+    \Log::debug('Shift calculation', [
+      'employee_id' => $employee->id,
+      'date' => $date->format('Y-m-d'),
+      'dayDiff' => $dayDiff,
       'offset' => $offset,
-      'patterlength' => $patternLength,
-      'date' => $date->format('d-m-Y')
+      'position' => $position,
+      'char' => $char,
+      'pattern' => $pattern,
+      'shift_start' => $employee->shift_start,
+      'shift_start_date' => $refDate->format('Y-m-d'),
     ]);
 
     return match ($char) {

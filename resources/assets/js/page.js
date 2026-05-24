@@ -414,6 +414,7 @@
         displayDateMax: end,
         popups: popups,
         selectedWeekends: [0],
+        firstDayOfWeek: 0,
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
       }, {

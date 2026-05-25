@@ -74,6 +74,9 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
         $rows->push($row);
       }
 
+      \Log::debug('Schedules count: ' . $schedules->count());
+      \Log::debug('Employees count: ' . $employees->count());
+      \Log::debug('First schedule:', $schedules->first()?->toArray());
       return $rows;
     }
 

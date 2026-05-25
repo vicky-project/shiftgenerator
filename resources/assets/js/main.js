@@ -1,476 +1,269 @@
-// page.js (FINAL - kalender selalu tampil saat generate)
+// main.js
 (function() {
   const {
-    fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
-    fetchOverrides, addOverride, deleteOverride,
-    generateRoster, fetchSchedules, exportExcel
+    setToken, deleteEmployee, addOverride, deleteOverride,
+    generateRoster, exportExcel
   } = window.AppCore;
-  const showToast = window.tgApp?.showToast || window.TelegramApp?.showToast || ((msg, type) => console.log(msg));
-  const escapeHtml = window.tgApp?.escapeHtml || window.TelegramApp?.escapeHtml || ((str) => str);
+  const {
+    renderEmployeeList, renderEmployeeForm, renderOverrides,
+    renderGenerate, loadRosterData, destroyCalendar
+  } = window.PageRender;
 
-  let calendarInstance = null;
-  let currentObserver = null;
-
-  // ---------- destroyCalendar (hanya reset instance & observer, JANGAN hapus DOM) ----------
-  function destroyCalendar() {
-    if (currentObserver) {
-      currentObserver.disconnect();
-      currentObserver = null;
+  // Gunakan tgApp langsung dari layout Telegram Mini App
+  const showToast = tgApp.showToast || ((msg, type) => console.log(msg));
+  const showLoading = tgApp.showLoading || ((msg) => {
+    const overlay = document.getElementById('global-loading');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      const msgEl = overlay.querySelector('div:last-child');
+      if (msgEl) msgEl.innerText = msg || 'Memuat...';
     }
-    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
-      calendarInstance.destroy();
-      calendarInstance = null;
-    }
-  }
+  });
+  const hideLoading = tgApp.hideLoading || (() => {
+    const overlay = document.getElementById('global-loading');
+    if (overlay) overlay.style.display = 'none';
+  });
 
-  // ---------- applyModifiers ----------
-  function applyModifiers() {
-    const popups = window.__currentPopups || {};
-    const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
-    dateElements.forEach(el => {
-      const date = el.getAttribute('data-vc-date');
-      el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-holiday');
-      if (popups[date] && popups[date].modifier) {
-        const classes = popups[date].modifier.split(' ');
-        el.classList.add(...classes);
-      }
-    });
+  let currentPage = 'employees';
+  let currentParams = null;
 
-    // Update holiday box
-    const monthBtn = document.querySelector('#calendar-instance [data-vc="month"]');
-    const yearBtn = document.querySelector('#calendar-instance [data-vc="year"]');
-    if (monthBtn && yearBtn && window.__shiftData && window.__shiftData.holidays) {
-      const month = parseInt(monthBtn.getAttribute('data-vc-month'));
-      const year = parseInt(yearBtn.getAttribute('data-vc-year'));
-      if (!isNaN(month) && !isNaN(year)) {
-        renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
-      }
-    }
-  }
+  // Fungsi navigasi halaman
+  async function goTo(navString) {
+    showLoading('Memuat halaman...');
 
-  // ---------- Render daftar karyawan ----------
-  async function renderEmployeeList() {
-    destroyCalendar();
-    document.getElementById('app-title').innerText = 'Karyawan Saya';
-    const content = document.getElementById('app-content');
-    let html = `<div class="d-flex justify-content-end mb-3">
-    <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
-    </div>`;
+    const [page, param] = navString.split(':');
+    currentPage = page;
+    currentParams = param ? {
+      id: param
+    }: null;
+
+    updateBackButton();
+    updateTabActive();
+
     try {
-      const employees = await fetchEmployees();
-      if (!employees.length) {
-        html += '<div class="text-center text-muted py-4">Belum ada karyawan.</div>';
-      } else {
-        employees.forEach(emp => {
-          html += `
-          <div class="card mb-2 shadow-sm">
-          <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-          <strong>${escapeHtml(emp.name)}</strong>
-          <div class="text-muted small">NRP: ${escapeHtml(emp.nrp)}</div>
-          <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
-          </div>
-          <div class="btn-group btn-group-sm">
-          <button data-nav="overrides:${emp.id}" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
-          <button data-nav="edit-employee:${emp.id}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-outline-danger" data-delete-employee="${emp.id}"><i class="bi bi-trash"></i></button>
-          </div>
-          </div>
-          </div>`;
-        });
-      }
-    } catch (err) {
-      html += `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
-    }
-    content.innerHTML = html;
-  }
-
-  // ---------- Render form tambah/edit ----------
-  async function renderEmployeeForm(params) {
-    destroyCalendar();
-    const id = params?.id;
-    const isEdit = !!id;
-    document.getElementById('app-title').innerText = isEdit ? 'Edit Karyawan': 'Tambah Karyawan';
-    let employee = null;
-    if (isEdit) {
-      try {
-        employee = await fetchEmployee(id);
-      } catch (err) {
-        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
-        return;
-      }
-    }
-
-    const content = document.getElementById('app-content');
-    content.innerHTML = `
-    <form id="employee-form">
-    <div class="mb-3">
-    <label class="form-label">Nama</label>
-    <input type="text" name="name" class="form-control" value="${employee ? escapeHtml(employee.name): ''}" required>
-    </div>
-    <div class="mb-3">
-    <label class="form-label">NRP</label>
-    <input type="text" name="nrp" class="form-control" value="${employee ? escapeHtml(employee.nrp): ''}" required>
-    </div>
-    <div class="mb-3">
-    <label class="form-label">
-    Pola Shift
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Pola Shift"
-    data-info-content="<p>String yang mewakili shift harian dalam satu siklus.</p><ul><li><strong>D</strong> = Day (siang)</li><li><strong>N</strong> = Night (malam)</li><li><strong>O</strong> atau <strong>-</strong> = Off (libur)</li></ul><p>Contoh: <code>DDDDDDDDNNNNNO</code> berarti 8 Day, 5 Night, 1 Off.</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <input type="text" name="shift_pattern" class="form-control" value="${employee ? escapeHtml(employee.shift_pattern): 'DDDDDDDDNNNNNO'}" required>
-    </div>
-    <div class="row mb-3">
-    <div class="col">
-    <label class="form-label">
-    Shift Start Date
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Shift Start Date"
-    data-info-content="<p>Tanggal acuan dimulainya pola shift. Pada tanggal ini, karyawan dianggap mulai bekerja dengan shift yang dipilih di sampingnya (<strong>Shift Start</strong>).</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <input type="date" name="shift_start_date" class="form-control" value="${employee?.shift_start_date ? String(employee.shift_start_date).substring(0, 10): ''}" required>
-    </div>
-    <div class="col">
-    <label class="form-label">
-    Shift Start
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Shift Start"
-    data-info-content="<p>Shift pada <strong>Shift Start Date</strong>. Pilih <strong>Day</strong> atau <strong>Night</strong>. Posisi ini akan menjadi awal perhitungan siklus pola.</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <select name="shift_start" class="form-select">
-    <option value="Day" ${employee && employee.shift_start === 'Day' ? 'selected': ''}>Day</option>
-    <option value="Night" ${employee && employee.shift_start === 'Night' ? 'selected': ''}>Night</option>
-    </select>
-    </div>
-    </div>
-    <div class="row mb-3">
-    <div class="col">
-    <label class="form-label">
-    Work Days
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Work Days"
-    data-info-content="<p>Jumlah hari kerja berturut-turut dalam satu siklus kerja-cuti (hitungan kalender, termasuk offday). Setelah hari kerja habis, masuk ke masa cuti (<strong>Leave Days</strong>).</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <input type="number" name="work_days" class="form-control" value="${employee ? employee.work_days: 70}">
-    </div>
-    <div class="col">
-    <label class="form-label">
-    Leave Days
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Leave Days"
-    data-info-content="<p>Jumlah hari cuti setelah masa kerja (<strong>Work Days</strong>). Cuti ini otomatis berulang setiap siklus.</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <input type="number" name="leave_days" class="form-control" value="${employee ? employee.leave_days: 14}">
-    </div>
-    </div>
-    <div class="mb-3">
-    <label class="form-label">
-    Pattern Start Date
-    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
-    data-info-title="Pattern Start Date"
-    data-info-content="<p>Tanggal dimulainya siklus kerja-cuti pertama. Sistem akan menghitung ${employee ? employee.work_days: 70} hari kerja (atau sesuai <strong>Work Days</strong>) mulai tanggal ini, lalu otomatis cuti selama ${employee ? employee.leave_days: 14} hari.</p>">
-    <i class="bi bi-info-circle"></i>
-    </button>
-    </label>
-    <input type="date" name="pattern_start_date" class="form-control" value="${employee?.pattern_start_date ? String(employee.pattern_start_date).substring(0, 10): ''}" required>
-    </div>
-    <button type="submit" class="btn btn-primary w-100">Simpan</button>
-    </form>`;
-  }
-
-  // ---------- Render halaman override ----------
-  async function renderOverrides(params) {
-    destroyCalendar();
-    const employeeId = params.id;
-    document.getElementById('app-title').innerText = 'Pengajuan Cuti';
-    let employee;
-    try {
-      employee = await fetchEmployee(employeeId);
-    } catch (err) {
-      document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
-      return;
-    }
-
-    const content = document.getElementById('app-content');
-    content.innerHTML = `
-    <div class="mb-3">
-    <label class="form-label">Tambah Pengajuan Cuti (mulai)</label>
-    <form id="override-form" class="row g-2">
-    <div class="col-8"><input type="date" name="start_date" class="form-control" required></div>
-    <div class="col-4"><button type="submit" class="btn btn-primary w-100">Tambah</button></div>
-    </form>
-    <small class="text-muted">Durasi cuti: ${employee.leave_days} hari. Toleransi ±14 hari dari cuti normal.</small>
-    </div>
-    <div id="override-list"><div class="text-center text-muted py-3">Memuat...</div></div>`;
-
-    async function loadOverrides() {
-      try {
-        const overrides = await fetchOverrides(employeeId);
-        const container = document.getElementById('override-list');
-        if (!overrides.length) {
-          container.innerHTML = '<div class="text-muted text-center py-3">Belum ada pengajuan.</div>';
-          return;
+      switch (page) {
+        case 'employees':
+          await renderEmployeeList();
+          break;
+        case 'create-employee':
+          await renderEmployeeForm();
+          break;
+        case 'edit-employee':
+          await renderEmployeeForm(currentParams);
+          break;
+        case 'overrides':
+          await renderOverrides(currentParams);
+          break;
+        case 'generate':
+          renderGenerate();
+          break;
+        default:
+          document.getElementById('app-content').innerHTML = '<div class="alert alert-warning">Halaman tidak ditemukan.</div>';
         }
-        let html = '';
-        overrides.forEach(ov => {
-          const end = new Date(ov.start_date);
-          end.setDate(end.getDate() + employee.leave_days - 1);
-          html += `<div class="card mb-2"><div class="card-body d-flex justify-content-between align-items-center">
-          <div>${ov.start_date} – ${end.toISOString().slice(0, 10)}</div>
-          <button class="btn btn-sm btn-outline-danger" data-delete-override="${ov.id}"><i class="bi bi-trash"></i></button>
-          </div></div>`;
-        });
-        container.innerHTML = html;
       } catch (err) {
-        document.getElementById('override-list').innerHTML = `<div class="alert alert-danger">Gagal memuat.</div>`;
+        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
+      } finally {
+        hideLoading();
       }
     }
 
-    await loadOverrides();
-  }
-
-  // ---------- Render halaman generate ----------
-  function renderGenerate() {
-    destroyCalendar();
-    document.getElementById('app-title').innerText = 'Generate Roster';
-    const content = document.getElementById('app-content');
-    content.innerHTML = `
-    <div class="card mb-3">
-    <div class="card-body">
-    <div class="row g-2">
-    <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control"></div>
-    <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control"></div>
-    </div>
-    <button class="btn btn-success mt-3 w-100" id="btn-generate"><i class="bi bi-gear"></i> Generate</button>
-    </div>
-    </div>
-    <div id="result-container" class="d-none">
-    <div id="calendar-legend">
-    <div class="legend-item"><span class="legend-dot day"></span> Day</div>
-    <div class="legend-item"><span class="legend-dot night"></span> Night</div>
-    <div class="legend-item"><span class="legend-dot off"></span> Off</div>
-    <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
-    </div>
-    <div id="shift-calendar-wrapper">
-    <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
-    </div>
-    <div id="holiday-box" class="mt-3 d-none">
-    <h6>Hari Libur Nasional</h6>
-    <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
-    </div>
-    <div class="d-flex justify-content-end">
-    <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
-    </div>
-    </div>`;
-  }
-
-  // ---------- Render kalender dengan data shift ----------
-  async function renderShiftCalendar(start, end) {
-    const container = document.getElementById('shift-calendar');
-    if (!container) return;
-
-    let schedules = [];
-    try {
-      schedules = await fetchSchedules(start, end);
-    } catch (err) {
-      container.innerHTML = `<div class="alert alert-danger">Gagal memuat data roster.</div>`;
-      return;
+    function updateBackButton() {
+      const btnBack = document.getElementById('btn-back');
+      if (!btnBack) return;
+      const hide = (currentPage === 'employees' || currentPage === 'generate');
+      btnBack.classList.toggle('d-none', hide);
     }
 
-    if (!schedules.length) {
-      container.innerHTML = `<div class="alert alert-warning">Belum ada data roster. Silakan generate terlebih dahulu.</div>`;
-      return;
-    }
-
-    const byEmployee = {};
-    schedules.forEach(s => {
-      const empKey = `${s.employee.nrp} - ${s.employee.name}`;
-      if (!byEmployee[empKey]) {
-        byEmployee[empKey] = {
-          schedules: [],
-          employee: s.employee
-        };
-      }
-      byEmployee[empKey].schedules.push(s);
-    });
-
-    const employeeKeys = Object.keys(byEmployee);
-    if (employeeKeys.length === 0) return;
-
-    window.__shiftData = {
-      byEmployee,
-      employeeKeys,
-      start,
-      end,
-      holidays: window.__shiftData?.holidays || []
-    };
-
-    // Selalu bangun ulang struktur kalender
-    container.innerHTML = '';
-    const dropdownWrapper = document.createElement('div');
-    dropdownWrapper.id = 'dropdown-wrapper';
-    container.appendChild(dropdownWrapper);
-    const calendarEl = document.createElement('div');
-    calendarEl.id = 'calendar-instance';
-    container.appendChild(calendarEl);
-
-    renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
-  }
-
-  // ---------- Tampilkan libur untuk bulan tertentu ----------
-  function renderHolidayBoxForMonth(year, month, holidays) {
-    const box = document.getElementById('holiday-box');
-    const list = document.getElementById('holiday-list');
-    if (!box || !list) return;
-
-    const filtered = holidays.filter(h => {
-      const d = new Date(h.date + 'T00:00:00');
-      return d.getFullYear() === year && d.getMonth() === month;
-    });
-
-    if (filtered.length === 0) {
-      box.classList.add('d-none');
-      return;
-    }
-
-    box.classList.remove('d-none');
-    list.innerHTML = filtered.map(h => `
-      <span class="badge bg-danger bg-opacity-25 text-danger border border-danger px-3 py-2 text-wrap" style="word-break: break-word;">
-      ${h.date} – ${escapeHtml(h.name)}
-      </span>
-      `).join('');
-  }
-
-  // ---------- Render kalender untuk satu karyawan ----------
-  function renderCalendarForEmployee(index) {
-    const data = window.__shiftData;
-    if (!data || !data.employeeKeys.length) return;
-
-    data.currentIndex = index;
-    const empKey = data.employeeKeys[index];
-    const empData = data.byEmployee[empKey];
-    const schedules = empData.schedules;
-    const holidays = data.holidays || [];
-    const holidayDates = new Set(holidays.map(h => h.date));
-
-    const popups = {};
-    schedules.forEach(s => {
-      const dateKey = String(s.date).substring(0, 10);
-      let modifier = s.shift === 'Day' ? 'shift-day':
-      s.shift === 'Night' ? 'shift-night': 'shift-off';
-      if (holidayDates.has(dateKey)) {
-        modifier += ' shift-holiday';
-      }
-      popups[dateKey] = {
-        modifier: modifier,
-        html: `<div><strong>${s.shift}</strong></div>`
-      };
-    });
-
-    window.__currentPopups = popups;
-
-    // Dropdown
-    const dropdownWrapper = document.getElementById('dropdown-wrapper');
-    if (dropdownWrapper) {
-      if (data.employeeKeys.length > 1) {
-        let selectEl = document.getElementById('employee-select');
-        if (!selectEl) {
-          dropdownWrapper.innerHTML = `
-          <div class="mb-3">
-          <select id="employee-select" class="form-select">
-          ${data.employeeKeys.map((k, i) => `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`).join('')}
-          </select>
-          </div>`;
-          selectEl = document.getElementById('employee-select');
-          selectEl.addEventListener('change', (e) => {
-            renderCalendarForEmployee(parseInt(e.target.value));
-          });
-        } else {
-          selectEl.value = index;
-          if (selectEl.options.length !== data.employeeKeys.length) {
-            selectEl.innerHTML = data.employeeKeys.map((k, i) =>
-              `<option value="${i}" ${i === index ? 'selected': ''}>${escapeHtml(k)}</option>`
-            ).join('');
-          }
+    function updateTabActive() {
+      document.querySelectorAll('[data-route]').forEach(el => {
+        el.classList.remove('active');
+        const route = el.dataset.route;
+        if (route === 'employees' && ['employees', 'create-employee', 'edit-employee', 'overrides'].includes(currentPage)) {
+          el.classList.add('active');
+        } else if (route === 'generate' && currentPage === 'generate') {
+          el.classList.add('active');
         }
-      } else {
-        dropdownWrapper.innerHTML = '';
-      }
-    }
-
-    const start = data.start || new Date().toISOString().substring(0, 10);
-    const end = data.end || new Date().toISOString().substring(0, 10);
-    const startDate = new Date(start + 'T00:00:00');
-
-    // Hapus instance sebelumnya (tanpa hapus DOM, karena DOM sudah baru)
-    destroyCalendar();
-
-    // Buat instance baru
-    const {
-      Calendar
-    } = window.VanillaCalendarPro;
-    calendarInstance = new Calendar('#calendar-instance', {
-      type: 'default',
-      firstDayOfWeek: 1,
-      selectedWeekends: [0],
-      settings: {
-        visibility: {
-          daysOutsideMonth: true
-        },
-        selection: {
-          day: 'none'
-        },
-      },
-      classes: {
-        calendar: 'bg-transparent',
-        calendarHeader: 'bg-transparent',
-        calendarHeaderMonth: 'text-color',
-        calendarHeaderYear: 'text-color',
-        dayBtn: 'text-color',
-      },
-      dateMin: start,
-      dateMax: end,
-      displayDateMin: start,
-      displayDateMax: end,
-      popups: popups,
-    });
-
-    calendarInstance.init();
-
-    // Pasang observer baru
-    const targetNode = document.getElementById('calendar-instance');
-    if (targetNode) {
-      if (currentObserver) currentObserver.disconnect();
-      currentObserver = new MutationObserver(() => applyModifiers());
-      currentObserver.observe(targetNode, {
-        childList: true, subtree: true
       });
     }
 
-    applyModifiers();
-    setTimeout(() => applyModifiers(), 100);
-  }
+    window.goToPage = goTo;
 
-  window.PageRender = {
-    renderEmployeeList,
-    renderEmployeeForm,
-    renderOverrides,
-    renderGenerate,
-    renderShiftCalendar,
-    loadRosterData: async (start, end) => {
-      await renderShiftCalendar(start, end);
-    },
-    destroyCalendar
-  };
-})();
+    // Fungsi untuk menampilkan modal informasi
+    window.showInfoModal = function(title,
+      content) {
+      document.getElementById('infoModalLabel').innerText = title || 'Informasi';
+      document.getElementById('infoModalBody').innerHTML = content || '';
+      const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+      modal.show();
+    };
+
+    // =========== Event Delegation ===========
+    document.addEventListener('click',
+      async (e) => {
+        // 1. Navigasi via data-nav
+        const navButton = e.target.closest('[data-nav]');
+        if (navButton) {
+          const nav = navButton.dataset.nav.trim();
+          goTo(nav);
+          return;
+        }
+
+        // 2. Hapus karyawan
+        const deleteBtn = e.target.closest('[data-delete-employee]');
+        if (deleteBtn) {
+          const id = deleteBtn.dataset.deleteEmployee;
+          if (!confirm('Yakin hapus karyawan? Semua jadwal terkait akan ikut terhapus.')) return;
+          try {
+            showLoading('Menghapus...');
+            await deleteEmployee(id);
+            showToast('Karyawan dihapus.', 'success');
+            goTo('employees');
+          } catch (err) {
+            showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+
+        // 3. Hapus override
+        const delOverrideBtn = e.target.closest('[data-delete-override]');
+        if (delOverrideBtn) {
+          const id = delOverrideBtn.dataset.deleteOverride;
+          if (!confirm('Hapus override ini?')) return;
+          try {
+            showLoading('Menghapus...');
+            await deleteOverride(id);
+            showToast('Override dihapus.', 'success');
+            if (currentPage === 'overrides' && currentParams) {
+              goTo(`overrides:${currentParams.id}`);
+            } else {
+              goTo('employees');
+            }
+          } catch (err) {
+            showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+
+        // 4. Generate
+        if (e.target.id === 'btn-generate') {
+          const start = document.getElementById('start_date')?.value;
+          const end = document.getElementById('end_date')?.value;
+          if (!start || !end) {
+            showToast('Isi rentang tanggal.', 'warning');
+            return;
+          }
+          showLoading('Menghasilkan roster...');
+          try {
+            const result = await generateRoster(start, end);
+            showToast('Roster dibuat.');
+            document.getElementById('result-container').classList.remove('d-none');
+            window.__shiftData = {
+              ...(window.__shiftData || {}),
+              start: start,
+              end: end,
+              holidays: result.holidays || []
+            };
+            await loadRosterData(start, end);
+          } catch (err) {
+            showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+
+        // 5. Export
+        if (e.target.id === 'btn-export') {
+          const start = document.getElementById('start_date')?.value;
+          const end = document.getElementById('end_date')?.value;
+          showLoading('Mengirim file ke Telegram...');
+          try {
+            await window.AppCore.fetchAPI(`${window.AppCore.API_BASE}/api/export-telegram`, {
+              method: 'POST',
+              body: JSON.stringify({
+                start_date: start, end_date: end
+              }),
+            });
+            showToast('File roster telah dikirim ke Telegram Anda.');
+          } catch (err) {
+            showToast('Gagal mengirim: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+
+        // 6. Tombol info
+        const infoBtn = e.target.closest('[data-info-title]');
+        if (infoBtn) {
+          const title = infoBtn.dataset.infoTitle || 'Informasi';
+          const content = infoBtn.dataset.infoContent || '';
+          window.showInfoModal(title, content);
+          return;
+        }
+      });
+
+    // =========== Form Submissions ===========
+    document.addEventListener('submit',
+      async (e) => {
+        if (e.target.id === 'employee-form') {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries(formData.entries());
+          data.work_days = parseInt(data.work_days);
+          data.leave_days = parseInt(data.leave_days);
+          const id = currentParams?.id || null;
+          showLoading('Menyimpan...');
+          try {
+            await window.AppCore.saveEmployee(data, id);
+            showToast('Data tersimpan.', 'success');
+            goTo('employees');
+          } catch (err) {
+            showToast('Error: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+
+        if (e.target.id === 'override-form') {
+          e.preventDefault();
+          const startDate = e.target.start_date.value;
+          const employeeId = currentParams?.id;
+          if (!employeeId) return;
+          showLoading('Menambahkan...');
+          try {
+            await addOverride(employeeId, startDate);
+            showToast('Override ditambahkan.', 'success');
+            e.target.reset();
+            goTo(`overrides:${employeeId}`);
+          } catch (err) {
+            showToast('Gagal: ' + err.message, 'danger');
+          } finally {
+            hideLoading();
+          }
+          return;
+        }
+      });
+
+    // =========== Inisialisasi ===========
+    function initApp() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get('token');
+      if (tokenFromUrl) {
+        setToken(tokenFromUrl);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      goTo('employees');
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  })();

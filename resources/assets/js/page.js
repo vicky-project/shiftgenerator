@@ -411,6 +411,7 @@
     const arrowHandler = (self, event) => {
       const shiftData = window.__shiftData;
       if (shiftData && shiftData.holidays) {
+        console.log(self.selectedYear, self.selectedMonth, shiftData.holidays);
         renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, shiftData.holidays);
       } else {
         document.getElementById('holiday-box')?.classList.add('d-none');

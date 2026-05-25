@@ -1,4 +1,4 @@
-// page.js (final, holiday box diupdate oleh onClickArrow)
+// page.js (final dengan holiday box mengikuti bulan lewat data-vc-month)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -27,7 +27,7 @@
     if (dropdownWrapper) dropdownWrapper.remove();
   }
 
-  // ---------- applyModifiers (hanya untuk class shift) ----------
+  // ---------- applyModifiers (sekarang update holiday box juga) ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -39,6 +39,17 @@
         el.classList.add(...classes);
       }
     });
+
+    // Update holiday box berdasarkan bulan yang sedang ditampilkan
+    const monthBtn = document.querySelector('#calendar-instance [data-vc="month"]');
+    const yearBtn = document.querySelector('#calendar-instance [data-vc="year"]');
+    if (monthBtn && yearBtn && window.__shiftData && window.__shiftData.holidays) {
+      const month = parseInt(monthBtn.getAttribute('data-vc-month')); // 0‑based
+      const year = parseInt(yearBtn.getAttribute('data-vc-year'));
+      if (!isNaN(month) && !isNaN(year)) {
+        renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
+      }
+    }
   }
 
   // ---------- Render daftar karyawan ----------
@@ -407,17 +418,6 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    // Handler panah bulan – akses langsung properti self
-    const arrowHandler = (self, event) => {
-      const shiftData = window.__shiftData;
-      if (shiftData && shiftData.holidays) {
-        console.log(self.selectedYear, self.selectedMonth, self, shiftData.holidays);
-        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, shiftData.holidays);
-      } else {
-        document.getElementById('holiday-box')?.classList.add('d-none');
-      }
-    };
-
     if (calendarInstance) {
       calendarInstance.set({
         dateMin: start,
@@ -425,26 +425,16 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        firstDayOfWeek: 0,
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
-        onClickArrow: arrowHandler,
       }, {
         dates: true,
         month: true,
         year: true,
       });
 
-      // Setelah update, pastikan bulan awal juga terupdate
-      setTimeout(() => {
-        if (calendarInstance) {
-          renderHolidayBoxForMonth(calendarInstance.selectedYear, calendarInstance.selectedMonth, holidays);
-        }
-      },
-        50);
-
-      // Observer untuk class modifier
+      // Observer untuk class modifier + update holiday box
       const targetNode = document.getElementById('calendar-instance');
       if (targetNode) {
         if (currentObserver) currentObserver.disconnect();
@@ -454,16 +444,17 @@
         });
       }
 
-      setTimeout(() => applyModifiers(), 50);
-      setTimeout(() => applyModifiers(), 200);
-      setTimeout(() => applyModifiers(), 400);
+      // Panggil applyModifiers segera untuk update holiday box bulan awal
+      applyModifiers();
+      setTimeout(() => applyModifiers(), 100);
+      setTimeout(() => applyModifiers(), 300);
     } else {
       const {
         Calendar
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 0,
+        firstDayOfWeek: 1,
         selectedWeekends: [0],
         settings: {
           visibility: {
@@ -485,7 +476,6 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        onClickArrow: arrowHandler,
       });
 
       calendarInstance.init();
@@ -499,12 +489,9 @@
         });
       }
 
-      // Tampilkan libur bulan awal
-      const initialYear = startDate.getFullYear();
-      const initialMonth = startDate.getMonth();
-      renderHolidayBoxForMonth(initialYear, initialMonth, holidays);
-
-      setTimeout(() => applyModifiers(), 200);
+      // Panggil applyModifiers untuk update awal
+      applyModifiers();
+      setTimeout(() => applyModifiers(), 100);
     }
   }
 

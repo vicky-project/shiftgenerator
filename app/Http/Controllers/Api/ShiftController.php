@@ -77,10 +77,11 @@ class ShiftController extends Controller
     // Buat file Excel
     $export = new ShiftScheduleExport($validated['start_date'], $validated['end_date'], $user->id);
     $fileName = 'shift_roster_' . uniqid() . '.xlsx';
-    $tempPath = Storage::disk('local')->path("temp/exports/{$fileName}");
+    $tempFile = "temp/exports/{$fileName}";
 
     // Simpan Excel ke storage lokal
     Excel::store($export, $tempPath, 'local');
+    $tempPath = Storage::disk('local')->path($tempFile);
 
     // Kirim via Telegram
     $telegramApi = app(TelegramApi::class);

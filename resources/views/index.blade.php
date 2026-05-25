@@ -220,6 +220,10 @@
     color: #e74c3c !important;
     font-weight: 600;
   }
+  .shift-holiday .vc-date__btn:hover {
+    color: #fff !important;
+    font-weight: 600;
+  }
   .shift-day .vc-date__btn::after,
   .shift-night .vc-date__btn::after,
   .shift-leave .vc-date__btn::after,

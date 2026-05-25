@@ -1,4 +1,4 @@
-// page.js (DEBUG – pastikan kalender terlihat)
+// page.js (FINAL – kalender tetap muncul setelah navigasi & generate ulang)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -11,6 +11,7 @@
   let calendarInstance = null;
   let currentObserver = null;
 
+  // ---------- destroyCalendar ----------
   function destroyCalendar() {
     if (currentObserver) {
       currentObserver.disconnect();
@@ -22,6 +23,7 @@
     }
   }
 
+  // ---------- applyModifiers ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -34,6 +36,7 @@
       }
     });
 
+    // Update holiday box
     const monthBtn = document.querySelector('#calendar-instance [data-vc="month"]');
     const yearBtn = document.querySelector('#calendar-instance [data-vc="year"]');
     if (monthBtn && yearBtn && window.__shiftData && window.__shiftData.holidays) {
@@ -45,9 +48,234 @@
     }
   }
 
-  // ... semua fungsi render lainnya (renderEmployeeList, renderEmployeeForm, renderOverrides, renderGenerate)
-  // tidak berubah, jadi tidak perlu ditulis ulang ...
+  // ---------- Render daftar karyawan ----------
+  async function renderEmployeeList() {
+    destroyCalendar();
+    document.getElementById('app-title').innerText = 'Karyawan Saya';
+    const content = document.getElementById('app-content');
+    let html = `<div class="d-flex justify-content-end mb-3">
+    <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
+    </div>`;
+    try {
+      const employees = await fetchEmployees();
+      if (!employees.length) {
+        html += '<div class="text-center text-muted py-4">Belum ada karyawan.</div>';
+      } else {
+        employees.forEach(emp => {
+          html += `
+          <div class="card mb-2 shadow-sm">
+          <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+          <strong>${escapeHtml(emp.name)}</strong>
+          <div class="text-muted small">NRP: ${escapeHtml(emp.nrp)}</div>
+          <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
+          </div>
+          <div class="btn-group btn-group-sm">
+          <button data-nav="overrides:${emp.id}" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
+          <button data-nav="edit-employee:${emp.id}" class="btn btn-outline-warning"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-outline-danger" data-delete-employee="${emp.id}"><i class="bi bi-trash"></i></button>
+          </div>
+          </div>
+          </div>`;
+        });
+      }
+    } catch (err) {
+      html += `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
+    }
+    content.innerHTML = html;
+  }
 
+  // ---------- Render form tambah/edit ----------
+  async function renderEmployeeForm(params) {
+    destroyCalendar();
+    const id = params?.id;
+    const isEdit = !!id;
+    document.getElementById('app-title').innerText = isEdit ? 'Edit Karyawan': 'Tambah Karyawan';
+    let employee = null;
+    if (isEdit) {
+      try {
+        employee = await fetchEmployee(id);
+      } catch (err) {
+        document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
+        return;
+      }
+    }
+
+    const content = document.getElementById('app-content');
+    content.innerHTML = `
+    <form id="employee-form">
+    <div class="mb-3">
+    <label class="form-label">Nama</label>
+    <input type="text" name="name" class="form-control" value="${employee ? escapeHtml(employee.name): ''}" required>
+    </div>
+    <div class="mb-3">
+    <label class="form-label">NRP</label>
+    <input type="text" name="nrp" class="form-control" value="${employee ? escapeHtml(employee.nrp): ''}" required>
+    </div>
+    <div class="mb-3">
+    <label class="form-label">
+    Pola Shift
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Pola Shift"
+    data-info-content="<p>String yang mewakili shift harian dalam satu siklus.</p><ul><li><strong>D</strong> = Day (siang)</li><li><strong>N</strong> = Night (malam)</li><li><strong>O</strong> atau <strong>-</strong> = Off (libur)</li></ul><p>Contoh: <code>DDDDDDDDNNNNNO</code> berarti 8 Day, 5 Night, 1 Off.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <input type="text" name="shift_pattern" class="form-control" value="${employee ? escapeHtml(employee.shift_pattern): 'DDDDDDDDNNNNNO'}" required>
+    </div>
+    <div class="row mb-3">
+    <div class="col">
+    <label class="form-label">
+    Shift Start Date
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Shift Start Date"
+    data-info-content="<p>Tanggal acuan dimulainya pola shift. Pada tanggal ini, karyawan dianggap mulai bekerja dengan shift yang dipilih di sampingnya (<strong>Shift Start</strong>).</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <input type="date" name="shift_start_date" class="form-control" value="${employee?.shift_start_date ? String(employee.shift_start_date).substring(0, 10): ''}" required>
+    </div>
+    <div class="col">
+    <label class="form-label">
+    Shift Start
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Shift Start"
+    data-info-content="<p>Shift pada <strong>Shift Start Date</strong>. Pilih <strong>Day</strong> atau <strong>Night</strong>. Posisi ini akan menjadi awal perhitungan siklus pola.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <select name="shift_start" class="form-select">
+    <option value="Day" ${employee && employee.shift_start === 'Day' ? 'selected': ''}>Day</option>
+    <option value="Night" ${employee && employee.shift_start === 'Night' ? 'selected': ''}>Night</option>
+    </select>
+    </div>
+    </div>
+    <div class="row mb-3">
+    <div class="col">
+    <label class="form-label">
+    Work Days
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Work Days"
+    data-info-content="<p>Jumlah hari kerja berturut-turut dalam satu siklus kerja-cuti (hitungan kalender, termasuk offday). Setelah hari kerja habis, masuk ke masa cuti (<strong>Leave Days</strong>).</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <input type="number" name="work_days" class="form-control" value="${employee ? employee.work_days: 70}">
+    </div>
+    <div class="col">
+    <label class="form-label">
+    Leave Days
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Leave Days"
+    data-info-content="<p>Jumlah hari cuti setelah masa kerja (<strong>Work Days</strong>). Cuti ini otomatis berulang setiap siklus.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <input type="number" name="leave_days" class="form-control" value="${employee ? employee.leave_days: 14}">
+    </div>
+    </div>
+    <div class="mb-3">
+    <label class="form-label">
+    Pattern Start Date
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+    data-info-title="Pattern Start Date"
+    data-info-content="<p>Tanggal dimulainya siklus kerja-cuti pertama. Sistem akan menghitung ${employee ? employee.work_days: 70} hari kerja (atau sesuai <strong>Work Days</strong>) mulai tanggal ini, lalu otomatis cuti selama ${employee ? employee.leave_days: 14} hari.</p>">
+    <i class="bi bi-info-circle"></i>
+    </button>
+    </label>
+    <input type="date" name="pattern_start_date" class="form-control" value="${employee?.pattern_start_date ? String(employee.pattern_start_date).substring(0, 10): ''}" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Simpan</button>
+    </form>`;
+  }
+
+  // ---------- Render halaman override ----------
+  async function renderOverrides(params) {
+    destroyCalendar();
+    const employeeId = params.id;
+    document.getElementById('app-title').innerText = 'Pengajuan Cuti';
+    let employee;
+    try {
+      employee = await fetchEmployee(employeeId);
+    } catch (err) {
+      document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
+      return;
+    }
+
+    const content = document.getElementById('app-content');
+    content.innerHTML = `
+    <div class="mb-3">
+    <label class="form-label">Tambah Pengajuan Cuti (mulai)</label>
+    <form id="override-form" class="row g-2">
+    <div class="col-8"><input type="date" name="start_date" class="form-control" required></div>
+    <div class="col-4"><button type="submit" class="btn btn-primary w-100">Tambah</button></div>
+    </form>
+    <small class="text-muted">Durasi cuti: ${employee.leave_days} hari. Toleransi ±14 hari dari cuti normal.</small>
+    </div>
+    <div id="override-list"><div class="text-center text-muted py-3">Memuat...</div></div>`;
+
+    async function loadOverrides() {
+      try {
+        const overrides = await fetchOverrides(employeeId);
+        const container = document.getElementById('override-list');
+        if (!overrides.length) {
+          container.innerHTML = '<div class="text-muted text-center py-3">Belum ada pengajuan.</div>';
+          return;
+        }
+        let html = '';
+        overrides.forEach(ov => {
+          const end = new Date(ov.start_date);
+          end.setDate(end.getDate() + employee.leave_days - 1);
+          html += `<div class="card mb-2"><div class="card-body d-flex justify-content-between align-items-center">
+          <div>${ov.start_date} – ${end.toISOString().slice(0, 10)}</div>
+          <button class="btn btn-sm btn-outline-danger" data-delete-override="${ov.id}"><i class="bi bi-trash"></i></button>
+          </div></div>`;
+        });
+        container.innerHTML = html;
+      } catch (err) {
+        document.getElementById('override-list').innerHTML = `<div class="alert alert-danger">Gagal memuat.</div>`;
+      }
+    }
+
+    await loadOverrides();
+  }
+
+  // ---------- Render halaman generate ----------
+  function renderGenerate() {
+    destroyCalendar();
+    document.getElementById('app-title').innerText = 'Generate Roster';
+    const content = document.getElementById('app-content');
+    content.innerHTML = `
+    <div class="card mb-3">
+    <div class="card-body">
+    <div class="row g-2">
+    <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control"></div>
+    <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control"></div>
+    </div>
+    <button class="btn btn-success mt-3 w-100" id="btn-generate"><i class="bi bi-gear"></i> Generate</button>
+    </div>
+    </div>
+    <div id="result-container" class="d-none">
+    <div id="calendar-legend">
+    <div class="legend-item"><span class="legend-dot day"></span> Day</div>
+    <div class="legend-item"><span class="legend-dot night"></span> Night</div>
+    <div class="legend-item"><span class="legend-dot off"></span> Off</div>
+    <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
+    </div>
+    <div id="shift-calendar-wrapper">
+    <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
+    </div>
+    <div id="holiday-box" class="mt-3 d-none">
+    <h6>Hari Libur Nasional</h6>
+    <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
+    </div>
+    <div class="d-flex justify-content-end">
+    <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
+    </div>
+    </div>`;
+  }
+
+  // ---------- Render kalender dengan data shift ----------
   async function renderShiftCalendar(start, end) {
     const container = document.getElementById('shift-calendar');
     if (!container) return;
@@ -100,6 +328,7 @@
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
 
+  // ---------- Tampilkan libur untuk bulan tertentu ----------
   function renderHolidayBoxForMonth(year, month, holidays) {
     const box = document.getElementById('holiday-box');
     const list = document.getElementById('holiday-list');
@@ -123,6 +352,7 @@
       `).join('');
   }
 
+  // ---------- Render kalender untuk satu karyawan ----------
   function renderCalendarForEmployee(index) {
     const data = window.__shiftData;
     if (!data || !data.employeeKeys.length) return;
@@ -150,6 +380,7 @@
 
     window.__currentPopups = popups;
 
+    // Dropdown
     const dropdownWrapper = document.getElementById('dropdown-wrapper');
     if (dropdownWrapper) {
       if (data.employeeKeys.length > 1) {
@@ -182,9 +413,10 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
+    // Hapus instance sebelumnya
     destroyCalendar();
 
-    // ** DEBUG: cek apakah VanillaCalendarPro tersedia **
+    // Pastikan library tersedia
     if (!window.VanillaCalendarPro) {
       console.error('VanillaCalendarPro tidak tersedia!');
       document.getElementById('calendar-instance').innerHTML = '<div class="alert alert-danger">Library kalender tidak termuat.</div>';
@@ -194,15 +426,13 @@
     const {
       Calendar
     } = window.VanillaCalendarPro;
-
-    // ** DEBUG: cek apakah elemen target ada **
     const targetEl = document.getElementById('calendar-instance');
     if (!targetEl) {
-      console.error('Target #calendar-instance tidak ada saat akan membuat Calendar');
+      console.error('Target #calendar-instance tidak ada');
       return;
     }
 
-    console.log('Membuat Calendar dengan target:', targetEl);
+    // Buat instance kalender
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstDayOfWeek: 1,
@@ -230,21 +460,8 @@
     });
 
     calendarInstance.init();
-    console.log('Calendar init selesai. Isi #calendar-instance:', targetEl.innerHTML.substring(0, 200));
 
-    // Jika setelah init masih kosong, coba render ulang dengan timeout
-    if (!targetEl.innerHTML.trim()) {
-      console.warn('Kalender kosong setelah init, mencoba render ulang...');
-      setTimeout(() => {
-        if (calendarInstance && typeof calendarInstance.update === 'function') {
-          calendarInstance.update({
-            dates: true, month: true, year: true
-          });
-        }
-      },
-        100);
-    }
-
+    // Observer
     const targetNode = document.getElementById('calendar-instance');
     if (targetNode) {
       if (currentObserver) currentObserver.disconnect();
@@ -254,6 +471,7 @@
       });
     }
 
+    // Jalankan applyModifiers
     applyModifiers();
     setTimeout(() => applyModifiers(), 100);
   }

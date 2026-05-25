@@ -269,7 +269,7 @@
     <h6>Hari Libur Nasional</h6>
     <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
     </div>
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-end mt-3">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
     </div>
     </div>`;

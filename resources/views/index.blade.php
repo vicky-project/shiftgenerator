@@ -10,10 +10,10 @@
     </button>
     <h5 id="app-title" class="mb-0">Shift Generator</h5>
   </div>
-  <div id="app-content" class="flex-fill p-3">
+  <div id="app-content" class="flex-fill p-3" style="padding-bottom: 70px !important;">
     <!-- Konten akan di-render oleh JavaScript -->
   </div>
-  <div id="app-tabbar" class="border-top py-2 d-flex justify-content-around" style="background: var(--tg-theme-secondary-bg-color);">
+  <div id="app-tabbar" class="border-top py-2 d-flex justify-content-around fixed-bottom" style="background: var(--tg-theme-secondary-bg-color); z-index: 1030;">
     <button class="btn btn-link text-decoration-none text-center nav-link" data-nav="employees" data-route="employees">
       <i class="bi bi-people fs-5"></i><br><small>Karyawan</small>
     </button>
@@ -51,19 +51,14 @@
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
-<script>
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/core.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/page.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/main.js')); !!}
-</script>
-<!-- <script src="{{ secure_url('/apps/shift/js/core.js') }}"></script> -->
-<!-- <script src="{{ secure_url('/apps/shift/js/page.js') }}"></script> -->
-<!-- <script src="{{ secure_url('/apps/shift/js/main.js') }}"></script> -->
+<script src="{{ secure_url('/apps/shift/js/core.js') }}"></script>
+<script src="{{ secure_url('/apps/shift/js/page.js') }}"></script>
+<script src="{{ secure_url('/apps/shift/js/main.js') }}"></script>
 @endpush
 
 @push('styles')
 <!-- Vanilla Calendar Pro CSS -->
-<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
 <style>
 :root {
   --shift-primary: #4A90E2;
@@ -174,22 +169,35 @@
   }
 
   /* ========== KALENDER ========== */
-  #shift-calendar-wrapper {
-    background: var(--tg-theme-secondary-bg-color);
-    border-radius: 12px;
-    padding: 0.5rem;
-  }
-
-  /* Pastikan tombol tanggal bisa memiliki dot */
+  /* Warna shift untuk kalender */
   .vc-date__btn {
     position: relative;
   }
-
-  /* Dot di bawah tanggal */
+  .shift-day .vc-date__btn::after {
+    background-color: #2ecc71;
+  }
+  .shift-night .vc-date__btn::after {
+    background-color: #3498db;
+  }
+  .shift-off .vc-date__btn::after {
+    background-color: #bdc3c7;
+  }
+  .shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
+  }
+  .shift-holiday.shift-day .vc-date__btn::after {
+    background-color: #2ecc71;
+  }
+  .shift-holiday.shift-night .vc-date__btn::after {
+    background-color: #3498db;
+  }
+  .shift-holiday.shift-off .vc-date__btn::after {
+    background-color: #bdc3c7;
+  }
   .shift-day .vc-date__btn::after,
   .shift-night .vc-date__btn::after,
-  .shift-off .vc-date__btn::after,
-  .shift-holiday .vc-date__btn::after {
+  .shift-off .vc-date__btn::after {
     content: '';
     position: absolute;
     bottom: 3px;
@@ -201,32 +209,12 @@
     pointer-events: none;
   }
 
-  /* DOT WARNA SHIFT */
-  .shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-  }
-  .shift-night .vc-date__btn::after {
-    background-color: #3498db;
-  }
-  .shift-off .vc-date__btn::after {
-    background-color: #bdc3c7;
-  }
-
-  /* ANGKA MERAH UNTUK LIBUR */
-  .shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
-  }
-
-  /* Pastikan dot tetap sesuai shift meskipun libur */
-  .shift-holiday.shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-  }
-  .shift-holiday.shift-night .vc-date__btn::after {
-    background-color: #3498db;
-  }
-  .shift-holiday.shift-off .vc-date__btn::after {
-    background-color: #bdc3c7;
+  /* Hover state untuk tombol shift */
+  .shift-day .vc-date__btn:hover,
+  .shift-night .vc-date__btn:hover,
+  .shift-off .vc-date__btn:hover,
+  .shift-holiday .vc-date__btn:hover {
+    opacity: 0.85;
   }
 
   /* Legenda */
@@ -261,15 +249,18 @@
     background: #e74c3c;
   }
 
-  /* Scrollbar tipis untuk daftar hari libur */
-  #holiday-list .badge {
-    max-width: 100%;
-    white-space: normal;
-  }
-
   /* Text color helper */
   .text-color {
     color: var(--tg-theme-text-color) !important;
+  }
+
+  /* Pastikan kalender terlihat */
+  #calendar-instance {
+    background: #fff !important;
+    min-height: 400px;
+  }
+  .vc {
+    background: #fff !important;
   }
 </style>
 @endpush

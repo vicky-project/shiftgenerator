@@ -1,4 +1,4 @@
-// page.js (final dengan holiday box terupdate via observer + applyModifiers)
+// page.js (final, holiday box diupdate oleh onClickArrow)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -27,7 +27,7 @@
     if (dropdownWrapper) dropdownWrapper.remove();
   }
 
-  // ---------- applyModifiers (sekarang juga update holiday box) ----------
+  // ---------- applyModifiers (hanya untuk class shift) ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -39,14 +39,6 @@
         el.classList.add(...classes);
       }
     });
-
-    // Perbarui holiday box untuk bulan yang sedang ditampilkan
-    if (calendarInstance && window.__shiftData && window.__shiftData.holidays) {
-      const year = calendarInstance.selectedYear || new Date().getFullYear();
-      const month = calendarInstance.selectedMonth !== undefined ? calendarInstance.selectedMonth: new Date().getMonth();
-      console.log(year, month, calendarInstance, window.__shiftData.holidays);
-      renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
-    }
   }
 
   // ---------- Render daftar karyawan ----------
@@ -415,6 +407,16 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
+    // Handler panah bulan – akses langsung properti self
+    const arrowHandler = (self, event) => {
+      const shiftData = window.__shiftData;
+      if (shiftData && shiftData.holidays) {
+        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, shiftData.holidays);
+      } else {
+        document.getElementById('holiday-box')?.classList.add('d-none');
+      }
+    };
+
     if (calendarInstance) {
       calendarInstance.set({
         dateMin: start,
@@ -422,16 +424,26 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
+        firstDayOfWeek: 0,
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
+        onClickArrow: arrowHandler,
       }, {
         dates: true,
         month: true,
         year: true,
       });
 
-      // Pasang ulang observer agar selalu memonitor perubahan (navigasi bulan)
+      // Setelah update, pastikan bulan awal juga terupdate
+      setTimeout(() => {
+        if (calendarInstance) {
+          renderHolidayBoxForMonth(calendarInstance.selectedYear, calendarInstance.selectedMonth, holidays);
+        }
+      },
+        50);
+
+      // Observer untuk class modifier
       const targetNode = document.getElementById('calendar-instance');
       if (targetNode) {
         if (currentObserver) currentObserver.disconnect();
@@ -441,17 +453,16 @@
         });
       }
 
-      // Terapkan segera dan dengan beberapa retry
-      applyModifiers();
-      setTimeout(() => applyModifiers(), 100);
-      setTimeout(() => applyModifiers(), 300);
+      setTimeout(() => applyModifiers(), 50);
+      setTimeout(() => applyModifiers(), 200);
+      setTimeout(() => applyModifiers(), 400);
     } else {
       const {
         Calendar
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 1,
+        firstDayOfWeek: 0,
         selectedWeekends: [0],
         settings: {
           visibility: {
@@ -473,6 +484,7 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
+        onClickArrow: arrowHandler,
       });
 
       calendarInstance.init();
@@ -485,8 +497,13 @@
           childList: true, subtree: true
         });
       }
-      applyModifiers();
-      setTimeout(() => applyModifiers(), 100);
+
+      // Tampilkan libur bulan awal
+      const initialYear = startDate.getFullYear();
+      const initialMonth = startDate.getMonth();
+      renderHolidayBoxForMonth(initialYear, initialMonth, holidays);
+
+      setTimeout(() => applyModifiers(), 200);
     }
   }
 

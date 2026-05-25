@@ -58,8 +58,8 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
       foreach ($dates as $date) {
         $schedule = $empSchedules->get($date);
         \Log::debug('Schedules', [
-          'date' => $date
-          'schedule' => $schedule,
+          'date' => $date,
+          'schedule' => $schedule
         ]);
         if ($schedule) {
           $row[] = match ($schedule->shift) {

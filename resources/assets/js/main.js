@@ -182,7 +182,7 @@
           const end = document.getElementById('end_date')?.value;
           showLoading('Mengirim file ke Telegram...');
           try {
-            await window.AppCore.fetchAPI(`${window.AppCore.API_BASE}/api/export-telegram`, {
+            await window.AppCore.fetchAPI(`${window.AppCore.API_BASE}/api/employees/export-telegram`, {
               method: 'POST',
               body: JSON.stringify({
                 start_date: start, end_date: end

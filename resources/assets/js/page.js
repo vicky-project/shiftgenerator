@@ -40,10 +40,11 @@
       }
     });
 
-    // Update holiday box untuk bulan yang sedang ditampilkan
+    // ** Perbarui holiday box untuk bulan yang sedang ditampilkan **
     if (calendarInstance && window.__shiftData && window.__shiftData.holidays) {
-      const year = calendarInstance.selectedYear || new Date().getFullYear();
-      const month = calendarInstance.selectedMonth !== undefined ? calendarInstance.selectedMonth: new Date().getMonth();
+      // Ambil tahun & bulan yang sedang ditampilkan
+      const year = calendarInstance.selectedYear || calendarInstance.viewYear || new Date().getFullYear();
+      const month = calendarInstance.selectedMonth ?? calendarInstance.viewMonth ?? new Date().getMonth();
       renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
     }
   }

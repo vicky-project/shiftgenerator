@@ -235,10 +235,11 @@
     pointer-events: none;
   }
 
-  /* Hanya tanggal bulan aktif yang bisa diwarnai libur */
-  [data-vc-date-month="current"].shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
+  /* Semua tanggal di luar bulan kembali ke default */
+  [data-vc-date-month="prev"] .vc-date__btn,
+  [data-vc-date-month="next"] .vc-date__btn {
+    color: color: #64748b
+    font-weight: normal !important;
   }
 
   /* Text color helper */

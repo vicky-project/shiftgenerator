@@ -261,6 +261,7 @@
     <div class="legend-item"><span class="legend-dot night"></span> Night</div>
     <div class="legend-item"><span class="legend-dot off"></span> Off</div>
     <div class="legend-item"><span class="legend-dot leave"></span> Cuti</div>
+    <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
     </div>
     <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>

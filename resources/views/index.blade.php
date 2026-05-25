@@ -184,40 +184,8 @@
     background-color: #f1c40f;
     /* Kuning */
   }
-  .shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
-  }
-  .shift-holiday.shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-  }
-  .shift-holiday.shift-night .vc-date__btn::after {
-    background-color: #3498db;
-  }
-  .shift-holiday.shift-off .vc-date__btn::after {
-    background-color: #bdc3c7;
-  }
-  .shift-day .vc-date__btn::after,
-  .shift-night .vc-date__btn::after,
-  .shift-off .vc-date__btn::after {
-    content: '';
-    position: absolute;
-    bottom: 3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    pointer-events: none;
-  }
 
-  /* Hanya tanggal bulan aktif yang bisa diwarnai libur */
-  [data-vc-date-month="current"].shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
-  }
-
-  /* Legenda */
+  /* ---------- LEGENDA ---------- */
   #calendar-legend {
     display: flex;
     gap: 1rem;
@@ -240,13 +208,39 @@
     background: #2ecc71;
   }
   #calendar-legend .legend-dot.night {
-    background: #3498db;
+    background: #000000;
   }
   #calendar-legend .legend-dot.off {
-    background: #bdc3c7;
+    background: #e74c3c;
   }
   #calendar-legend .legend-dot.leave {
     background: #f1c40f;
+  }
+  #calendar-legend .legend-dot.holiday {
+    background: #e74c3c;
+  }
+  .shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
+  }
+  .shift-day .vc-date__btn::after,
+  .shift-night .vc-date__btn::after,
+  .shift-off .vc-date__btn::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Hanya tanggal bulan aktif yang bisa diwarnai libur */
+  [data-vc-date-month="current"].shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
   }
 
   /* Text color helper */

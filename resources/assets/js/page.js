@@ -1,4 +1,4 @@
-// page.js (perbaikan: kalender selalu dibuat ulang saat generate)
+// page.js (FINAL - kalender selalu tampil saat generate)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -11,7 +11,7 @@
   let calendarInstance = null;
   let currentObserver = null;
 
-  // ---------- destroyCalendar ----------
+  // ---------- destroyCalendar (hanya reset instance & observer, JANGAN hapus DOM) ----------
   function destroyCalendar() {
     if (currentObserver) {
       currentObserver.disconnect();
@@ -21,11 +21,6 @@
       calendarInstance.destroy();
       calendarInstance = null;
     }
-    // Hapus elemen kalender secara eksplisit agar benar‑benar bersih
-    const calendarEl = document.getElementById('calendar-instance');
-    if (calendarEl) calendarEl.remove();
-    const dropdownWrapper = document.getElementById('dropdown-wrapper');
-    if (dropdownWrapper) dropdownWrapper.remove();
   }
 
   // ---------- applyModifiers ----------
@@ -321,7 +316,7 @@
       holidays: window.__shiftData?.holidays || []
     };
 
-    // Selalu buat ulang struktur kalender agar bersih dari sisa instance sebelumnya
+    // Selalu bangun ulang struktur kalender
     container.innerHTML = '';
     const dropdownWrapper = document.createElement('div');
     dropdownWrapper.id = 'dropdown-wrapper';
@@ -418,14 +413,16 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    // Selalu buat instance baru karena kita sudah membersihkan elemen kalender
+    // Hapus instance sebelumnya (tanpa hapus DOM, karena DOM sudah baru)
+    destroyCalendar();
+
+    // Buat instance baru
     const {
       Calendar
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstDayOfWeek: 1,
-      firstWeekday: 0,
       selectedWeekends: [0],
       settings: {
         visibility: {
@@ -451,6 +448,7 @@
 
     calendarInstance.init();
 
+    // Pasang observer baru
     const targetNode = document.getElementById('calendar-instance');
     if (targetNode) {
       if (currentObserver) currentObserver.disconnect();

@@ -87,18 +87,18 @@
       })
     }),
     // Hapus override
-    deleteOverride: (id) => fetchAPI(`${API_BASE}/api/overrides/${id}`, {
+    deleteOverride: (id) => fetchAPI(`${API_BASE}/api/employees/overrides/${id}`, {
       method: 'DELETE'
     }),
     // Generate roster
-    generateRoster: (start, end) => fetchAPI(`${API_BASE}/api/generate`, {
+    generateRoster: (start, end) => fetchAPI(`${API_BASE}/api/employees/generate`, {
       method: 'POST',
       body: JSON.stringify({
         start_date: start, end_date: end
       })
     }),
     // Fetch schedules
-    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/schedules?start_date=${start}&end_date=${end}`)
+    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/employees/schedules?start_date=${start}&end_date=${end}`)
     .then(data => {
       // Potong date menjadi YYYY-MM-DD untuk hindari zona waktu
       return data.map(s => ({
@@ -106,17 +106,5 @@
         date: s.date?.substring(0, 10) || s.date
       }));
     }),
-    // Export Excel (mengembalikan blob)
-    exportExcel: async (start, end) => {
-      const token = state.token;
-      const response = await fetch(`${API_BASE}/api/export?start_date=${start}&end_date=${end}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.ms-excel'
-        }
-      });
-      if (!response.ok) throw new Error('Export failed');
-      return response.blob();
-    }
   };
 })();

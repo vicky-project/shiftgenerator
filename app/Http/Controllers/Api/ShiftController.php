@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Modules\ShiftGenerator\Services\HolidayService;
 use Modules\ShiftGenerator\Services\ShiftGeneratorService;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
+use Modules\ShiftGenerator\Exports\ShiftScheduleExport;
+use Modules\Telegram\Services\Support\TelegramApi;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ShiftController extends Controller
@@ -54,5 +56,53 @@ class ShiftController extends Controller
     ->get();
 
     return $schedules;
+  }
+
+  /**
+  * Export roster ke Telegram.
+  */
+  public function exportToTelegram(Request $request) {
+    $validated = $request->validate([
+      'start_date' => 'required|date|date_format:Y-m-d',
+      'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
+    ]);
+
+    $user = $request->user(); // TelegramUser (dari token Sanctum)
+
+    if (!$user->telegram_id) {
+      return response()->json(['message' => 'Akun Telegram tidak terhubung.'], 400);
+    }
+
+    // Buat file Excel
+    $export = new ShiftScheduleExport($validated['start_date'], $validated['end_date'], $user->id);
+    $fileName = 'shift_roster_' . uniqid() . '.xlsx';
+    $tempPath = storage_path("app/exports/{$fileName}");
+
+    // Pastikan folder ada
+    if (!is_dir(dirname($tempPath))) {
+      mkdir(dirname($tempPath), 0755, true);
+    }
+
+    // Simpan Excel ke storage lokal
+    Excel::store($export, "exports/{$fileName}", 'local');
+
+    // Kirim via Telegram
+    $telegramApi = app(TelegramApi::class);
+    $result = $telegramApi->sendDocument(
+      chatId: $user->telegram_id,
+      filePath: $tempPath,
+      caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
+    );
+
+    // Hapus file setelah dikirim
+    if (file_exists($tempPath)) {
+      unlink($tempPath);
+    }
+
+    if ($result) {
+      return response()->json(['message' => 'File roster telah dikirim ke Telegram Anda.']);
+    } else {
+      return response()->json(['message' => 'Gagal mengirim file ke Telegram.'], 500);
+    }
   }
 }

@@ -179,20 +179,18 @@
         if (e.target.id === 'btn-export') {
           const start = document.getElementById('start_date')?.value;
           const end = document.getElementById('end_date')?.value;
-          showLoading('Menyiapkan file...');
+          showLoading('Mengirim file ke Telegram...');
           try {
-            const blob = await exportExcel(start, end);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'shift_roster.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-            showToast('File terunduh.');
+            // Gunakan fetchAPI dari AppCore
+            await window.AppCore.fetchAPI(`${window.AppCore.API_BASE}/api/employees/export-telegram`, {
+              method: 'POST',
+              body: JSON.stringify({
+                start_date: start, end_date: end
+              }),
+            });
+            showToast('File roster telah dikirim ke Telegram Anda.');
           } catch (err) {
-            showToast('Export error: ' + err.message, 'danger');
+            showToast('Gagal mengirim: ' + err.message, 'danger');
           } finally {
             hideLoading();
           }

@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
@@ -63,10 +64,10 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
         ]);
         if ($schedule) {
           $row[] = match ($schedule->shift) {
-            'Day' => 'D',
-            'Night' => 'N',
-            'Off' => 'O',
-            'Leave' => 'CT',
+            ShiftType::Day => 'D',
+            ShiftType::Night => 'N',
+            ShiftType::Off => 'O',
+            ShiftType::Leave => 'CT',
             default => '',
             };
           } else {

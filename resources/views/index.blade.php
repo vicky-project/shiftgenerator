@@ -256,11 +256,7 @@
 
   /* Pastikan kalender terlihat */
   #calendar-instance {
-    background: #fff !important;
     min-height: 400px;
-  }
-  .vc {
-    background: #fff !important;
   }
 </style>
 @endpush

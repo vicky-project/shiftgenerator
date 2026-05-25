@@ -203,6 +203,12 @@
     pointer-events: none;
   }
 
+  /* Hanya tanggal bulan aktif yang bisa diwarnai libur */
+  [data-vc-date-month="current"].shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
+  }
+
   /* Legenda */
   #calendar-legend {
     display: flex;
@@ -244,12 +250,6 @@
   #shift-calendar {
     max-width: 100%;
     overflow-x: auto;
-  }
-  /* Tanggal di luar bulan (prev/next) tidak ikut terpengaruh warna libur */
-  [data-vc-date-month="prev"] .vc-date__btn,
-  [data-vc-date-month="next"] .vc-date__btn {
-    color: inherit !important;
-    font-weight: normal !important;
   }
 </style>
 @endpush

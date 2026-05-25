@@ -4,6 +4,7 @@ namespace Modules\ShiftGenerator\Http\Controllers\Api;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Modules\ShiftGenerator\Services\HolidayService;
 use Modules\ShiftGenerator\Services\ShiftGeneratorService;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
@@ -76,15 +77,10 @@ class ShiftController extends Controller
     // Buat file Excel
     $export = new ShiftScheduleExport($validated['start_date'], $validated['end_date'], $user->id);
     $fileName = 'shift_roster_' . uniqid() . '.xlsx';
-    $tempPath = storage_path("app/exports/{$fileName}");
-
-    // Pastikan folder ada
-    if (!is_dir(dirname($tempPath))) {
-      mkdir(dirname($tempPath), 0755, true);
-    }
+    $tempPath = Storage::disk('local')->path("temp/exports/{$fileName}");
 
     // Simpan Excel ke storage lokal
-    Excel::store($export, "exports/{$fileName}", 'local');
+    Excel::store($export, $tempPath, 'local');
 
     // Kirim via Telegram
     $telegramApi = app(TelegramApi::class);
@@ -96,7 +92,7 @@ class ShiftController extends Controller
 
     // Hapus file setelah dikirim
     if (file_exists($tempPath)) {
-      unlink($tempPath);
+      Storage::disk('local')->delete($tempPath);
     }
 
     if ($result) {

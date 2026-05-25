@@ -1,4 +1,4 @@
-// page.js (final dengan perbaikan onClickArrow)
+// page.js (perbaikan onClickArrow tetap berfungsi saat generate ulang)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -407,11 +407,11 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    // Closure untuk onClickArrow yang mengambil data terbaru
+    // Handler panah bulan – mengakses data terbaru dari window.__shiftData
     const arrowHandler = (self, event) => {
-      const currentData = window.__shiftData;
-      if (currentData && currentData.holidays) {
-        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, currentData.holidays);
+      const shiftData = window.__shiftData;
+      if (shiftData && shiftData.holidays) {
+        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, shiftData.holidays);
       } else {
         const box = document.getElementById('holiday-box');
         if (box) box.classList.add('d-none');
@@ -419,6 +419,7 @@
     };
 
     if (calendarInstance) {
+      // Jangan ubah onClickArrow, biarkan handler lama tetap terpasang
       calendarInstance.set({
         dateMin: start,
         dateMax: end,
@@ -428,7 +429,6 @@
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
-        onClickArrow: arrowHandler,
       }, {
         dates: true,
         month: true,

@@ -250,7 +250,6 @@
   /* Pastikan kalender tidak overflow */
   #shift-calendar {
     max-width: 100%;
-    overflow-x: auto;
   }
 </style>
 @endpush

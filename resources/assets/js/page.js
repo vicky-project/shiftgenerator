@@ -1,4 +1,4 @@
-// page.js (final dengan perbaikan holiday box via applyModifiers)
+// page.js (final dengan holiday box terupdate via observer + applyModifiers)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -40,11 +40,10 @@
       }
     });
 
-    // ** Perbarui holiday box untuk bulan yang sedang ditampilkan **
+    // Perbarui holiday box untuk bulan yang sedang ditampilkan
     if (calendarInstance && window.__shiftData && window.__shiftData.holidays) {
-      // Ambil tahun & bulan yang sedang ditampilkan
-      const year = calendarInstance.selectedYear || calendarInstance.viewYear || new Date().getFullYear();
-      const month = calendarInstance.selectedMonth ?? calendarInstance.viewMonth ?? new Date().getMonth();
+      const year = calendarInstance.selectedYear || new Date().getFullYear();
+      const month = calendarInstance.selectedMonth !== undefined ? calendarInstance.selectedMonth: new Date().getMonth();
       renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
     }
   }
@@ -431,9 +430,20 @@
         year: true,
       });
 
-      setTimeout(() => applyModifiers(), 50);
-      setTimeout(() => applyModifiers(), 200);
-      setTimeout(() => applyModifiers(), 400);
+      // Pasang ulang observer agar selalu memonitor perubahan (navigasi bulan)
+      const targetNode = document.getElementById('calendar-instance');
+      if (targetNode) {
+        if (currentObserver) currentObserver.disconnect();
+        currentObserver = new MutationObserver(() => applyModifiers());
+        currentObserver.observe(targetNode, {
+          childList: true, subtree: true
+        });
+      }
+
+      // Terapkan segera dan dengan beberapa retry
+      applyModifiers();
+      setTimeout(() => applyModifiers(), 100);
+      setTimeout(() => applyModifiers(), 300);
     } else {
       const {
         Calendar
@@ -474,7 +484,8 @@
           childList: true, subtree: true
         });
       }
-      setTimeout(() => applyModifiers(), 200);
+      applyModifiers();
+      setTimeout(() => applyModifiers(), 100);
     }
   }
 

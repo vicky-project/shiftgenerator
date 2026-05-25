@@ -21,16 +21,19 @@ class ShiftController extends Controller
     $validated = $request->validate([
       'start_date' => 'required|date|date_format:Y-m-d',
       'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
+      'holidays' => 'sometimes|array',
+      'holidays.*' => 'date|date_format:Y-m-d',
     ]);
+
+    // Gunakan data dari request, atau ambil otomatis dari holiday service
+    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidayDates();
 
     $count = $service->generate(
       $validated['start_date'],
       $validated['end_date'],
+      $holidays,
       $request->user()->id
     );
-
-    $holidays = $holidayService->getHolidays();
-    \Log::debug("Holidays", $holidays ?? []);
 
     return response()->json([
       'message' => "Roster berhasil dibuat: {$count} entri.",

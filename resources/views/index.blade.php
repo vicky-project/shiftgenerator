@@ -51,11 +51,9 @@
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
-<script>
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/core.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/page.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/main.js')); !!}
-</script>
+<script src="{{ secure_url('/apps/shift/js/core.js') }}"></script>
+<script src="{{ secure_url('/apps/shift/js/page.js') }}"></script>
+<script src="{{ secure_url('/apps/shift/js/main.js') }}"></script>
 @endpush
 
 @push('styles')
@@ -70,7 +68,7 @@
   --shift-info: #3498DB;
 }
 
-  /* Tab bar - tanpa background, hanya teks */
+  /* Tab bar */
   #app-tabbar .nav-link {
     color: var(--tg-theme-hint-color) !important;
     transition: color 0.2s;
@@ -144,21 +142,11 @@
     color: var(--tg-theme-text-color);
   }
 
-  /* Table */
-  .table {
-    background: var(--tg-theme-secondary-bg-color);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .table thead {
-    background: var(--tg-theme-bg-color);
-    border-bottom: 2px solid var(--tg-theme-section-separator-color);
-  }
-
   /* Alert */
   .alert {
     border-radius: 8px;
   }
+
   /* Tombol info */
   [data-info-title] {
     color: var(--tg-theme-hint-color);
@@ -171,7 +159,14 @@
   }
 
   /* ========== KALENDER ========== */
-  /* Warna shift untuk kalender */
+  /* Pastikan kalender tidak transparan */
+  #calendar-instance {
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    padding: 0.5rem;
+  }
+
+  /* Dot warna shift */
   .vc-date__btn {
     position: relative;
   }
@@ -211,14 +206,6 @@
     pointer-events: none;
   }
 
-  /* Hover state untuk tombol shift */
-  .shift-day .vc-date__btn:hover,
-  .shift-night .vc-date__btn:hover,
-  .shift-off .vc-date__btn:hover,
-  .shift-holiday .vc-date__btn:hover {
-    opacity: 0.85;
-  }
-
   /* Legenda */
   #calendar-legend {
     display: flex;
@@ -256,9 +243,10 @@
     color: var(--tg-theme-text-color) !important;
   }
 
-  /* Pastikan kalender terlihat */
-  #calendar-instance {
-    min-height: 400px;
+  /* Pastikan kalender tidak overflow */
+  #shift-calendar {
+    max-width: 100%;
+    overflow-x: auto;
   }
 </style>
 @endpush

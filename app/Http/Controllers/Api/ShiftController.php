@@ -21,19 +21,21 @@ class ShiftController extends Controller
     $validated = $request->validate([
       'start_date' => 'required|date|date_format:Y-m-d',
       'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
-      'holidays' => 'sometimes|array',
-      'holidays.*' => 'date|date_format:Y-m-d',
     ]);
 
-    // Gunakan data dari request, atau ambil otomatis dari holiday service
-    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidays();
+    // Ambil tanggal libur nasional sebagai array string (Y-m-d)
+    $holidayDates = $holidayService->getHolidayDates();
 
+    // Generate roster dengan holidayDates
     $count = $service->generate(
       $validated['start_date'],
       $validated['end_date'],
-      $holidays,
+      $holidayDates,
       $request->user()->id
     );
+
+    // Ambil data lengkap (date + name) untuk frontend
+    $holidays = $holidayService->getHolidays();
 
     return response()->json([
       'message' => "Roster berhasil dibuat: {$count} entri.",
@@ -71,9 +73,10 @@ class ShiftController extends Controller
       'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
     ]);
 
-    $user = $request->user(); // TelegramUser (dari token Sanctum)
+    $user = $request->user();
 
-    if (!$user->telegram_id) {
+    // Pastikan model memiliki chat_id (kolom chat_id di tabel telegram_users)
+    if (!$user->chat_id) {
       return response()->json(['message' => 'Akun Telegram tidak terhubung.'], 400);
     }
 
@@ -89,14 +92,14 @@ class ShiftController extends Controller
     // Kirim via Telegram
     $telegramApi = app(TelegramApi::class);
     $result = $telegramApi->sendDocument(
-      chatId: $user->telegram_id,
+      chatId: $user->chat_id,
       filePath: $tempPath,
       caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
     );
 
     // Hapus file setelah dikirim
-    if (file_exists($tempPath)) {
-      Storage::disk('local')->delete($tempPath);
+    if (Storage::disk('local')->exists($tempFile)) {
+      Storage::disk('local')->delete($tempFile);
     }
 
     if ($result) {

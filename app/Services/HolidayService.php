@@ -23,7 +23,6 @@ class HolidayService
   public function getHolidays(): array
   {
     return Cache::remember(self::CACHE_KEY, self::CACHE_DURATION, function () {
-      // Ambil data dari tahun 2020 hingga 2027 agar mencakup rentang roster
       $allHolidays = [];
       $currentYear = (int) date('Y');
       for ($year = 2020; $year <= $currentYear + 2; $year++) {
@@ -32,6 +31,15 @@ class HolidayService
       }
       return $allHolidays;
     });
+  }
+
+  /**
+  * Ambil hanya tanggal-tanggal hari libur (array of string Y-m-d).
+  */
+  public function getHolidayDates(): array
+  {
+    return array_map(fn($item) => $item['date'],
+      $this->getHolidays());
   }
 
   /**
@@ -66,7 +74,6 @@ class HolidayService
 
     $holidays = $data['data'] ?? [];
 
-    // Kembalikan hanya tanggal dan nama
     return array_map(fn($item) => [
       'date' => $item['date'],
       'name' => $item['name'],

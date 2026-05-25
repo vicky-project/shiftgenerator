@@ -26,7 +26,7 @@ class ShiftController extends Controller
     ]);
 
     // Gunakan data dari request, atau ambil otomatis dari holiday service
-    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidayDates();
+    $holidays = !empty($validated['holidays']) ? $validated['holidays'] : $holidayService->getHolidays();
 
     $count = $service->generate(
       $validated['start_date'],

@@ -425,7 +425,7 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        firstDayOfWeek: 0,
+        firstWeekday: 0,
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
@@ -455,7 +455,7 @@
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstDayOfWeek: 0,
+        firstWeekday: 0,
         selectedWeekends: [0],
         settings: {
           visibility: {

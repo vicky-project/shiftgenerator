@@ -323,7 +323,6 @@
     container.appendChild(dropdownWrapper);
     const calendarEl = document.createElement('div');
     calendarEl.id = 'calendar-instance';
-    calendarEl.style.cssText = 'display:block; min-height:400px;'; // debug, nanti dihapus
     container.appendChild(calendarEl);
 
     // Reset instance & observer

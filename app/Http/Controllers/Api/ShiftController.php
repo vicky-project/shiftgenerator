@@ -80,7 +80,7 @@ class ShiftController extends Controller
     $tempFile = "temp/exports/{$fileName}";
 
     // Simpan Excel ke storage lokal
-    Excel::store($export, $tempPath, 'local');
+    Excel::store($export, $tempFile, 'local');
     $tempPath = Storage::disk('local')->path($tempFile);
 
     // Kirim via Telegram

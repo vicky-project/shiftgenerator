@@ -339,6 +339,7 @@
       const d = new Date(h.date + 'T00:00:00');
       return d.getFullYear() === year && d.getMonth() === month;
     });
+    console.log(filtered);
 
     if (filtered.length === 0) {
       box.classList.add('d-none');

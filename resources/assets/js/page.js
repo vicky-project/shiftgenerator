@@ -1,4 +1,4 @@
-// page.js (final dengan holiday box mengikuti bulan lewat data-vc-month)
+// page.js (final dengan perbaikan kalender hilang saat generate ulang)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -21,10 +21,7 @@
       calendarInstance.destroy();
       calendarInstance = null;
     }
-    const calendarEl = document.getElementById('calendar-instance');
-    if (calendarEl) calendarEl.remove();
-    const dropdownWrapper = document.getElementById('dropdown-wrapper');
-    if (dropdownWrapper) dropdownWrapper.remove();
+    // Jangan hapus elemen DOM secara manual, biarkan dihapus oleh renderGenerate() yang membangun ulang seluruh isi
   }
 
   // ---------- applyModifiers (sekarang update holiday box juga) ----------
@@ -320,12 +317,15 @@
       holidays: window.__shiftData?.holidays || []
     };
 
-    if (!document.getElementById('calendar-instance')) {
+    // Pastikan elemen #calendar-instance ada
+    let calendarEl = document.getElementById('calendar-instance');
+    if (!calendarEl) {
+      // Hapus isi container agar bersih
       container.innerHTML = '';
       const dropdownWrapper = document.createElement('div');
       dropdownWrapper.id = 'dropdown-wrapper';
       container.appendChild(dropdownWrapper);
-      const calendarEl = document.createElement('div');
+      calendarEl = document.createElement('div');
       calendarEl.id = 'calendar-instance';
       container.appendChild(calendarEl);
     }
@@ -425,7 +425,6 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        firstWeekday: 0,
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
@@ -455,7 +454,7 @@
       } = window.VanillaCalendarPro;
       calendarInstance = new Calendar('#calendar-instance', {
         type: 'default',
-        firstWeekday: 0,
+        firstDayOfWeek: 1,
         selectedWeekends: [0],
         settings: {
           visibility: {
@@ -490,7 +489,6 @@
         });
       }
 
-      // Panggil applyModifiers untuk update awal
       applyModifiers();
       setTimeout(() => applyModifiers(), 100);
     }

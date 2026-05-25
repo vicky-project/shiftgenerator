@@ -44,7 +44,7 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithMapping
       $schedule->date->format('d/m/Y'),
       $schedule->employee->nrp,
       $schedule->employee->name,
-      $schedule->shift,
+      $schedule->shift->value,
     ];
   }
 }

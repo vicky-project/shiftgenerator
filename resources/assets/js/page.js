@@ -1,4 +1,4 @@
-// page.js (FINAL - kalender selalu tampil saat generate)
+// page.js (FINAL DEBUG - kalender selalu tampil saat generate)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -11,8 +11,9 @@
   let calendarInstance = null;
   let currentObserver = null;
 
-  // ---------- destroyCalendar (hanya reset instance & observer, JANGAN hapus DOM) ----------
+  // ---------- destroyCalendar ----------
   function destroyCalendar() {
+    console.log('destroyCalendar dipanggil');
     if (currentObserver) {
       currentObserver.disconnect();
       currentObserver = null;
@@ -48,8 +49,9 @@
     }
   }
 
-  // ---------- Render daftar karyawan ----------
+  // ---------- Render daftar karyawan (sama seperti sebelumnya, tidak diubah) ----------
   async function renderEmployeeList() {
+    console.log('renderEmployeeList');
     destroyCalendar();
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
@@ -85,8 +87,9 @@
     content.innerHTML = html;
   }
 
-  // ---------- Render form tambah/edit ----------
+  // ---------- Render form tambah/edit (tidak diubah) ----------
   async function renderEmployeeForm(params) {
+    console.log('renderEmployeeForm');
     destroyCalendar();
     const id = params?.id;
     const isEdit = !!id;
@@ -189,8 +192,9 @@
     </form>`;
   }
 
-  // ---------- Render halaman override ----------
+  // ---------- Render halaman override (tidak diubah) ----------
   async function renderOverrides(params) {
+    console.log('renderOverrides');
     destroyCalendar();
     const employeeId = params.id;
     document.getElementById('app-title').innerText = 'Pengajuan Cuti';
@@ -242,6 +246,7 @@
 
   // ---------- Render halaman generate ----------
   function renderGenerate() {
+    console.log('renderGenerate');
     destroyCalendar();
     document.getElementById('app-title').innerText = 'Generate Roster';
     const content = document.getElementById('app-content');
@@ -277,12 +282,17 @@
 
   // ---------- Render kalender dengan data shift ----------
   async function renderShiftCalendar(start, end) {
+    console.log('renderShiftCalendar', start, end);
     const container = document.getElementById('shift-calendar');
-    if (!container) return;
+    if (!container) {
+      console.error('Container #shift-calendar tidak ditemukan');
+      return;
+    }
 
     let schedules = [];
     try {
       schedules = await fetchSchedules(start, end);
+      console.log('Schedules diterima:', schedules.length);
     } catch (err) {
       container.innerHTML = `<div class="alert alert-danger">Gagal memuat data roster.</div>`;
       return;
@@ -316,6 +326,7 @@
       holidays: window.__shiftData?.holidays || []
     };
 
+    console.log('Membangun ulang struktur kalender...');
     // Selalu bangun ulang struktur kalender
     container.innerHTML = '';
     const dropdownWrapper = document.createElement('div');
@@ -324,6 +335,7 @@
     const calendarEl = document.createElement('div');
     calendarEl.id = 'calendar-instance';
     container.appendChild(calendarEl);
+    console.log('Struktur kalender baru dibuat');
 
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
@@ -354,8 +366,12 @@
 
   // ---------- Render kalender untuk satu karyawan ----------
   function renderCalendarForEmployee(index) {
+    console.log('renderCalendarForEmployee', index);
     const data = window.__shiftData;
-    if (!data || !data.employeeKeys.length) return;
+    if (!data || !data.employeeKeys.length) {
+      console.error('Data shift tidak tersedia');
+      return;
+    }
 
     data.currentIndex = index;
     const empKey = data.employeeKeys[index];
@@ -416,14 +432,13 @@
     // Hapus instance sebelumnya (tanpa hapus DOM, karena DOM sudah baru)
     destroyCalendar();
 
-    // Buat instance baru
+    console.log('Membuat Calendar instance...');
     const {
       Calendar
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstDayOfWeek: 1,
-      firstWeekday: 0,
       selectedWeekends: [0],
       settings: {
         visibility: {
@@ -448,6 +463,7 @@
     });
 
     calendarInstance.init();
+    console.log('Calendar instance diinit');
 
     // Pasang observer baru
     const targetNode = document.getElementById('calendar-instance');
@@ -457,6 +473,9 @@
       currentObserver.observe(targetNode, {
         childList: true, subtree: true
       });
+      console.log('Observer terpasang');
+    } else {
+      console.error('Target node #calendar-instance tidak ditemukan setelah init');
     }
 
     applyModifiers();
@@ -470,6 +489,7 @@
     renderGenerate,
     renderShiftCalendar,
     loadRosterData: async (start, end) => {
+      console.log('loadRosterData dipanggil');
       await renderShiftCalendar(start, end);
     },
     destroyCalendar

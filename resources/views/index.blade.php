@@ -58,7 +58,7 @@
 
 @push('styles')
 <!-- Vanilla Calendar Pro CSS -->
-<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
   --shift-primary: #4A90E2;

@@ -44,6 +44,7 @@
     if (calendarInstance && window.__shiftData && window.__shiftData.holidays) {
       const year = calendarInstance.selectedYear || new Date().getFullYear();
       const month = calendarInstance.selectedMonth !== undefined ? calendarInstance.selectedMonth: new Date().getMonth();
+      console.log(year, month, window.__shiftData.holidays);
       renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
     }
   }
@@ -339,7 +340,6 @@
       const d = new Date(h.date + 'T00:00:00');
       return d.getFullYear() === year && d.getMonth() === month;
     });
-    console.log(filtered);
 
     if (filtered.length === 0) {
       box.classList.add('d-none');

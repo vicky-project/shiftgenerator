@@ -1,4 +1,4 @@
-// page.js (final dengan perbaikan kalender hilang saat generate ulang)
+// page.js (perbaikan: kalender selalu dibuat ulang saat generate)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -21,10 +21,14 @@
       calendarInstance.destroy();
       calendarInstance = null;
     }
-    // Jangan hapus elemen DOM secara manual, biarkan dihapus oleh renderGenerate() yang membangun ulang seluruh isi
+    // Hapus elemen kalender secara eksplisit agar benar‑benar bersih
+    const calendarEl = document.getElementById('calendar-instance');
+    if (calendarEl) calendarEl.remove();
+    const dropdownWrapper = document.getElementById('dropdown-wrapper');
+    if (dropdownWrapper) dropdownWrapper.remove();
   }
 
-  // ---------- applyModifiers (sekarang update holiday box juga) ----------
+  // ---------- applyModifiers ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -37,11 +41,11 @@
       }
     });
 
-    // Update holiday box berdasarkan bulan yang sedang ditampilkan
+    // Update holiday box
     const monthBtn = document.querySelector('#calendar-instance [data-vc="month"]');
     const yearBtn = document.querySelector('#calendar-instance [data-vc="year"]');
     if (monthBtn && yearBtn && window.__shiftData && window.__shiftData.holidays) {
-      const month = parseInt(monthBtn.getAttribute('data-vc-month')); // 0‑based
+      const month = parseInt(monthBtn.getAttribute('data-vc-month'));
       const year = parseInt(yearBtn.getAttribute('data-vc-year'));
       if (!isNaN(month) && !isNaN(year)) {
         renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
@@ -317,18 +321,14 @@
       holidays: window.__shiftData?.holidays || []
     };
 
-    // Pastikan elemen #calendar-instance ada
-    let calendarEl = document.getElementById('calendar-instance');
-    if (!calendarEl) {
-      // Hapus isi container agar bersih
-      container.innerHTML = '';
-      const dropdownWrapper = document.createElement('div');
-      dropdownWrapper.id = 'dropdown-wrapper';
-      container.appendChild(dropdownWrapper);
-      calendarEl = document.createElement('div');
-      calendarEl.id = 'calendar-instance';
-      container.appendChild(calendarEl);
-    }
+    // Selalu buat ulang struktur kalender agar bersih dari sisa instance sebelumnya
+    container.innerHTML = '';
+    const dropdownWrapper = document.createElement('div');
+    dropdownWrapper.id = 'dropdown-wrapper';
+    container.appendChild(dropdownWrapper);
+    const calendarEl = document.createElement('div');
+    calendarEl.id = 'calendar-instance';
+    container.appendChild(calendarEl);
 
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
@@ -418,80 +418,49 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    if (calendarInstance) {
-      calendarInstance.set({
-        dateMin: start,
-        dateMax: end,
-        displayDateMin: start,
-        displayDateMax: end,
-        popups: popups,
-        selectedWeekends: [0],
-        year: startDate.getFullYear(),
-        month: startDate.getMonth(),
-      }, {
-        dates: true,
-        month: true,
-        year: true,
-      });
-
-      // Observer untuk class modifier + update holiday box
-      const targetNode = document.getElementById('calendar-instance');
-      if (targetNode) {
-        if (currentObserver) currentObserver.disconnect();
-        currentObserver = new MutationObserver(() => applyModifiers());
-        currentObserver.observe(targetNode, {
-          childList: true, subtree: true
-        });
-      }
-
-      // Panggil applyModifiers segera untuk update holiday box bulan awal
-      applyModifiers();
-      setTimeout(() => applyModifiers(), 100);
-      setTimeout(() => applyModifiers(), 300);
-    } else {
-      const {
-        Calendar
-      } = window.VanillaCalendarPro;
-      calendarInstance = new Calendar('#calendar-instance', {
-        type: 'default',
-        firstDayOfWeek: 1,
-        selectedWeekends: [0],
-        settings: {
-          visibility: {
-            daysOutsideMonth: true
-          },
-          selection: {
-            day: 'none'
-          },
+    // Selalu buat instance baru karena kita sudah membersihkan elemen kalender
+    const {
+      Calendar
+    } = window.VanillaCalendarPro;
+    calendarInstance = new Calendar('#calendar-instance', {
+      type: 'default',
+      firstDayOfWeek: 1,
+      selectedWeekends: [0],
+      settings: {
+        visibility: {
+          daysOutsideMonth: true
         },
-        classes: {
-          calendar: 'bg-transparent',
-          calendarHeader: 'bg-transparent',
-          calendarHeaderMonth: 'text-color',
-          calendarHeaderYear: 'text-color',
-          dayBtn: 'text-color',
+        selection: {
+          day: 'none'
         },
-        dateMin: start,
-        dateMax: end,
-        displayDateMin: start,
-        displayDateMax: end,
-        popups: popups,
+      },
+      classes: {
+        calendar: 'bg-transparent',
+        calendarHeader: 'bg-transparent',
+        calendarHeaderMonth: 'text-color',
+        calendarHeaderYear: 'text-color',
+        dayBtn: 'text-color',
+      },
+      dateMin: start,
+      dateMax: end,
+      displayDateMin: start,
+      displayDateMax: end,
+      popups: popups,
+    });
+
+    calendarInstance.init();
+
+    const targetNode = document.getElementById('calendar-instance');
+    if (targetNode) {
+      if (currentObserver) currentObserver.disconnect();
+      currentObserver = new MutationObserver(() => applyModifiers());
+      currentObserver.observe(targetNode, {
+        childList: true, subtree: true
       });
-
-      calendarInstance.init();
-
-      const targetNode = document.getElementById('calendar-instance');
-      if (targetNode) {
-        if (currentObserver) currentObserver.disconnect();
-        currentObserver = new MutationObserver(() => applyModifiers());
-        currentObserver.observe(targetNode, {
-          childList: true, subtree: true
-        });
-      }
-
-      applyModifiers();
-      setTimeout(() => applyModifiers(), 100);
     }
+
+    applyModifiers();
+    setTimeout(() => applyModifiers(), 100);
   }
 
   window.PageRender = {

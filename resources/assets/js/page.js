@@ -1,4 +1,4 @@
-// page.js (perbaikan onClickArrow tetap berfungsi saat generate ulang)
+// page.js (perbaikan final: onClickArrow di set() dan event delegation cadangan)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -407,7 +407,6 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    // Handler panah bulan – mengakses data terbaru dari window.__shiftData
     const arrowHandler = (self, event) => {
       const shiftData = window.__shiftData;
       if (shiftData && shiftData.holidays) {
@@ -418,8 +417,29 @@
       }
     };
 
+    // Cadangan: gunakan event delegation global jika onClickArrow tidak berfungsi
+    if (!window.__calendarArrowHandlerInstalled) {
+      document.getElementById('shift-calendar')?.addEventListener('click', (e) => {
+        const arrowBtn = e.target.closest('[data-vc-arrow]');
+        if (arrowBtn) {
+          // Tunggu sebentar sampai bulan berubah
+          setTimeout(() => {
+            const shiftData = window.__shiftData;
+            if (shiftData && shiftData.holidays && calendarInstance) {
+              renderHolidayBoxForMonth(
+                calendarInstance.selectedYear,
+                calendarInstance.selectedMonth,
+                shiftData.holidays
+              );
+            }
+          },
+            100);
+        }
+      });
+      window.__calendarArrowHandlerInstalled = true;
+    }
+
     if (calendarInstance) {
-      // Jangan ubah onClickArrow, biarkan handler lama tetap terpasang
       calendarInstance.set({
         dateMin: start,
         dateMax: end,
@@ -429,6 +449,7 @@
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
+        onClickArrow: arrowHandler, // tetap disertakan
       }, {
         dates: true,
         month: true,

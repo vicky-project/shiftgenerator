@@ -216,15 +216,13 @@
   #calendar-legend .legend-dot.leave {
     background: #f1c40f;
   }
-  #calendar-legend .legend-dot.holiday {
-    background: #e74c3c;
-  }
   .shift-holiday .vc-date__btn {
     color: #e74c3c !important;
     font-weight: 600;
   }
   .shift-day .vc-date__btn::after,
   .shift-night .vc-date__btn::after,
+  .shift-leave .vc-date__btn::after,
   .shift-off .vc-date__btn::after {
     content: '';
     position: absolute;

@@ -249,14 +249,14 @@
     <div class="card mb-3">
     <div class="card-body">
     <div class="row g-2">
-    <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control"></div>
-    <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control"></div>
+    <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control" placeholder="01/01/2026"></div>
+    <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control" placeholder="01/01/2026"></div>
     </div>
     <button class="btn btn-success mt-3 w-100" id="btn-generate"><i class="bi bi-gear"></i> Generate</button>
     </div>
     </div>
     <div id="result-container" class="d-none">
-    <div id="calendar-legend">
+    <div id="calendar-legend" class="d-flex justify-content-center align-items-center">
     <div class="legend-item"><span class="legend-dot day"></span> Day</div>
     <div class="legend-item"><span class="legend-dot night"></span> Night</div>
     <div class="legend-item"><span class="legend-dot off"></span> Off</div>

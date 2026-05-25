@@ -4,6 +4,7 @@ namespace Modules\ShiftGenerator\Exports;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -25,7 +26,8 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
     $this->userId = $userId;
   }
 
-  public function collection() {
+  public function collection(): Collection
+  {
     $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
     ->orderBy('nrp')
     ->get();
@@ -71,6 +73,7 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
         $rows->push($row);
       }
 
+      \Log::debug($rows);
       return $rows;
     }
 

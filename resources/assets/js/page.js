@@ -1,4 +1,4 @@
-// page.js (FINAL – kalender selalu tampil setelah navigasi & generate ulang)
+// page.js (FINAL – kalender tetap muncul setelah navigasi & generate ulang)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -10,8 +10,9 @@
 
   let calendarInstance = null;
   let currentObserver = null;
+  let rendering = false;
 
-  // ---------- destroyCalendar (hanya reset instance & observer) ----------
+  // ---------- destroyCalendar (hanya reset instance & observer, jangan hapus DOM) ----------
   function destroyCalendar() {
     if (currentObserver) {
       currentObserver.disconnect();
@@ -23,7 +24,7 @@
     }
   }
 
-  // ---------- applyModifiers ----------
+  // ---------- applyModifiers (aman meski kalender belum ada) ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -316,30 +317,18 @@
       holidays: window.__shiftData?.holidays || []
     };
 
-    // Hapus isi container secara manual
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-
+    // Bersihkan container & buat elemen baru
+    container.innerHTML = '';
     const dropdownWrapper = document.createElement('div');
     dropdownWrapper.id = 'dropdown-wrapper';
     container.appendChild(dropdownWrapper);
-
     const calendarEl = document.createElement('div');
     calendarEl.id = 'calendar-instance';
-    calendarEl.style.display = 'block';
-    calendarEl.style.minHeight = '300px';
     container.appendChild(calendarEl);
 
-    // Bersihkan observer & instance lama
-    if (currentObserver) {
-      currentObserver.disconnect();
-      currentObserver = null;
-    }
-    if (calendarInstance && typeof calendarInstance.destroy === 'function') {
-      calendarInstance.destroy();
-      calendarInstance = null;
-    }
+    // Reset instance & observer karena elemen baru
+    calendarInstance = null;
+    currentObserver = null;
 
     renderCalendarForEmployee(window.__shiftData.currentIndex || 0);
   }
@@ -370,6 +359,11 @@
 
   // ---------- Render kalender untuk satu karyawan ----------
   function renderCalendarForEmployee(index) {
+    if (rendering) {
+      console.warn('renderCalendarForEmployee diabaikan – sedang rendering');
+      return;
+    }
+
     const data = window.__shiftData;
     if (!data || !data.employeeKeys.length) return;
 
@@ -429,67 +423,82 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    if (!window.VanillaCalendarPro) {
-      console.error('VanillaCalendarPro tidak tersedia!');
-      document.getElementById('calendar-instance').innerHTML = '<div class="alert alert-danger">Library kalender tidak termuat.</div>';
-      return;
-    }
-
-    const {
-      Calendar
-    } = window.VanillaCalendarPro;
     const targetEl = document.getElementById('calendar-instance');
     if (!targetEl) {
       console.error('Target #calendar-instance tidak ada');
       return;
     }
 
-    // Buat instance baru
-    calendarInstance = new Calendar('#calendar-instance', {
-      type: 'default',
-      firstDayOfWeek: 1,
-      selectedWeekends: [0],
-      settings: {
-        visibility: {
-          daysOutsideMonth: true
-        },
-        selection: {
-          day: 'none'
-        },
-      },
-      classes: {
-        calendar: 'bg-transparent',
-        calendarHeader: 'bg-transparent',
-        calendarHeaderMonth: 'text-color',
-        calendarHeaderYear: 'text-color',
-        dayBtn: 'text-color',
-      },
-      dateMin: start,
-      dateMax: end,
-      displayDateMin: start,
-      displayDateMax: end,
-      popups: popups,
-    });
+    if (!window.VanillaCalendarPro) {
+      targetEl.innerHTML = '<div class="alert alert-danger">Library kalender tidak termuat.</div>';
+      return;
+    }
 
-    // Override init untuk memastikan observer terpasang
-    const originalInit = calendarInstance.init.bind(calendarInstance);
-    calendarInstance.init = function() {
-      originalInit();
-      console.log('Isi setelah init:', targetEl.innerHTML.substring(0, 200));
+    // Hapus instance sebelumnya (jika masih ada)
+    destroyCalendar();
 
-      const node = document.getElementById('calendar-instance');
-      if (node) {
+    rendering = true;
+    try {
+      const {
+        Calendar
+      } = window.VanillaCalendarPro;
+      calendarInstance = new Calendar('#calendar-instance', {
+        type: 'default',
+        firstDayOfWeek: 1,
+        selectedWeekends: [0],
+        settings: {
+          visibility: {
+            daysOutsideMonth: true
+          },
+          selection: {
+            day: 'none'
+          },
+        },
+        classes: {
+          calendar: 'bg-transparent',
+          calendarHeader: 'bg-transparent',
+          calendarHeaderMonth: 'text-color',
+          calendarHeaderYear: 'text-color',
+          dayBtn: 'text-color',
+        },
+        dateMin: start,
+        dateMax: end,
+        displayDateMin: start,
+        displayDateMax: end,
+        popups: popups,
+      });
+
+      calendarInstance.init();
+
+      // Jika setelah init kalender kosong, coba paksa update setelah delay
+      if (!targetEl.innerHTML.trim()) {
+        console.warn('Kalender kosong setelah init, coba update paksa...');
+        setTimeout(() => {
+          if (calendarInstance && typeof calendarInstance.update === 'function') {
+            calendarInstance.update({
+              dates: true, month: true, year: true
+            });
+          }
+        },
+          50);
+      }
+
+      const targetNode = document.getElementById('calendar-instance');
+      if (targetNode) {
         if (currentObserver) currentObserver.disconnect();
         currentObserver = new MutationObserver(() => applyModifiers());
-        currentObserver.observe(node, {
+        currentObserver.observe(targetNode, {
           childList: true, subtree: true
         });
       }
+
       applyModifiers();
       setTimeout(() => applyModifiers(), 100);
-    };
-
-    calendarInstance.init();
+    } catch (err) {
+      console.error('Gagal inisialisasi kalender:', err);
+    } finally {
+      rendering = false;
+    }
   }
 
   window.PageRender = {

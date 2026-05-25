@@ -1,4 +1,4 @@
-// page.js (FINAL – kalender selalu tampil, termasuk saat ganti karyawan)
+// page.js
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -29,7 +29,7 @@
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
     dateElements.forEach(el => {
       const date = el.getAttribute('data-vc-date');
-      el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-holiday');
+      el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-leave', 'shift-holiday');
       if (popups[date] && popups[date].modifier) {
         const classes = popups[date].modifier.split(' ');
         el.classList.add(...classes);
@@ -260,7 +260,7 @@
     <div class="legend-item"><span class="legend-dot day"></span> Day</div>
     <div class="legend-item"><span class="legend-dot night"></span> Night</div>
     <div class="legend-item"><span class="legend-dot off"></span> Off</div>
-    <div class="legend-item"><span class="legend-dot holiday"></span> Libur Nasional</div>
+    <div class="legend-item"><span class="legend-dot leave"></span> Cuti</div>
     </div>
     <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
@@ -375,7 +375,8 @@
     schedules.forEach(s => {
       const dateKey = String(s.date).substring(0, 10);
       let modifier = s.shift === 'Day' ? 'shift-day':
-      s.shift === 'Night' ? 'shift-night': 'shift-off';
+      s.shift === 'Night' ? 'shift-night':
+      s.shift === 'Leave' ? 'shift-leave': 'shift-off';
       if (holidayDates.has(dateKey)) {
         modifier += ' shift-holiday';
       }

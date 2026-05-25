@@ -7,6 +7,7 @@ enum ShiftType: string
   case Day = 'Day';
   case Night = 'Night';
   case Off = 'Off';
+  case Leave = 'Leave';
 
     public static function values(): array
     {

@@ -167,14 +167,22 @@
   .vc-date__btn {
     position: relative;
   }
+  /* ---------- DOT WARNA SHIFT ---------- */
   .shift-day .vc-date__btn::after {
     background-color: #2ecc71;
+    /* Hijau */
   }
   .shift-night .vc-date__btn::after {
-    background-color: #3498db;
+    background-color: #000000;
+    /* Hitam */
   }
   .shift-off .vc-date__btn::after {
-    background-color: #bdc3c7;
+    background-color: #e74c3c;
+    /* Merah */
+  }
+  .shift-leave .vc-date__btn::after {
+    background-color: #f1c40f;
+    /* Kuning */
   }
   .shift-holiday .vc-date__btn {
     color: #e74c3c !important;
@@ -237,8 +245,8 @@
   #calendar-legend .legend-dot.off {
     background: #bdc3c7;
   }
-  #calendar-legend .legend-dot.holiday {
-    background: #e74c3c;
+  #calendar-legend .legend-dot.leave {
+    background: #f1c40f;
   }
 
   /* Text color helper */

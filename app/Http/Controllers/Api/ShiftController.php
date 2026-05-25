@@ -76,7 +76,7 @@ class ShiftController extends Controller
     $user = $request->user();
 
     // Pastikan model memiliki chat_id (kolom chat_id di tabel telegram_users)
-    if (!$user->chat_id) {
+    if (!$user->telegram_id) {
       return response()->json(['message' => 'Akun Telegram tidak terhubung.'], 400);
     }
 
@@ -92,7 +92,7 @@ class ShiftController extends Controller
     // Kirim via Telegram
     $telegramApi = app(TelegramApi::class);
     $result = $telegramApi->sendDocument(
-      chatId: $user->chat_id,
+      chatId: $user->telegram_id,
       filePath: $tempPath,
       caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
     );

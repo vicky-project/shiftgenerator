@@ -10,7 +10,6 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
@@ -26,9 +25,6 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
     $this->userId = $userId;
   }
 
-  /**
-  * Kumpulkan data yang akan diekspor.
-  */
   public function collection() {
     $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
     ->orderBy('nrp')
@@ -53,12 +49,13 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
         $employee->name,
       ];
 
-      $empSchedules = $schedules->get($employee->id, collect())->keyBy('date');
+      $empSchedules = $schedules->get($employee->id, collect())->keyBy(function ($item) {
+        return Carbon::parse($item->date)->format('Y-m-d');
+      });
 
       foreach ($dates as $date) {
         $schedule = $empSchedules->get($date);
         if ($schedule) {
-          // Konversi shift ke kode
           $row[] = match ($schedule->shift) {
             'Day' => 'D',
             'Night' => 'N',
@@ -74,15 +71,9 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
         $rows->push($row);
       }
 
-      \Log::debug('Schedules count: ' . $schedules->count());
-      \Log::debug('Employees count: ' . $employees->count());
-      \Log::debug('First schedule:', $schedules->first()?->toArray());
       return $rows;
     }
 
-    /**
-    * Header kolom.
-    */
     public function headings(): array
     {
       $period = CarbonPeriod::create($this->start, $this->end);
@@ -94,9 +85,6 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
       return array_merge(['NRP', 'Nama'], $dates);
     }
 
-    /**
-    * Daftarkan event untuk styling setelah sheet dibuat.
-    */
     public function registerEvents(): array
     {
       return [
@@ -105,7 +93,7 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
           $highestRow = $sheet->getHighestRow();
           $highestColumn = $sheet->getHighestColumn();
 
-          // Style untuk header
+          // Header styling
           $headerRange = 'A1:' . $highestColumn . '1';
           $sheet->getStyle($headerRange)->getFont()->setBold(true);
           $sheet->getStyle($headerRange)->getFill()
@@ -113,19 +101,18 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
           ->getStartColor()->setARGB('FF4A90E2');
           $sheet->getStyle($headerRange)->getFont()->getColor()->setARGB('FFFFFFFF');
 
-          // Warna background untuk kode shift
+          // Warna latar belakang kode shift
           $colorMap = [
             'D' => 'FF2ecc71',
             // hijau
             'N' => 'FF000000',
-            // hitam (font putih)
+            // hitam
             'O' => 'FFe74c3c',
             // merah
             'CT' => 'FFf1c40f',
             // kuning
           ];
 
-          // Mulai dari baris ke-2 (data) dan kolom ke-3 (tanggal pertama)
           for ($row = 2; $row <= $highestRow; $row++) {
             for ($col = 3; $col <= \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn); $col++) {
               $cell = $sheet->getCellByColumnAndRow($col, $row);
@@ -134,7 +121,6 @@ class ShiftScheduleExport implements FromCollection, WithHeadings, WithEvents, S
                 $cell->getStyle()->getFill()
                 ->setFillType(Fill::FILL_SOLID)
                 ->getStartColor()->setARGB($colorMap[$value]);
-                // Untuk background hitam, font putih
                 if ($value === 'N') {
                   $cell->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
                 }

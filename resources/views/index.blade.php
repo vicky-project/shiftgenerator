@@ -238,7 +238,7 @@
   /* Semua tanggal di luar bulan kembali ke default */
   [data-vc-date-month="prev"] .vc-date__btn,
   [data-vc-date-month="next"] .vc-date__btn {
-    color: color: #64748b
+    color: #64748b;
     font-weight: normal !important;
   }
 

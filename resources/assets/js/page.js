@@ -1,4 +1,4 @@
-// page.js (FINAL – kalender selalu tampil setelah navigasi & generate ulang)
+// page.js (FINAL – kalender selalu tampil, termasuk saat ganti karyawan)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -431,10 +431,21 @@
       return;
     }
 
-    // Hapus instance sebelumnya
-    destroyCalendar();
+    // Jika instance sudah ada, gunakan set() untuk memperbarui popups
+    if (calendarInstance) {
+      calendarInstance.set({
+        popups: popups,
+      }, {
+        dates: true,
+      });
 
-    // Gunakan elemen langsung, bukan selector
+      // Terapkan modifier
+      applyModifiers();
+      setTimeout(() => applyModifiers(), 100);
+      return;
+    }
+
+    // Jika belum ada instance, buat baru
     const {
       Calendar
     } = window.VanillaCalendarPro;
@@ -464,67 +475,20 @@
       popups: popups,
     });
 
-    // Delay kecil agar DOM siap
-    setTimeout(() => {
-      calendarInstance.init();
+    calendarInstance.init();
 
-      // Jika setelah init elemen masih kosong, coba fallback
-      if (!targetEl.innerHTML.trim()) {
-        console.warn('Kalender masih kosong setelah init pertama, mencoba fallback...');
-        // Coba update paksa
-        calendarInstance.update({
-          dates: true, month: true, year: true
-        });
-        // Jika masih kosong, ulangi create
-        setTimeout(() => {
-          if (!targetEl.innerHTML.trim()) {
-            console.warn('Fallback: menghancurkan dan membuat ulang instance...');
-            calendarInstance.destroy();
-            calendarInstance = new Calendar(targetEl, {
-              type: 'default',
-              firstDayOfWeek: 1,
-              selectedWeekends: [0],
-              settings: {
-                visibility: {
-                  daysOutsideMonth: true
-                },
-                selection: {
-                  day: 'none'
-                },
-              },
-              classes: {
-                calendar: 'bg-transparent',
-                calendarHeader: 'bg-transparent',
-                calendarHeaderMonth: 'text-color',
-                calendarHeaderYear: 'text-color',
-                dayBtn: 'text-color',
-              },
-              dateMin: start,
-              dateMax: end,
-              displayDateMin: start,
-              displayDateMax: end,
-              popups: popups,
-            });
-            calendarInstance.init();
-          }
-        },
-          100);
-      }
+    // Pasang observer setelah elemen ada
+    const node = document.getElementById('calendar-instance');
+    if (node) {
+      if (currentObserver) currentObserver.disconnect();
+      currentObserver = new MutationObserver(() => applyModifiers());
+      currentObserver.observe(node, {
+        childList: true, subtree: true
+      });
+    }
 
-      // Pasang observer setelah elemen ada
-      const node = document.getElementById('calendar-instance');
-      if (node && node.innerHTML.trim()) {
-        if (currentObserver) currentObserver.disconnect();
-        currentObserver = new MutationObserver(() => applyModifiers());
-        currentObserver.observe(node, {
-          childList: true, subtree: true
-        });
-      }
-
-      applyModifiers();
-      setTimeout(() => applyModifiers(), 100);
-    },
-      20);
+    applyModifiers();
+    setTimeout(() => applyModifiers(), 100);
   }
 
   window.PageRender = {
@@ -533,10 +497,8 @@
     renderOverrides,
     renderGenerate,
     renderShiftCalendar,
-    loadRosterData: async (start,
-      end) => {
-      await renderShiftCalendar(start,
-        end);
+    loadRosterData: async (start, end) => {
+      await renderShiftCalendar(start, end);
     },
     destroyCalendar
   };

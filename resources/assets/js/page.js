@@ -1,4 +1,4 @@
-// page.js (perbaikan final: onClickArrow di set() dan event delegation cadangan)
+// page.js (final dengan perbaikan holiday box via applyModifiers)
 (function() {
   const {
     fetchEmployees, fetchEmployee, saveEmployee, deleteEmployee,
@@ -27,7 +27,7 @@
     if (dropdownWrapper) dropdownWrapper.remove();
   }
 
-  // ---------- applyModifiers ----------
+  // ---------- applyModifiers (sekarang juga update holiday box) ----------
   function applyModifiers() {
     const popups = window.__currentPopups || {};
     const dateElements = document.querySelectorAll('#calendar-instance [data-vc-date]');
@@ -39,6 +39,13 @@
         el.classList.add(...classes);
       }
     });
+
+    // Update holiday box untuk bulan yang sedang ditampilkan
+    if (calendarInstance && window.__shiftData && window.__shiftData.holidays) {
+      const year = calendarInstance.selectedYear || new Date().getFullYear();
+      const month = calendarInstance.selectedMonth !== undefined ? calendarInstance.selectedMonth: new Date().getMonth();
+      renderHolidayBoxForMonth(year, month, window.__shiftData.holidays);
+    }
   }
 
   // ---------- Render daftar karyawan ----------
@@ -407,38 +414,6 @@
     const end = data.end || new Date().toISOString().substring(0, 10);
     const startDate = new Date(start + 'T00:00:00');
 
-    const arrowHandler = (self, event) => {
-      const shiftData = window.__shiftData;
-      if (shiftData && shiftData.holidays) {
-        renderHolidayBoxForMonth(self.selectedYear, self.selectedMonth, shiftData.holidays);
-      } else {
-        const box = document.getElementById('holiday-box');
-        if (box) box.classList.add('d-none');
-      }
-    };
-
-    // Cadangan: gunakan event delegation global jika onClickArrow tidak berfungsi
-    if (!window.__calendarArrowHandlerInstalled) {
-      document.getElementById('shift-calendar')?.addEventListener('click', (e) => {
-        const arrowBtn = e.target.closest('[data-vc-arrow]');
-        if (arrowBtn) {
-          // Tunggu sebentar sampai bulan berubah
-          setTimeout(() => {
-            const shiftData = window.__shiftData;
-            if (shiftData && shiftData.holidays && calendarInstance) {
-              renderHolidayBoxForMonth(
-                calendarInstance.selectedYear,
-                calendarInstance.selectedMonth,
-                shiftData.holidays
-              );
-            }
-          },
-            100);
-        }
-      });
-      window.__calendarArrowHandlerInstalled = true;
-    }
-
     if (calendarInstance) {
       calendarInstance.set({
         dateMin: start,
@@ -449,7 +424,6 @@
         selectedWeekends: [0],
         year: startDate.getFullYear(),
         month: startDate.getMonth(),
-        onClickArrow: arrowHandler, // tetap disertakan
       }, {
         dates: true,
         month: true,
@@ -459,8 +433,6 @@
       setTimeout(() => applyModifiers(), 50);
       setTimeout(() => applyModifiers(), 200);
       setTimeout(() => applyModifiers(), 400);
-
-      renderHolidayBoxForMonth(startDate.getFullYear(), startDate.getMonth(), holidays);
     } else {
       const {
         Calendar
@@ -489,7 +461,6 @@
         displayDateMin: start,
         displayDateMax: end,
         popups: popups,
-        onClickArrow: arrowHandler,
       });
 
       calendarInstance.init();
@@ -503,10 +474,6 @@
         });
       }
       setTimeout(() => applyModifiers(), 200);
-
-      const initialYear = startDate.getFullYear();
-      const initialMonth = startDate.getMonth();
-      renderHolidayBoxForMonth(initialYear, initialMonth, holidays);
     }
   }
 

@@ -245,5 +245,11 @@
     max-width: 100%;
     overflow-x: auto;
   }
+  /* Tanggal di luar bulan (prev/next) tidak ikut terpengaruh warna libur */
+  [data-vc-date-month="prev"] .vc-date__btn,
+  [data-vc-date-month="next"] .vc-date__btn {
+    color: inherit !important;
+    font-weight: normal !important;
+  }
 </style>
 @endpush

@@ -224,6 +224,10 @@
     color: #fff !important;
     font-weight: 600;
   }
+  .shift-holiday[data-vc-date-selected] .vc-date__btn {
+    color: #fff !important;
+    font-weight: 600;
+  }
   .shift-day .vc-date__btn::after,
   .shift-night .vc-date__btn::after,
   .shift-leave .vc-date__btn::after,

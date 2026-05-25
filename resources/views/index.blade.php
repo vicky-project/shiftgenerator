@@ -113,7 +113,6 @@
   .btn-outline-info:hover {
     background-color: var(--shift-info);
     border-color: var(--shift-info);
-    color: #fff;
   }
   .btn-outline-warning {
     color: var(--shift-warning);
@@ -122,7 +121,6 @@
   .btn-outline-warning:hover {
     background-color: var(--shift-warning);
     border-color: var(--shift-warning);
-    color: #fff;
   }
   .btn-outline-danger {
     color: var(--shift-danger);
@@ -131,7 +129,6 @@
   .btn-outline-danger:hover {
     background-color: var(--shift-danger);
     border-color: var(--shift-danger);
-    color: #fff;
   }
 
   /* Form */

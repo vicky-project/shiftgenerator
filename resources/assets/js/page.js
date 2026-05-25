@@ -425,6 +425,7 @@
     calendarInstance = new Calendar('#calendar-instance', {
       type: 'default',
       firstDayOfWeek: 1,
+      firstWeekday: 0,
       selectedWeekends: [0],
       settings: {
         visibility: {

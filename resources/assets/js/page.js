@@ -10,6 +10,10 @@
 
   let calendarInstance = null;
   let currentObserver = null;
+  let employeePagination = {
+    currentPage: 1,
+    lastPage: 1
+  };
 
   // ---------- destroyCalendar ----------
   function destroyCalendar() {
@@ -49,15 +53,29 @@
   }
 
   // ---------- Render daftar karyawan ----------
-  async function renderEmployeeList() {
+  async function renderEmployeeList(page = 1) {
     destroyCalendar();
     document.getElementById('app-title').innerText = 'Karyawan Saya';
     const content = document.getElementById('app-content');
-    let html = `<div class="d-flex justify-content-end mb-3">
-    <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
-    </div>`;
+
+    // Tampilkan loading sementara
+    content.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>`;
+
     try {
-      const employees = await fetchEmployees();
+      const response = await fetchEmployees(page);
+      // response dari paginate() Laravel memiliki struktur: { data: [...], current_page, last_page, ... }
+      const employees = response.data;
+      const currentPage = response.current_page;
+      const lastPage = response.last_page;
+      employeePagination = {
+        currentPage,
+        lastPage
+      };
+
+      let html = `<div class="d-flex justify-content-end mb-3">
+      <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
+      </div>`;
+
       if (!employees.length) {
         html += '<div class="text-center text-muted py-4">Belum ada karyawan.</div>';
       } else {
@@ -79,10 +97,53 @@
           </div>`;
         });
       }
+
+      // Tambahkan container pagination
+      html += '<div id="employee-pagination" class="d-flex justify-content-center mt-3"></div>';
+
+      content.innerHTML = html;
+
+      // Render pagination menggunakan fungsi dari layout Telegram
+      if (typeof tgApp !== 'undefined' && typeof tgApp.renderPagination === 'function') {
+        tgApp.renderPagination('employee-pagination', currentPage, lastPage, (newPage) => {
+          renderEmployeeList(newPage);
+          window.scrollTo({
+            top: 0, behavior: 'smooth'
+          });
+        });
+      } else {
+        // Fallback manual jika tgApp.renderPagination tidak tersedia
+        renderPaginationFallback('employee-pagination', currentPage, lastPage);
+      }
     } catch (err) {
-      html += `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
+      content.innerHTML = `<div class="alert alert-danger">Gagal memuat: ${err.message}</div>`;
     }
-    content.innerHTML = html;
+  }
+
+  // Fungsi fallback untuk pagination (jika tgApp.renderPagination tidak ada)
+  function renderPaginationFallback(containerId, currentPage, lastPage) {
+    const container = document.getElementById(containerId);
+    if (!container || lastPage <= 1) return;
+
+    let html = '<ul class="pagination pagination-sm justify-content-center">';
+    for (let i = 1; i <= lastPage; i++) {
+      html += `<li class="page-item ${i === currentPage ? 'active': ''}">
+      <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>`;
+    }
+    html += '</ul>';
+    container.innerHTML = html;
+
+    container.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = parseInt(link.dataset.page);
+        renderEmployeeList(page);
+        window.scrollTo({
+          top: 0, behavior: 'smooth'
+        });
+      });
+    });
   }
 
   // ---------- Render form tambah/edit ----------

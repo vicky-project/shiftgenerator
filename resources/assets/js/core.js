@@ -61,7 +61,8 @@
       }
     },
     // Fetch karyawan
-    fetchEmployees: () => fetchAPI(`${API_BASE}/api/employees`),
+    // core.js di dalam window.AppCore
+    fetchEmployees: (page = 1, perPage = 10) => fetchAPI(`${API_BASE}/api/employees?page=${page}&per_page=${perPage}`),
     // Fetch satu karyawan
     fetchEmployee: (id) => fetchAPI(`${API_BASE}/api/employees/${id}`),
     // Simpan karyawan (POST/PUT)

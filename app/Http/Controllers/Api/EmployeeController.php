@@ -15,7 +15,10 @@ class EmployeeController extends Controller
   */
   public function index(Request $request) {
     $user = $request->user();
-    return Employee::where('telegram_user_id', $user->id)->get();
+    $perPage = $request->input('per_page', 10);
+    $employees = Employee::where('telegram_user_id', $user->id)->orderBy('name')->paginate($perPage);
+
+    return response()->json($employees);
   }
 
   /**

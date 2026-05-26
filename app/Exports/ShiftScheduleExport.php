@@ -89,55 +89,64 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
             $dates[] = $date;
           }
           $totalDates = count($dates);
-          $lastCol = Coordinate::stringFromColumnIndex(2 + $totalDates); // +2 for NRP, Nama
+          $lastCol = Coordinate::stringFromColumnIndex(2 + $totalDates);
 
-          // Insert 2 rows at top for title and month headers
-          $sheet->insertNewRowBefore(1, 2);
+          // Insert 3 baris di atas agar header memiliki 3 baris (title, month, date)
+          $sheet->insertNewRowBefore(1, 3);
 
-          // Row 1: Title
+          // Baris 1: Judul
           $sheet->setCellValue('A1', 'Roster Shift');
           $sheet->mergeCells('A1:' . $lastCol . '1');
           $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
           $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-          // Row 2: Month names with merge
+          // Merge A2:A3 untuk NRP dan B2:B3 untuk Nama
+          $sheet->mergeCells('A2:A3');
+          $sheet->setCellValue('A2', 'NRP');
+          $sheet->mergeCells('B2:B3');
+          $sheet->setCellValue('B2', 'Nama');
+          $sheet->getStyle('A2:B3')->getFont()->setBold(true);
+          $sheet->getStyle('A2:B3')->getAlignment()->setVertical('center');
+
+          // Baris 2: Nama bulan (merge per bulan)
           $currentMonth = null;
-          $startCol = 3;
+          $startCol = 3; // kolom pertama untuk tanggal adalah C (indeks 3)
           for ($i = 0; $i < $totalDates; $i++) {
             $month = $dates[$i]->format('F');
             if ($month !== $currentMonth) {
               if ($currentMonth !== null) {
-                $endCol = Coordinate::stringFromColumnIndex($startCol + $i - 1);
+                $endColIndex = $startCol + $i - 1;
+                $endCol = Coordinate::stringFromColumnIndex($endColIndex);
                 $sheet->mergeCells(Coordinate::stringFromColumnIndex($startCol) . '2:' . $endCol . '2');
               }
               $currentMonth = $month;
               $startCol = 3 + $i;
             }
-            if ($i === $totalDates - 1) {
-              $endCol = Coordinate::stringFromColumnIndex($startCol + $i);
-              $sheet->mergeCells(Coordinate::stringFromColumnIndex($startCol) . '2:' . $endCol . '2');
-            }
+            // Untuk bulan pertama atau setelah ganti bulan, isi nama bulan di sel awal
             if ($i === 0 || $month !== $dates[$i - 1]->format('F')) {
               $sheet->setCellValue(Coordinate::stringFromColumnIndex(3 + $i) . '2', $month);
             }
           }
-          $sheet->getStyle('A2:' . $lastCol . '2')->getFont()->setBold(true);
-          $sheet->getStyle('A2:' . $lastCol . '2')->getFill()
+          // Merge sisa terakhir
+          if ($startCol <= 2 + $totalDates) {
+            $endColIndex = 2 + $totalDates;
+            $sheet->mergeCells(Coordinate::stringFromColumnIndex($startCol) . '2:' . Coordinate::stringFromColumnIndex($endColIndex) . '2');
+          }
+          $sheet->getStyle('C2:' . $lastCol . '2')->getFont()->setBold(true);
+          $sheet->getStyle('C2:' . $lastCol . '2')->getFill()
           ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFDDDDDD');
 
-          // Row 3: Headers (NRP, Nama, dates)
-          $sheet->setCellValue('A3', 'NRP');
-          $sheet->setCellValue('B3', 'Nama');
+          // Baris 3: Tanggal (hari)
           for ($i = 0; $i < $totalDates; $i++) {
             $col = Coordinate::stringFromColumnIndex(3 + $i);
             $sheet->setCellValue($col . '3', $dates[$i]->format('d'));
           }
-          $sheet->getStyle('A3:' . $lastCol . '3')->getFont()->setBold(true);
-          $sheet->getStyle('A3:' . $lastCol . '3')->getFill()
+          $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->setBold(true);
+          $sheet->getStyle('C3:' . $lastCol . '3')->getFill()
           ->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4A90E2');
-          $sheet->getStyle('A3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
+          $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-          // Color mapping for shift codes (starting from row 4)
+          // Data mulai dari baris ke-4
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
@@ -160,6 +169,17 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
               }
             }
           }
+
+          // Tambahkan border tipis untuk semua sel
+          $styleArray = [
+            'borders' => [
+              'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['argb' => 'FF000000'],
+              ],
+            ],
+          ];
+          $sheet->getStyle('A1:' . $lastCol . $highestRow)->applyFromArray($styleArray);
         },
       ];
     }

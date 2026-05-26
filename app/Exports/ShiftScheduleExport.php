@@ -126,7 +126,7 @@ class ShiftScheduleExport implements WithEvents
           if (in_array($dateStr, $holidayDates)) {
             $colIndex = 3 + $i;
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $cell = $sheet->getCell($colLetter . '3'); // hanya baris 3
+            $cell = $sheet->getCell($colLetter . '3');
             $cell->getStyle()->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFe74c3c');
@@ -205,18 +205,44 @@ class ShiftScheduleExport implements WithEvents
             'N',
             'O',
             'CT'];
+          $totalColors = [
+            'FF2ecc71',
+            // hijau
+            'FF000000',
+            // hitam
+            'FFe74c3c',
+            // merah
+            'FFf1c40f',
+            // kuning
+          ];
           for ($sub = 0; $sub < 4; $sub++) {
             $currentRow = $totalStartRow + $sub;
+            $color = $totalColors[$sub];
+
+            // Label di kolom B
             $sheet->setCellValue('B' . $currentRow, $labels[$sub]);
             $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true);
+
+            // Isi nilai total per tanggal
             for ($i = 0; $i < $totalDates; $i++) {
               $dateStr = $dates[$i]->format('Y-m-d');
               $colIndex = 3 + $i;
               $colLetter = Coordinate::stringFromColumnIndex($colIndex);
               $totalValue = $totals[$dateStr][$keys[$sub]] ?? 0;
-              $sheet->setCellValue($colLetter . $currentRow, $totalValue);
-              $sheet->getStyle($colLetter . $currentRow)->getAlignment()
-              ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+              $cell = $sheet->getCell($colLetter . $currentRow);
+              $cell->setValue($totalValue);
+              $cell->getStyle()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
+
+            // Warnai seluruh baris (kolom B hingga akhir) dengan warna latar
+            $barisRange = 'B' . $currentRow . ':' . $lastCol . $currentRow;
+            $sheet->getStyle($barisRange)->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB($color);
+
+            // Jika baris Night (hitam), ubah font jadi putih
+            if ($labels[$sub] === 'Night') {
+              $sheet->getStyle($barisRange)->getFont()->getColor()->setARGB('FFFFFFFF');
             }
           }
 

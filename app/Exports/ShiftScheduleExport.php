@@ -56,7 +56,7 @@ class ShiftScheduleExport implements WithEvents
         $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
         // --- Judul (baris 1) ---
-        $sheet->setCellValue('A1', 'Roster Shift');
+        $sheet->setCellValue('A1', 'Roster Shift Karyawan');
         $sheet->mergeCells('A1:' . $lastCol . '1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

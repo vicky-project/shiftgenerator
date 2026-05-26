@@ -211,9 +211,37 @@
     <div class="col-4"><button type="submit" class="btn btn-primary w-100">Tambah</button></div>
     </form>
     <small class="text-muted">Durasi cuti: ${employee.leave_days} hari. Toleransi ±14 hari dari cuti normal.</small>
+    <div id="override-preview" class="mt-2 small text-info"></div>
     </div>
     <div id="override-list"><div class="text-center text-muted py-3">Memuat...</div></div>`;
 
+    // Preview tanggal akhir saat user memilih start_date
+    const startDateInput = document.querySelector('#override-form [name="start_date"]');
+    const previewDiv = document.getElementById('override-preview');
+    if (startDateInput && previewDiv) {
+      startDateInput.addEventListener('change', function () {
+        const start = new Date(this.value + 'T00:00:00');
+        if (isNaN(start.getTime())) {
+          previewDiv.textContent = '';
+          return;
+        }
+        const end = new Date(start);
+        end.setDate(end.getDate() + employee.leave_days - 1);
+        const fmt = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        previewDiv.innerHTML = `
+        Mulai: ${start.toLocaleDateString('id-ID', fmt)}<br>
+        Selesai: ${end.toLocaleDateString('id-ID', fmt)}<br>
+        <span class="badge bg-info">${employee.leave_days} hari</span>
+        `;
+      });
+    }
+
+    // Fungsi untuk memuat daftar override
     async function loadOverrides() {
       try {
         const overrides = await fetchOverrides(employeeId);
@@ -224,10 +252,17 @@
         }
         let html = '';
         overrides.forEach(ov => {
-          const end = new Date(ov.start_date);
-          end.setDate(end.getDate() + employee.leave_days - 1);
+          const startDate = new Date(ov.start_date + 'T00:00:00');
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + employee.leave_days - 1);
+          const fmt = {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+          };
           html += `<div class="card mb-2"><div class="card-body d-flex justify-content-between align-items-center">
-          <div>${ov.start_date} – ${end.toISOString().slice(0, 10)}</div>
+          <div>
+          <strong>${startDate.toLocaleDateString('id-ID', fmt)}</strong> – ${endDate.toLocaleDateString('id-ID', fmt)}
+          <br><small class="text-muted">${ov.start_date} s/d ${endDate.toISOString().slice(0, 10)}</small>
+          </div>
           <button class="btn btn-sm btn-outline-danger" data-delete-override="${ov.id}"><i class="bi bi-trash"></i></button>
           </div></div>`;
         });

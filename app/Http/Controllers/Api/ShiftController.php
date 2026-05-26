@@ -89,7 +89,7 @@ class ShiftController extends Controller
     $result = $telegramApi->sendDocument(
       chatId: $user->telegram_id,
       filePath: $tempPath,
-      caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
+      caption: "📅 Roster Shift Karyawan ({$validated['start_date']} – {$validated['end_date']})",
     );
 
     // Hapus file setelah dikirim

@@ -74,7 +74,7 @@ class ShiftScheduleExport implements WithEvents
         $sheet->mergeCells('A2:A5');
         $sheet->setCellValue('A2', 'NRP');
         $sheet->mergeCells('B2:B5');
-        $sheet->setCellValue('B2', 'Nama');
+        $sheet->setCellValue('B2', 'Name');
         $sheet->mergeCells('C2:C5');
         $sheet->setCellValue('C2', 'Plan / Actual');
         $sheet->getStyle('A2:C5')->getFont()->setBold(true);

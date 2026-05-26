@@ -1,8 +1,8 @@
 <?php
 
 return [
-  'id' => 'shiftgenerator',
-  'name' => 'Shift Generator',
+  'id' => 'rostergenerator',
+  'name' => 'Roster Shift Generator',
   'description' => 'Kelola karyawan, atur pola shift, dan buat roster kerja otomatis berdasarkan siklus kerja-cuti.',
   'icon_emoji' => '🗓️',
   'render_type' => 'iframe',

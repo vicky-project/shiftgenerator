@@ -35,7 +35,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
       AfterSheet::class => function (AfterSheet $event) {
         $sheet = $event->sheet->getDelegate();
 
-        // Ambil data
+        // Ambil data karyawan dan jadwal
         $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
         ->orderBy('nrp')
         ->get();
@@ -51,8 +51,6 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
           $dates[] = $date;
         }
         $totalDates = count($dates);
-
-        // Kolom terakhir indeks (1‑based)
         $lastColIndex = 2 + $totalDates;
         $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
@@ -62,7 +60,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-        // ---- Baris 2‑3: Header NRP dan Nama (merge vertikal) ----
+        // ---- Header NRP dan Nama (baris 2-3 merge vertikal) ----
         $sheet->mergeCells('A2:A3');
         $sheet->setCellValue('A2', 'NRP');
         $sheet->mergeCells('B2:B3');
@@ -73,9 +71,9 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
 
-        // ---- Baris 2: Nama bulan (merge horizontal per bulan) ----
+        // ---- Header bulan (baris 2) ----
         $currentMonth = null;
-        $startMonthCol = 3; // Kolom C
+        $startMonthCol = 3;
         for ($i = 0; $i < $totalDates; $i++) {
           $month = $dates[$i]->format('F');
           $colIndex = 3 + $i;
@@ -93,36 +91,32 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
             $sheet->setCellValue($colLetter . '2', $month);
           }
         }
-        // Merge bulan terakhir
         if ($startMonthCol <= $lastColIndex) {
           $endMergeColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
           $sheet->mergeCells(
             Coordinate::stringFromColumnIndex($startMonthCol) . '2:' . $endMergeColLetter . '2'
           );
         }
-
         $sheet->getStyle('C2:' . $lastCol . '2')->getFont()->setBold(true);
         $sheet->getStyle('C2:' . $lastCol . '2')->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
 
-        // ---- Baris 3: Tanggal (hari) ----
+        // ---- Header tanggal (baris 3) ----
         for ($i = 0; $i < $totalDates; $i++) {
           $colIndex = 3 + $i;
           $colLetter = Coordinate::stringFromColumnIndex($colIndex);
           $sheet->setCellValue($colLetter . '3', $dates[$i]->format('d'));
         }
-
         $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->setBold(true);
         $sheet->getStyle('C3:' . $lastCol . '3')->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FF4A90E2');
         $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-        // ---- Tulis data karyawan dan shift (mulai baris 4) ----
+        // ---- Data karyawan & shift (mulai baris 4) ----
         $row = 4;
         foreach ($employees as $employee) {
-          // NRP dan Nama
           $sheet->setCellValue('A' . $row, $employee->nrp);
           $sheet->setCellValue('B' . $row, $employee->name);
 
@@ -135,6 +129,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
             $schedule = $empSchedules->get($dateStr);
             $colIndex = 3 + $i;
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+
             $value = '';
             if ($schedule) {
               $value = match ($schedule->shift) {
@@ -147,23 +142,18 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
               }
               $sheet->setCellValue($colLetter . $row, $value);
             }
-            \Log::debug('cells row', [
-              'value' => $value,
-              'col' => $colLetter,
-              'row' => $row
-            ]);
             $row++;
           }
 
-          // ---- Warna data shift ----
+          $highestRow = $row - 1;
+
+          // ---- Warna latar belakang ----
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
             'O' => 'FFe74c3c',
             'CT' => 'FFf1c40f',
           ];
-
-          $highestRow = $row - 1; // baris terakhir data
           for ($r = 4; $r <= $highestRow; $r++) {
             for ($c = 3; $c <= $lastColIndex; $c++) {
               $cell = $sheet->getCellByColumnAndRow($c, $r);

@@ -55,21 +55,25 @@ class ShiftScheduleExport implements WithEvents
         $lastColIndex = 2 + $totalDates;
         $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
-        // --- Judul (baris 1) ---
-        $sheet->setCellValue('A1', 'Roster Shift Karyawan');
+        // Siapkan data libur
+        $holidayService = app(HolidayService::class);
+        $holidayDates = $holidayService->getHolidayDates();
+
+        // --- Baris 1: Judul ---
+        $sheet->setCellValue('A1', 'Roster Shift');
         $sheet->mergeCells('A1:' . $lastCol . '1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // --- Header NRP & Nama (merge vertikal baris 2-3) ---
-        $sheet->mergeCells('A2:A3');
+        // --- Header NRP & Nama (merge vertikal 3 baris: 2,3,4) ---
+        $sheet->mergeCells('A2:A4');
         $sheet->setCellValue('A2', 'NRP');
-        $sheet->mergeCells('B2:B3');
+        $sheet->mergeCells('B2:B4');
         $sheet->setCellValue('B2', 'Nama');
-        $sheet->getStyle('A2:B3')->getFont()->setBold(true);
-        $sheet->getStyle('A2:B3')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getStyle('A2:B3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A2:B3')->getFill()
+        $sheet->getStyle('A2:B4')->getFont()->setBold(true);
+        $sheet->getStyle('A2:B4')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A2:B4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:B4')->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
 
@@ -118,24 +122,50 @@ class ShiftScheduleExport implements WithEvents
         $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle('C3:' . $lastCol . '3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // ** HANYA header tanggal yang diwarnai merah jika libur **
-        $holidayService = app(HolidayService::class);
-        $holidayDates = $holidayService->getHolidayDates();
+        // --- Header hari (baris 4) dengan teks vertikal ---
         for ($i = 0; $i < $totalDates; $i++) {
-          $dateStr = $dates[$i]->format('Y-m-d');
-          if (in_array($dateStr, $holidayDates)) {
+          $colIndex = 3 + $i;
+          $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+          $dayName = $dates[$i]->isoFormat('dddd'); // Senin, Selasa, ...
+          $cell = $sheet->getCell($colLetter . '4');
+          $cell->setValue($dayName);
+          // Teks vertikal (rotasi 90 derajat)
+          $cell->getStyle()->getAlignment()->setTextRotation(90);
+          $cell->getStyle()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+          $cell->getStyle()->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        }
+        $sheet->getStyle('C4:' . $lastCol . '4')->getFont()->setBold(true);
+        $sheet->getStyle('C4:' . $lastCol . '4')->getFill()
+        ->setFillType(Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FF4A90E2');
+        $sheet->getStyle('C4:' . $lastCol . '4')->getFont()->getColor()->setARGB('FFFFFFFF');
+
+        // --- Warnai header tanggal dan hari jika libur atau Minggu ---
+        for ($i = 0; $i < $totalDates; $i++) {
+          $date = $dates[$i];
+          $dateStr = $date->format('Y-m-d');
+          $isSunday = $date->dayOfWeek === Carbon::SUNDAY;
+          $isHoliday = in_array($dateStr, $holidayDates);
+          if ($isSunday || $isHoliday) {
             $colIndex = 3 + $i;
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $cell = $sheet->getCell($colLetter . '3');
-            $cell->getStyle()->getFill()
+            // Baris tanggal
+            $cellDate = $sheet->getCell($colLetter . '3');
+            $cellDate->getStyle()->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFe74c3c');
-            $cell->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
+            $cellDate->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
+            // Baris hari
+            $cellDay = $sheet->getCell($colLetter . '4');
+            $cellDay->getStyle()->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFe74c3c');
+            $cellDay->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
           }
         }
 
-        // --- Data karyawan & shift (mulai baris 4) ---
-        $row = 4;
+        // --- Data karyawan & shift (mulai baris 5) ---
+        $row = 5;
         foreach ($employees as $employee) {
           $sheet->setCellValue('A' . $row, $employee->nrp);
           $sheet->setCellValue('B' . $row, $employee->name);
@@ -166,7 +196,7 @@ class ShiftScheduleExport implements WithEvents
             $row++;
           }
 
-          // --- Tambahkan satu baris kosong antara data terakhir dan total ---
+          // --- Satu baris kosong sebelum total ---
           $row++; // lewati satu baris
 
           // --- Hitung total per shift per tanggal ---
@@ -243,7 +273,6 @@ class ShiftScheduleExport implements WithEvents
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB($color);
 
-            // Jika baris Night (hitam), ubah font jadi putih
             if ($labels[$sub] === 'Night') {
               $sheet->getStyle($barisRange)->getFont()->getColor()->setARGB('FFFFFFFF');
             }
@@ -251,14 +280,15 @@ class ShiftScheduleExport implements WithEvents
 
           $highestRow = $totalStartRow + 3;
 
-          // --- Warna latar belakang untuk sel data shift (baris 4 s/d sebelum TOTAL) ---
+          // --- Warna latar belakang untuk sel data shift (baris 5 s/d sebelum baris kosong) ---
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
             'O' => 'FFe74c3c',
             'CT' => 'FFf1c40f',
           ];
-          for ($r = 4; $r < $totalStartRow; $r++) {
+          $finalDataRow = $totalStartRow - 2; // karena ada satu baris kosong, data terakhir di $totalStartRow - 2
+          for ($r = 5; $r <= $finalDataRow; $r++) {
             for ($c = 3; $c <= $lastColIndex; $c++) {
               $cell = $sheet->getCellByColumnAndRow($c, $r);
               $cellValue = $cell->getValue();
@@ -284,17 +314,21 @@ class ShiftScheduleExport implements WithEvents
           ];
           $sheet->getStyle('A1:' . $lastCol . $highestRow)->applyFromArray($styleArray);
 
-          // --- Auto-size ---
-          for ($col = 1; $col <= $lastColIndex; $col++) {
+          // --- Auto-size untuk kolom A dan B, set width manual untuk kolom tanggal ---
+          $sheet->getColumnDimension('A')->setAutoSize(true);
+          $sheet->getColumnDimension('B')->setAutoSize(true);
+          // Untuk kolom tanggal, atur lebar sekitar 4 karakter (cukup untuk teks vertikal & data)
+          for ($col = 3; $col <= $lastColIndex; $col++) {
             $colLetter = Coordinate::stringFromColumnIndex($col);
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($colLetter)->setWidth(5);
           }
 
-          // --- Freeze pane di C4 (kolom NRP & Nama tetap terlihat, header tetap) ---
-          $sheet->freezePane('C4');
+          // --- Freeze pane di C5 ---
+          $sheet->freezePane('C5');
 
-          // --- Auto-filter pada kolom NRP dan Nama (A2:B... ) ---
-          $sheet->setAutoFilter('A2:B' . ($totalStartRow - 2)); // -2 karena totalStartRow sudah termasuk baris kosong, kita ingin data saja
+          // --- Auto-filter pada seluruh area data (A4 sampai kolom terakhir, baris akhir data) ---
+          $filterRange = 'A4:' . $lastCol . $finalDataRow;
+          $sheet->setAutoFilter($filterRange);
         },
       ];
     }

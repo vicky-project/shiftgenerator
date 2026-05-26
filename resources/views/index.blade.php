@@ -259,7 +259,7 @@
   }
   [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
   [data-vc-date-month="next"].shift-holiday .vc-date__btn,
-  [data-vc-theme=dark] {
+  [data-vc-theme="dark"] {
     color: #475569;
   }
 

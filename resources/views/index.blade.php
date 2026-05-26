@@ -191,7 +191,7 @@
     background: #2ecc71;
   }
   #calendar-legend .legend-dot.night {
-    background: #000000;
+    background: #1e3799;
   }
   #calendar-legend .legend-dot.off {
     background: #e74c3c;

@@ -221,9 +221,14 @@
     const previewDiv = document.getElementById('override-preview');
     if (startDateInput && previewDiv) {
       startDateInput.addEventListener('change', function () {
-        const start = new Date(this.value + 'T00:00:00');
-        if (isNaN(start.getTime())) {
+        const val = this.value;
+        if (!val) {
           previewDiv.textContent = '';
+          return;
+        }
+        const start = new Date(val + 'T00:00:00');
+        if (isNaN(start.getTime())) {
+          previewDiv.textContent = 'Tanggal tidak valid.';
           return;
         }
         const end = new Date(start);
@@ -253,16 +258,25 @@
         }
         let html = '';
         overrides.forEach(ov => {
-          const startDate = new Date(ov.start_date + 'T00:00:00');
+          const dateStr = String(ov.start_date).substring(0, 10);
+          const startDate = new Date(dateStr + 'T00:00:00');
+          if (isNaN(startDate.getTime())) {
+            // fallback jika gagal
+            html += `<div class="card mb-2"><div class="card-body">Data tanggal tidak valid: ${escapeHtml(ov.start_date)}</div></div>`;
+            return;
+          }
           const endDate = new Date(startDate);
           endDate.setDate(endDate.getDate() + employee.leave_days - 1);
           const fmt = {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
           };
           html += `<div class="card mb-2"><div class="card-body d-flex justify-content-between align-items-center">
           <div>
           <strong>${startDate.toLocaleDateString('id-ID', fmt)}</strong> – ${endDate.toLocaleDateString('id-ID', fmt)}
-          <br><small class="text-muted">${ov.start_date} s/d ${endDate.toISOString().slice(0, 10)}</small>
+          <br><small class="text-muted">${dateStr} s/d ${endDate.toISOString().slice(0, 10)}</small>
           </div>
           <button class="btn btn-sm btn-outline-danger" data-delete-override="${ov.id}"><i class="bi bi-trash"></i></button>
           </div></div>`;
@@ -313,7 +327,8 @@
   }
 
   // ---------- Render kalender dengan data shift ----------
-  async function renderShiftCalendar(start, end) {
+  async function renderShiftCalendar(start,
+    end) {
     const container = document.getElementById('shift-calendar');
     if (!container) return;
 

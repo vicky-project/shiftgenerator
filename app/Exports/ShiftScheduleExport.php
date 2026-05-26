@@ -4,11 +4,10 @@ namespace Modules\ShiftGenerator\Exports;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -16,8 +15,10 @@ use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
-class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
+class ShiftScheduleExport implements WithEvents, ShouldAutoSize
 {
+  use RegistersEventListeners;
+
   protected string $start;
   protected string $end;
   protected ?int $userId;
@@ -28,141 +29,128 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
     $this->userId = $userId;
   }
 
-  public function collection(): Collection
+  public function registerEvents(): array
   {
-    $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
-    ->orderBy('nrp')
-    ->get();
+    return [
+      AfterSheet::class => function (AfterSheet $event) {
+        $sheet = $event->sheet->getDelegate();
 
-    $schedules = ShiftSchedule::whereBetween('date', [$this->start, $this->end])
-    ->when($this->userId, fn($q) => $q->whereHas('employee', fn($q) => $q->where('telegram_user_id', $this->userId)))
-    ->get()
-    ->groupBy('employee_id');
+        // Ambil data
+        $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
+        ->orderBy('nrp')
+        ->get();
 
-    $period = CarbonPeriod::create($this->start, $this->end);
-    $dates = [];
-    foreach ($period as $date) {
-      $dates[] = $date->format('Y-m-d');
-    }
+        $schedules = ShiftSchedule::whereBetween('date', [$this->start, $this->end])
+        ->when($this->userId, fn($q) => $q->whereHas('employee', fn($q) => $q->where('telegram_user_id', $this->userId)))
+        ->get()
+        ->groupBy('employee_id');
 
-    $rows = collect();
+        $period = CarbonPeriod::create($this->start, $this->end);
+        $dates = [];
+        foreach ($period as $date) {
+          $dates[] = $date;
+        }
+        $totalDates = count($dates);
 
-    foreach ($employees as $employee) {
-      $row = [
-        $employee->nrp,
-        $employee->name,
-      ];
+        // Kolom terakhir indeks (1‑based)
+        $lastColIndex = 2 + $totalDates;
+        $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
-      $empSchedules = $schedules->get($employee->id, collect())->keyBy(function ($item) {
-        return Carbon::parse($item->date)->format('Y-m-d');
-      });
+        // ---- Baris 1: Judul ----
+        $sheet->setCellValue('A1', 'Roster Shift');
+        $sheet->mergeCells('A1:' . $lastCol . '1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-      foreach ($dates as $date) {
-        $schedule = $empSchedules->get($date);
-        if ($schedule) {
-          $row[] = match ($schedule->shift) {
-            ShiftType::Day->value => 'D',
-            ShiftType::Night->value => 'N',
-            ShiftType::Off->value => 'O',
-            ShiftType::Leave->value => 'CT',
-            default => '',
-            };
-          } else {
-            $row[] = '';
+        // ---- Baris 2‑3: Header NRP dan Nama (merge vertikal) ----
+        $sheet->mergeCells('A2:A3');
+        $sheet->setCellValue('A2', 'NRP');
+        $sheet->mergeCells('B2:B3');
+        $sheet->setCellValue('B2', 'Nama');
+        $sheet->getStyle('A2:B3')->getFont()->setBold(true);
+        $sheet->getStyle('A2:B3')->getAlignment()->setVertical('center');
+        $sheet->getStyle('A2:B3')->getFill()
+        ->setFillType(Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FFDDDDDD');
+
+        // ---- Baris 2: Nama bulan (merge horizontal per bulan) ----
+        $currentMonth = null;
+        $startMonthCol = 3; // Kolom C
+        for ($i = 0; $i < $totalDates; $i++) {
+          $month = $dates[$i]->format('F');
+          $colIndex = 3 + $i;
+          $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+
+          if ($month !== $currentMonth) {
+            if ($currentMonth !== null) {
+              $endMergeColLetter = Coordinate::stringFromColumnIndex($colIndex - 1);
+              $sheet->mergeCells(
+                Coordinate::stringFromColumnIndex($startMonthCol) . '2:' . $endMergeColLetter . '2'
+              );
+            }
+            $currentMonth = $month;
+            $startMonthCol = $colIndex;
+            $sheet->setCellValue($colLetter . '2', $month);
           }
         }
+        // Merge bulan terakhir
+        if ($startMonthCol <= $lastColIndex) {
+          $endMergeColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
+          $sheet->mergeCells(
+            Coordinate::stringFromColumnIndex($startMonthCol) . '2:' . $endMergeColLetter . '2'
+          );
+        }
 
-        $rows->push($row);
-      }
+        $sheet->getStyle('C2:' . $lastCol . '2')->getFont()->setBold(true);
+        $sheet->getStyle('C2:' . $lastCol . '2')->getFill()
+        ->setFillType(Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FFDDDDDD');
 
-      return $rows;
-    }
+        // ---- Baris 3: Tanggal (hari) ----
+        for ($i = 0; $i < $totalDates; $i++) {
+          $colIndex = 3 + $i;
+          $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+          $sheet->setCellValue($colLetter . '3', $dates[$i]->format('d'));
+        }
 
-    public function registerEvents(): array
-    {
-      return [
-        AfterSheet::class => function (AfterSheet $event) {
-          $sheet = $event->sheet->getDelegate();
+        $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->setBold(true);
+        $sheet->getStyle('C3:' . $lastCol . '3')->getFill()
+        ->setFillType(Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FF4A90E2');
+        $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-          // Rentang tanggal
-          $period = CarbonPeriod::create($this->start, $this->end);
-          $dates = [];
-          foreach ($period as $date) {
-            $dates[] = $date;
-          }
-          $totalDates = count($dates);
+        // ---- Tulis data karyawan dan shift (mulai baris 4) ----
+        $row = 4;
+        foreach ($employees as $employee) {
+          // NRP dan Nama
+          $sheet->setCellValue('A' . $row, $employee->nrp);
+          $sheet->setCellValue('B' . $row, $employee->name);
 
-          // Indeks kolom terakhir (A=1, B=2, ...)
-          $lastColIndex = 2 + $totalDates;
-          $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
+          $empSchedules = $schedules->get($employee->id, collect())->keyBy(function ($item) {
+            return Carbon::parse($item->date)->format('Y-m-d');
+          });
 
-          // Sisipkan 3 baris di atas untuk judul dan header
-          $sheet->insertNewRowBefore(1, 3);
-
-          // ---- Baris 1: Judul ----
-          $sheet->setCellValue('A1', 'Roster Shift');
-          $sheet->mergeCells('A1:' . $lastCol . '1');
-          $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-          $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-
-          // ---- Baris 2: Header NRP dan Nama (merge vertikal) ----
-          $sheet->mergeCells('A2:A3');
-          $sheet->setCellValue('A2', 'NRP');
-          $sheet->mergeCells('B2:B3');
-          $sheet->setCellValue('B2', 'Nama');
-          $sheet->getStyle('A2:B3')->getFont()->setBold(true);
-          $sheet->getStyle('A2:B3')->getAlignment()->setVertical('center');
-          $sheet->getStyle('A2:B3')->getFill()
-          ->setFillType(Fill::FILL_SOLID)
-          ->getStartColor()->setARGB('FFDDDDDD');
-
-          // ---- Baris 2: Nama bulan (merge horizontal per bulan) ----
-          $currentMonth = null;
-          $startMonthCol = 3; // Kolom C
           for ($i = 0; $i < $totalDates; $i++) {
-            $month = $dates[$i]->format('F');
+            $dateStr = $dates[$i]->format('Y-m-d');
+            $schedule = $empSchedules->get($dateStr);
             $colIndex = 3 + $i;
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
-
-            if ($month !== $currentMonth) {
-              if ($currentMonth !== null) {
-                $endMergeColLetter = Coordinate::stringFromColumnIndex($colIndex - 1);
-                $sheet->mergeCells(
-                  Coordinate::stringFromColumnIndex($startMonthCol) . '2:' . $endMergeColLetter . '2'
-                );
+            $value = '';
+            if ($schedule) {
+              $value = match ($schedule->shift) {
+                ShiftType::Day->value => 'D',
+                ShiftType::Night->value => 'N',
+                ShiftType::Off->value => 'O',
+                ShiftType::Leave->value => 'CT',
+                default => '',
+                };
               }
-              $currentMonth = $month;
-              $startMonthCol = $colIndex;
-              $sheet->setCellValue($colLetter . '2', $month);
+              $sheet->setCellValue($colLetter . $row, $value);
             }
-          }
-          // Merge bulan terakhir
-          if ($startMonthCol <= $lastColIndex) {
-            $endMergeColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
-            $sheet->mergeCells(
-              Coordinate::stringFromColumnIndex($startMonthCol) . '2:' . $endMergeColLetter . '2'
-            );
+            $row++;
           }
 
-          $sheet->getStyle('C2:' . $lastCol . '2')->getFont()->setBold(true);
-          $sheet->getStyle('C2:' . $lastCol . '2')->getFill()
-          ->setFillType(Fill::FILL_SOLID)
-          ->getStartColor()->setARGB('FFDDDDDD');
-
-          // ---- Baris 3: Tanggal (hari) ----
-          for ($i = 0; $i < $totalDates; $i++) {
-            $colIndex = 3 + $i;
-            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->setCellValue($colLetter . '3', $dates[$i]->format('d'));
-          }
-
-          $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->setBold(true);
-          $sheet->getStyle('C3:' . $lastCol . '3')->getFill()
-          ->setFillType(Fill::FILL_SOLID)
-          ->getStartColor()->setARGB('FF4A90E2');
-          $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
-
-          // ---- Warna data shift (mulai baris 4) ----
+          // ---- Warna data shift ----
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
@@ -170,16 +158,16 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
             'CT' => 'FFf1c40f',
           ];
 
-          $highestRow = $sheet->getHighestRow();
-          for ($row = 4; $row <= $highestRow; $row++) {
-            for ($col = 3; $col <= $lastColIndex; $col++) {
-              $cell = $sheet->getCellByColumnAndRow($col, $row);
-              $value = $cell->getValue();
-              if (isset($colorMap[$value])) {
+          $highestRow = $row - 1; // baris terakhir data
+          for ($r = 4; $r <= $highestRow; $r++) {
+            for ($c = 3; $c <= $lastColIndex; $c++) {
+              $cell = $sheet->getCellByColumnAndRow($c, $r);
+              $cellValue = $cell->getValue();
+              if (isset($colorMap[$cellValue])) {
                 $cell->getStyle()->getFill()
                 ->setFillType(Fill::FILL_SOLID)
-                ->getStartColor()->setARGB($colorMap[$value]);
-                if ($value === 'N') {
+                ->getStartColor()->setARGB($colorMap[$cellValue]);
+                if ($cellValue === 'N') {
                   $cell->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
                 }
               }

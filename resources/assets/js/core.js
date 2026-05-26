@@ -9,8 +9,8 @@
   };
 
   // =========== Konstanta ===========
-  const API_BASE = window.API_BASE;
-  const APP_BASE = '/shift';
+  const API_BASE = window.API_BASE; // di-set dari view: app.url
+  const APP_BASE = '/apps/shift';
 
   // =========== Fetch Helper ===========
   async function fetchAPI(url, options = {}) {
@@ -61,12 +61,13 @@
       }
     },
     // Fetch karyawan
-    fetchEmployees: () => fetchAPI(`${API_BASE}/employees`),
+    // core.js di dalam window.AppCore
+    fetchEmployees: (page = 1, perPage = 10) => fetchAPI(`${API_BASE}/api/employees?page=${page}&per_page=${perPage}`),
     // Fetch satu karyawan
-    fetchEmployee: (id) => fetchAPI(`${API_BASE}/employees/${id}`),
+    fetchEmployee: (id) => fetchAPI(`${API_BASE}/api/employees/${id}`),
     // Simpan karyawan (POST/PUT)
     saveEmployee: (data, id = null) => {
-      const url = id ? `${API_BASE}/employees/${id}`: `${API_BASE}/employees`;
+      const url = id ? `${API_BASE}/api/employees/${id}`: `${API_BASE}/api/employees`;
       const method = id ? 'PUT': 'POST';
       return fetchAPI(url, {
         method,
@@ -74,42 +75,37 @@
       });
     },
     // Hapus karyawan
-    deleteEmployee: (id) => fetchAPI(`${API_BASE}/employees/${id}`, {
+    deleteEmployee: (id) => fetchAPI(`${API_BASE}/api/employees/${id}`, {
       method: 'DELETE'
     }),
     // Fetch overrides
-    fetchOverrides: (employeeId) => fetchAPI(`${API_BASE}/employees/${employeeId}/overrides`),
+    fetchOverrides: (employeeId) => fetchAPI(`${API_BASE}/api/employees/${employeeId}/overrides`),
     // Tambah override
-    addOverride: (employeeId, startDate) => fetchAPI(`${API_BASE}/employees/${employeeId}/overrides`, {
+    addOverride: (employeeId, startDate) => fetchAPI(`${API_BASE}/api/employees/${employeeId}/overrides`, {
       method: 'POST',
       body: JSON.stringify({
         start_date: startDate
       })
     }),
     // Hapus override
-    deleteOverride: (id) => fetchAPI(`${API_BASE}/overrides/${id}`, {
+    deleteOverride: (id) => fetchAPI(`${API_BASE}/api/employees/overrides/${id}`, {
       method: 'DELETE'
     }),
     // Generate roster
-    generateRoster: (start, end, holidays = []) => fetchAPI(`${API_BASE}/generate`, {
+    generateRoster: (start, end) => fetchAPI(`${API_BASE}/api/employees/generate`, {
       method: 'POST',
       body: JSON.stringify({
-        start_date: start, end_date: end, holidays
+        start_date: start, end_date: end
       })
     }),
     // Fetch schedules
-    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/schedules?start_date=${start}&end_date=${end}`),
-    // Export Excel (mengembalikan blob)
-    exportExcel: async (start, end) => {
-      const token = state.token;
-      const response = await fetch(`${API_BASE}/export?start_date=${start}&end_date=${end}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.ms-excel'
-        }
-      });
-      if (!response.ok) throw new Error('Export failed');
-      return response.blob();
-    }
+    fetchSchedules: (start, end) => fetchAPI(`${API_BASE}/api/employees/schedules?start_date=${start}&end_date=${end}`)
+    .then(data => {
+      // Potong date menjadi YYYY-MM-DD untuk hindari zona waktu
+      return data.map(s => ({
+        ...s,
+        date: s.date?.substring(0, 10) || s.date
+      }));
+    }),
   };
 })();

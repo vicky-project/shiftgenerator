@@ -1,5 +1,8 @@
 <?php
 
 return [
-    'name' => 'ShiftGenerator',
+  'name' => 'ShiftGenerator',
+  'holiday' => [
+    'holiday_api_key' => env('HOLIDAY_API_KEY')
+  ]
 ];

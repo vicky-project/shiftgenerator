@@ -10,12 +10,12 @@ Route::middleware('auth:sanctum')->group(function () {
   // Override custom routes
   Route::get('employees/{employee}/overrides', [OverrideController::class, 'index']);
   Route::post('employees/{employee}/overrides', [OverrideController::class, 'store']);
-  Route::delete('overrides/{override}', [OverrideController::class, 'destroy']);
+  // Roster
+  Route::delete('employees/overrides/{override}', [OverrideController::class, 'destroy']);
+  Route::post('employees/generate', [ShiftController::class, 'generate']);
+  Route::get('employees/schedules', [ShiftController::class, 'schedules']);
+  Route::post('employees/export-telegram', [ShiftController::class, 'exportToTelegram']);
 
   // Employees
-  Route::apiResource('employees', EmployeeController::class)->except(['show']);
-  // Roster
-  Route::post('generate', [ShiftController::class, 'generate']);
-  Route::get('schedules', [ShiftController::class, 'schedules']);
-  Route::get('export', [ShiftController::class, 'export']);
+  Route::apiResource('employees', EmployeeController::class);
 });

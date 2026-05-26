@@ -2,6 +2,7 @@
 namespace Modules\ShiftGenerator\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\ShiftGenerator\Enums\ShiftType;
 
 class ShiftSchedule extends Model
 {
@@ -11,6 +12,7 @@ class ShiftSchedule extends Model
 
   protected $casts = [
     'date' => 'date',
+    'shift' => ShiftType::class
   ];
 
   public function employee() {

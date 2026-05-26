@@ -1,58 +1,46 @@
 <?php
+
 namespace Modules\ShiftGenerator\Services;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
 class ShiftGeneratorService
 {
   /**
-  * Generate shift roster untuk rentang tanggal.
-  *
-  * @param string $startDate  Y-m-d
-  * @param string $endDate    Y-m-d
-  * @param array  $holidays   array of Y-m-d (tanggal merah)
-  * @return int jumlah record yang dibuat
+  * Generate shift roster untuk rentang tanggal (actual).
   */
-  public function generate(
-    string $startDate,
-    string $endDate,
-    array $holidays = [],
-    ?int $userId = null
-  ): int
+  public function generate(string $startDate, string $endDate, ?int $userId = null, array $holidays = []): int
   {
-    $start = Carbon::parse($startDate);
-    $end = Carbon::parse($endDate);
-    $holidaySet = collect($holidays)->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
+    $start = Carbon::parse($startDate)->startOfDay();
+    $end = Carbon::parse($endDate)->startOfDay();
 
-    // Hapus jadwal lama dalam range ini (opsional, bisa juga replace)
-    ShiftSchedule::whereBetween('date', [$startDate, $endDate])->delete();
+    // Hapus jadwal lama dalam range ini untuk user ini
+    ShiftSchedule::whereBetween('date', [$startDate, $endDate])
+    ->whereHas('employee', fn($q) => $q->where('telegram_user_id', $userId))
+    ->delete();
 
-    $query = Employee::with('overrides')->get();
-    if ($userId) {
-      $query->where('telegram_user_id', $userId);
-    }
-    $employees = $query->get();
+    $employees = Employee::with('overrides')
+    ->when($userId, fn($q) => $q->where('telegram_user_id', $userId))
+    ->get();
+
     $insertData = [];
 
     foreach ($employees as $employee) {
-      // Dapatkan semua periode cuti (normal + override) yang tumpang tindih dengan range
       $leavePeriods = $this->getLeavePeriods($employee, $start, $end);
-
       foreach (CarbonPeriod::create($start, $end) as $date) {
-        $dateStr = $date->format('Y-m-d');
-        $shift = $this->determineShift($employee, $date, $leavePeriods, $holidaySet);
+        $shift = $this->determineShift($employee, $date, $leavePeriods, $holidays);
         $insertData[] = [
           'employee_id' => $employee->id,
-          'date' => $dateStr,
+          'date' => $date->format('Y-m-d'),
           'shift' => $shift,
         ];
       }
     }
 
-    // Bulk insert untuk performa
     foreach (array_chunk($insertData, 500) as $chunk) {
       ShiftSchedule::insert($chunk);
     }
@@ -61,107 +49,145 @@ class ShiftGeneratorService
   }
 
   /**
-  * Tentukan shift untuk seorang karyawan pada suatu tanggal.
+  * Tentukan shift actual (dengan override) untuk suatu tanggal.
   */
   private function determineShift(Employee $employee, Carbon $date, array $leavePeriods, array $holidays): string
   {
-    // 1. Hari libur nasional -> Off
+    // 1. Hari libur nasional -> Off (tetap)
     if (in_array($date->format('Y-m-d'), $holidays)) {
-      return 'Off';
+      return ShiftType::Off->value;
     }
 
-    // 2. Jika tanggal termasuk dalam salah satu periode cuti -> Off
+    // 2. Jika tanggal termasuk dalam salah satu periode cuti -> Leave
     foreach ($leavePeriods as $period) {
       if ($date->between($period['start'], $period['end'])) {
-        return 'Off';
+        return ShiftType::Leave->value;
       }
     }
 
-    // 3. Hitung shift dari pola
+    // 3. Pola shift normal
     return $this->calculatePatternShift($employee, $date);
   }
 
   /**
-  * Hitung shift berdasarkan pola shift harian.
+  * Hitung karakter pola shift untuk suatu tanggal (internal).
   */
-  private function calculatePatternShift(Employee $employee, Carbon $date): string
+  private function calculatePatternShiftChar(Employee $employee, Carbon $date): string
   {
     $pattern = $employee->shift_pattern;
     $patternLength = strlen($pattern);
     if ($patternLength === 0) {
-      return 'Off'; // fallback
+      return 'O';
     }
 
-    $refDate = $employee->shift_start_date;
-    $dayDiff = $refDate->diffInDays($date, false); // negatif jika sebelum refDate
+    $refDate = $employee->shift_start_date->startOfDay();
+    $currentDate = $date->copy()->startOfDay();
+    $dayDiff = $refDate->diffInDays($currentDate, false);
 
-    // offset berdasarkan shift_start
-    $needle = $employee->shift_start === 'Day' ? 'D' : 'N';
-    $offset = 0;
-    $pos = strpos($pattern, $needle);
-    if ($pos !== false) {
-      $offset = $pos;
+    $targetChar = ($employee->shift_start === ShiftType::Day) ? 'D' : 'N';
+    $offset = strpos($pattern, $targetChar);
+    if ($offset === false) {
+      return 'O';
     }
 
-    // modulo yang aman untuk nilai negatif
     $position = (($dayDiff + $offset) % $patternLength + $patternLength) % $patternLength;
-    $char = $pattern[$position];
+    return $pattern[$position];
+  }
 
+  /**
+  * Hitung shift actual (dengan override) untuk generate.
+  */
+  private function calculatePatternShift(Employee $employee, Carbon $date): string
+  {
+    $char = $this->calculatePatternShiftChar($employee, $date);
     return match ($char) {
-      'D' => 'Day',
-      'N' => 'Night',
-      default => 'Off',
+      'D' => ShiftType::Day->value,
+      'N' => ShiftType::Night->value,
+      default => ShiftType::Off->value,
       };
     }
 
     /**
+    * Hitung shift plan (normal, tanpa pengaruh override).
+    * Digunakan oleh export Excel.
+    */
+    public function calculatePlanShift(Employee $employee, Carbon $date): ShiftType
+    {
+      // Cek apakah tanggal masuk dalam cuti siklus normal (tanpa override)
+      if ($this->isInCycleLeave($employee, $date)) {
+        return ShiftType::Leave;
+      }
+
+      // Jika tidak, gunakan pola shift normal
+      $char = $this->calculatePatternShiftChar($employee, $date);
+      return match ($char) {
+        'D' => ShiftType::Day,
+        'N' => ShiftType::Night,
+      default => ShiftType::Off,
+      };
+    }
+
+    /**
+    * Periksa apakah tanggal termasuk dalam masa cuti siklus normal (tanpa override).
+    */
+    public function isInCycleLeave(Employee $employee, Carbon $date): bool
+    {
+      if (!$employee->pattern_start_date || !$employee->work_days || !$employee->leave_days) {
+        return false;
+      }
+
+      $start = $employee->pattern_start_date->startOfDay();
+      $current = $date->copy()->startOfDay();
+      $totalCycle = $employee->work_days + $employee->leave_days;
+
+      $dayDiff = $start->diffInDays($current, false);
+      $position = $dayDiff % $totalCycle;
+
+      return $position >= $employee->work_days;
+    }
+
+    /**
     * Hitung semua periode cuti (normal & override) yang berpotongan dengan rentang generate.
-    *
-    * @param Employee $employee
-    * @param Carbon $rangeStart
-    * @param Carbon $rangeEnd
-    * @return array of ['start' => Carbon, 'end' => Carbon]
     */
     private function getLeavePeriods(Employee $employee, Carbon $rangeStart, Carbon $rangeEnd): array
     {
       $leaveLength = $employee->leave_days;
       $workLength = $employee->work_days;
-      $current = $employee->pattern_start_date;
-      $overrides = $employee->overrides->toArray(); // array of ['start_date' => 'Y-m-d']
-      // Ubah ke Carbon dan urutkan
-      $overrideDates = collect($overrides)->map(fn($ov) => Carbon::parse($ov['start_date']))->sort()->values()->toArray();
+      $current = $employee->pattern_start_date->startOfDay();
+
+      $overrides = $employee->overrides->sortBy('start_date')->values()->toArray();
+      $overrideIndex = 0;
+      $overrideCount = count($overrides);
 
       $periods = [];
 
-      // Kita perlu mencari semua periode cuti yang mungkin overlap dengan range
-      // Caranya: lakukan simulasi dari current hingga melewati rangeEnd.
       while ($current->lte($rangeEnd)) {
         $normalStart = $current->copy()->addDays($workLength);
         $normalEnd = $normalStart->copy()->addDays($leaveLength - 1);
 
-        // Cek apakah ada override yang start_date-nya dalam rentang normalStart ±14
         $chosenOverride = null;
-        $chosenIndex = null;
-        foreach ($overrideDates as $index => $ovDate) {
-          $diff = $normalStart->diffInDays($ovDate, false);
+        while ($overrideIndex < $overrideCount) {
+          $ovStart = Carbon::parse($overrides[$overrideIndex]['start_date'])->startOfDay();
+          $diff = $normalStart->diffInDays($ovStart, false);
           if (abs($diff) <= 14) {
-            $chosenOverride = $ovDate;
-            $chosenIndex = $index;
+            $chosenOverride = $ovStart;
+            $overrideIndex++;
+            break;
+          } elseif ($ovStart->lt($normalStart)) {
+            $overrideIndex++;
+          } else {
             break;
           }
         }
 
         if ($chosenOverride) {
           $leaveStart = $chosenOverride->copy();
-          // hapus override yang sudah digunakan
-          array_splice($overrideDates, $chosenIndex, 1);
         } else {
           $leaveStart = $normalStart->copy();
         }
 
         $leaveEnd = $leaveStart->copy()->addDays($leaveLength - 1);
 
-        // Apakah periode ini berpotongan dengan range generate?
         if ($leaveEnd->gte($rangeStart) && $leaveStart->lte($rangeEnd)) {
           $periods[] = [
             'start' => $leaveStart->copy(),
@@ -169,8 +195,7 @@ class ShiftGeneratorService
           ];
         }
 
-        // Reset current ke sehari setelah akhir cuti ini
-        $current = $leaveEnd->copy()->addDay();
+        $current = $leaveEnd->copy()->addDay()->startOfDay();
       }
 
       return $periods;

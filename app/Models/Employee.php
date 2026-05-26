@@ -3,6 +3,7 @@ namespace Modules\ShiftGenerator\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Telegram\Models\TelegramUser;
+use Modules\ShiftGenerator\Enums\ShiftType;
 
 class Employee extends Model
 {
@@ -19,6 +20,7 @@ class Employee extends Model
   ];
 
   protected $casts = [
+    'shift_start' => ShiftType::class,
     'shift_start_date' => 'date',
     'pattern_start_date' => 'date',
   ];

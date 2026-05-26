@@ -39,89 +39,68 @@ class ShiftController extends Controller
     ]);
   }
 
-  // Ambil tanggal libur nasional sebagai array string (Y-m-d)
-  $holidayDates = $holidayService->getHolidayDates();
+  /**
+  * Ambil data schedule yang sudah di-generate.
+  */
+  public function schedules(Request $request) {
+    $request->validate([
+      'start_date' => 'required|date|date_format:Y-m-d',
+      'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
+    ]);
 
-  // Generate roster dengan holidayDates
-  $count = $service->generate(
-    $validated['start_date'],
-    $validated['end_date'],
-    $holidayDates,
-    $request->user()->id
-  );
+    $user = $request->user();
+    $schedules = ShiftSchedule::with('employee')
+    ->whereHas('employee', fn($q) => $q->where('telegram_user_id', $user->id))
+    ->whereBetween('date', [$request->start_date, $request->end_date])
+    ->orderBy('date')
+    ->orderBy('employee_id')
+    ->get();
 
-  // Ambil data lengkap (date + name) untuk frontend
-  $holidays = $holidayService->getHolidays();
-
-  return response()->json([
-    'message' => "Roster berhasil dibuat: {$count} entri.",
-    'count' => $count,
-    'holidays' => $holidays,
-  ]);
-}
-
-/**
-* Ambil data schedule yang sudah di-generate.
-*/
-public function schedules(Request $request) {
-  $request->validate([
-    'start_date' => 'required|date|date_format:Y-m-d',
-    'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
-  ]);
-
-  $user = $request->user();
-  $schedules = ShiftSchedule::with('employee')
-  ->whereHas('employee', fn($q) => $q->where('telegram_user_id', $user->id))
-  ->whereBetween('date', [$request->start_date, $request->end_date])
-  ->orderBy('date')
-  ->orderBy('employee_id')
-  ->get();
-
-  return $schedules;
-}
-
-/**
-* Export roster ke Telegram.
-*/
-public function exportToTelegram(Request $request) {
-  $validated = $request->validate([
-    'start_date' => 'required|date|date_format:Y-m-d',
-    'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
-  ]);
-
-  $user = $request->user();
-
-  // Pastikan model memiliki chat_id (kolom chat_id di tabel telegram_users)
-  if (!$user->telegram_id) {
-    return response()->json(['message' => 'Akun Telegram tidak terhubung.'], 400);
+    return $schedules;
   }
 
-  // Buat file Excel
-  $export = new ShiftScheduleExport($validated['start_date'], $validated['end_date'], $user->id);
-  $fileName = 'shift_roster_' . uniqid() . '.xlsx';
-  $tempFile = "temp/exports/{$fileName}";
+  /**
+  * Export roster ke Telegram.
+  */
+  public function exportToTelegram(Request $request) {
+    $validated = $request->validate([
+      'start_date' => 'required|date|date_format:Y-m-d',
+      'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
+    ]);
 
-  // Simpan Excel ke storage lokal
-  Excel::store($export, $tempFile, 'local');
-  $tempPath = Storage::disk('local')->path($tempFile);
+    $user = $request->user();
 
-  // Kirim via Telegram
-  $telegramApi = app(TelegramApi::class);
-  $result = $telegramApi->sendDocument(
-    chatId: $user->telegram_id,
-    filePath: $tempPath,
-    caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
-  );
+    // Pastikan model memiliki chat_id (kolom chat_id di tabel telegram_users)
+    if (!$user->telegram_id) {
+      return response()->json(['message' => 'Akun Telegram tidak terhubung.'], 400);
+    }
 
-  // Hapus file setelah dikirim
-  if (Storage::disk('local')->exists($tempFile)) {
-    Storage::disk('local')->delete($tempFile);
+    // Buat file Excel
+    $export = new ShiftScheduleExport($validated['start_date'], $validated['end_date'], $user->id);
+    $fileName = 'shift_roster_' . uniqid() . '.xlsx';
+    $tempFile = "temp/exports/{$fileName}";
+
+    // Simpan Excel ke storage lokal
+    Excel::store($export, $tempFile, 'local');
+    $tempPath = Storage::disk('local')->path($tempFile);
+
+    // Kirim via Telegram
+    $telegramApi = app(TelegramApi::class);
+    $result = $telegramApi->sendDocument(
+      chatId: $user->telegram_id,
+      filePath: $tempPath,
+      caption: "📅 Roster Shift ({$validated['start_date']} – {$validated['end_date']})",
+    );
+
+    // Hapus file setelah dikirim
+    if (Storage::disk('local')->exists($tempFile)) {
+      Storage::disk('local')->delete($tempFile);
+    }
+
+    if ($result) {
+      return response()->json(['message' => 'File roster telah dikirim ke Telegram Anda.']);
+    } else {
+      return response()->json(['message' => 'Gagal mengirim file ke Telegram.'], 500);
+    }
   }
-
-  if ($result) {
-    return response()->json(['message' => 'File roster telah dikirim ke Telegram Anda.']);
-  } else {
-    return response()->json(['message' => 'Gagal mengirim file ke Telegram.'], 500);
-  }
-}
 }

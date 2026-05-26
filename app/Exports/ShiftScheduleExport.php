@@ -133,10 +133,10 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
             $value = '';
             if ($schedule) {
               $value = match ($schedule->shift) {
-                ShiftType::Day->value => 'D',
-                ShiftType::Night->value => 'N',
-                ShiftType::Off->value => 'O',
-                ShiftType::Leave->value => 'CT',
+                ShiftType::Day => 'D',
+                ShiftType::Night => 'N',
+                ShiftType::Off => 'O',
+                ShiftType::Leave => 'CT',
                 default => '',
                 };
               }

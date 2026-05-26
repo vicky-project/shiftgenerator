@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
+use Modules\ShiftGenerator\Services\HolidayService;
 
 class ShiftScheduleExport implements WithEvents
 {
@@ -35,7 +36,7 @@ class ShiftScheduleExport implements WithEvents
       AfterSheet::class => function (AfterSheet $event) {
         $sheet = $event->sheet->getDelegate();
 
-        // Ambil data karyawan dan jadwal
+        // --- Data dari database ---
         $employees = Employee::when($this->userId, fn($q) => $q->where('telegram_user_id', $this->userId))
         ->orderBy('nrp')
         ->get();
@@ -45,6 +46,7 @@ class ShiftScheduleExport implements WithEvents
         ->get()
         ->groupBy('employee_id');
 
+        // --- Rentang tanggal ---
         $period = CarbonPeriod::create($this->start, $this->end);
         $dates = [];
         foreach ($period as $date) {
@@ -54,13 +56,13 @@ class ShiftScheduleExport implements WithEvents
         $lastColIndex = 2 + $totalDates;
         $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
-        // ---- Baris 1: Judul ----
+        // --- Judul ---
         $sheet->setCellValue('A1', 'Roster Shift');
         $sheet->mergeCells('A1:' . $lastCol . '1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // ---- Header NRP dan Nama (baris 2-3 merge vertikal) ----
+        // --- Header NRP & Nama (merge vertikal 2 baris) ---
         $sheet->mergeCells('A2:A3');
         $sheet->setCellValue('A2', 'NRP');
         $sheet->mergeCells('B2:B3');
@@ -72,7 +74,7 @@ class ShiftScheduleExport implements WithEvents
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
 
-        // ---- Header bulan (baris 2) ----
+        // --- Header bulan (baris 2) ---
         $currentMonth = null;
         $startMonthCol = 3;
         for ($i = 0; $i < $totalDates; $i++) {
@@ -104,7 +106,7 @@ class ShiftScheduleExport implements WithEvents
         ->getStartColor()->setARGB('FFDDDDDD');
         $sheet->getStyle('C2:' . $lastCol . '2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // ---- Header tanggal (baris 3) ----
+        // --- Header tanggal (baris 3) ---
         for ($i = 0; $i < $totalDates; $i++) {
           $colIndex = 3 + $i;
           $colLetter = Coordinate::stringFromColumnIndex($colIndex);
@@ -117,7 +119,23 @@ class ShiftScheduleExport implements WithEvents
         $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle('C3:' . $lastCol . '3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // ---- Data karyawan & shift (mulai baris 4) ----
+        // --- Warnai header tanggal jika libur ---
+        $holidayService = app(HolidayService::class);
+        $holidayDates = $holidayService->getHolidayDates();
+        for ($i = 0; $i < $totalDates; $i++) {
+          $dateStr = $dates[$i]->format('Y-m-d');
+          if (in_array($dateStr, $holidayDates)) {
+            $colIndex = 3 + $i;
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $cell = $sheet->getCell($colLetter . '3');
+            $cell->getStyle()->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFe74c3c');
+            $cell->getStyle()->getFont()->getColor()->setARGB('FFFFFFFF');
+          }
+        }
+
+        // --- Data karyawan & shift (mulai baris 4) ---
         $row = 4;
         foreach ($employees as $employee) {
           $sheet->setCellValue('A' . $row, $employee->nrp);
@@ -149,16 +167,68 @@ class ShiftScheduleExport implements WithEvents
             $row++;
           }
 
-          $highestRow = $row - 1;
+          // --- Hitung total per shift per tanggal ---
+          $totals = [];
+          foreach ($dates as $date) {
+            $dateStr = $date->format('Y-m-d');
+            $totals[$dateStr] = ['D' => 0,
+              'N' => 0,
+              'O' => 0,
+              'CT' => 0];
+          }
+          foreach ($schedules as $empId => $empSchedules) {
+            foreach ($empSchedules as $schedule) {
+              $dateStr = Carbon::parse($schedule->date)->format('Y-m-d');
+              if (isset($totals[$dateStr])) {
+                switch ($schedule->shift) {
+                case ShiftType::Day: $totals[$dateStr]['D']++; break;
+                case ShiftType::Night: $totals[$dateStr]['N']++; break;
+                case ShiftType::Off: $totals[$dateStr]['O']++; break;
+                case ShiftType::Leave: $totals[$dateStr]['CT']++; break;
+                }
+              }
+            }
+          }
 
-          // ---- Warna latar belakang ----
+          // --- Tulis baris TOTAL ---
+          $totalStartRow = $row;
+          $sheet->mergeCells('A' . $totalStartRow . ':A' . ($totalStartRow + 3));
+          $sheet->setCellValue('A' . $totalStartRow, 'TOTAL');
+          $sheet->getStyle('A' . $totalStartRow . ':A' . ($totalStartRow + 3))->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+          $sheet->getStyle('A' . $totalStartRow . ':A' . ($totalStartRow + 3))->getFont()->setBold(true);
+
+          $labels = ['Day',
+            'Night',
+            'Off',
+            'Cuti'];
+          $keys = ['D',
+            'N',
+            'O',
+            'CT'];
+          for ($sub = 0; $sub < 4; $sub++) {
+            $currentRow = $totalStartRow + $sub;
+            $sheet->setCellValue('B' . $currentRow, $labels[$sub]);
+            $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true);
+            for ($i = 0; $i < $totalDates; $i++) {
+              $dateStr = $dates[$i]->format('Y-m-d');
+              $colIndex = 3 + $i;
+              $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+              $totalValue = $totals[$dateStr][$keys[$sub]] ?? 0;
+              $sheet->setCellValue($colLetter . $currentRow, $totalValue);
+              $sheet->getStyle($colLetter . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
+          }
+
+          $highestRow = $totalStartRow + 3;
+
+          // --- Warna latar belakang untuk data shift (hanya baris karyawan) ---
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
             'O' => 'FFe74c3c',
             'CT' => 'FFf1c40f',
           ];
-          for ($r = 4; $r <= $highestRow; $r++) {
+          for ($r = 4; $r < $totalStartRow; $r++) {
             for ($c = 3; $c <= $lastColIndex; $c++) {
               $cell = $sheet->getCellByColumnAndRow($c, $r);
               $cellValue = $cell->getValue();
@@ -173,7 +243,7 @@ class ShiftScheduleExport implements WithEvents
             }
           }
 
-          // ---- Border ----
+          // --- Border untuk seluruh tabel ---
           $styleArray = [
             'borders' => [
               'allBorders' => [
@@ -184,7 +254,7 @@ class ShiftScheduleExport implements WithEvents
           ];
           $sheet->getStyle('A1:' . $lastCol . $highestRow)->applyFromArray($styleArray);
 
-          // ---- Autosize manual untuk setiap kolom ----
+          // --- Auto-size kolom ---
           for ($col = 1; $col <= $lastColIndex; $col++) {
             $colLetter = Coordinate::stringFromColumnIndex($col);
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);

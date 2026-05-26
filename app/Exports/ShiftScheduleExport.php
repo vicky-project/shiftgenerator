@@ -200,6 +200,7 @@ class ShiftScheduleExport implements WithEvents
           $row++; // lewati satu baris
 
           // --- Hitung total per shift per tanggal ---
+          // --- Hitung total hanya untuk Actual ---
           $totals = [];
           foreach ($dates as $date) {
             $dateStr = $date->format('Y-m-d');
@@ -208,6 +209,7 @@ class ShiftScheduleExport implements WithEvents
               'O' => 0,
               'CT' => 0];
           }
+          // Hanya dari schedule actual (database)
           foreach ($schedules as $empSchedules) {
             foreach ($empSchedules as $schedule) {
               $dateStr = Carbon::parse($schedule->date)->format('Y-m-d');

@@ -198,7 +198,7 @@
     try {
       employee = await fetchEmployee(employeeId);
     } catch (err) {
-      console.error(err)
+      console.error(err);
       document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
       return;
     }
@@ -269,6 +269,7 @@
         });
         container.innerHTML = html;
       } catch (err) {
+        console.error(err);
         document.getElementById('override-list').innerHTML = `<div class="alert alert-danger">Gagal memuat.</div>`;
       }
     }

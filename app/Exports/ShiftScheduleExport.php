@@ -141,6 +141,11 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
                 };
               }
               $sheet->setCellValue($colLetter . $row, $value);
+              \Log::debug('Data item', [
+                'col' => $colIndex,
+                'row' => $row,
+                'value' => $value
+              ]);
             }
             $row++;
           }

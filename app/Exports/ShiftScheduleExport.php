@@ -166,6 +166,9 @@ class ShiftScheduleExport implements WithEvents
             $row++;
           }
 
+          // --- Tambahkan satu baris kosong antara data terakhir dan total ---
+          $row++; // lewati satu baris
+
           // --- Hitung total per shift per tanggal ---
           $totals = [];
           foreach ($dates as $date) {
@@ -286,6 +289,12 @@ class ShiftScheduleExport implements WithEvents
             $colLetter = Coordinate::stringFromColumnIndex($col);
             $sheet->getColumnDimension($colLetter)->setAutoSize(true);
           }
+
+          // --- Freeze pane di C4 (kolom NRP & Nama tetap terlihat, header tetap) ---
+          $sheet->freezePane('C4');
+
+          // --- Auto-filter pada kolom NRP dan Nama (A2:B... ) ---
+          $sheet->setAutoFilter('A2:B' . ($totalStartRow - 2)); // -2 karena totalStartRow sudah termasuk baris kosong, kita ingin data saja
         },
       ];
     }

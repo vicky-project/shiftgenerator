@@ -257,12 +257,10 @@
     background-color: rgb(226 232 240/var(--tw-bg-opacity));
     color: #64748b
   }
-
-  /* Tanggal di luar bulan tampil redup (opsional) */
-  [data-vc-date-month="prev"] .vc-date__btn,
-  [data-vc-date-month="next"] .vc-date__btn {
-    color: #64748b;
-    font-weight: normal !important;
+  [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
+  [data-vc-date-month="next"].shift-holiday .vc-date__btn,
+  [data-vc-theme=dark] {
+    color: #475569;
   }
 
   /* Text color helper */

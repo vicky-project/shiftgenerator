@@ -13,7 +13,7 @@ class ShiftGeneratorService
   /**
   * Generate shift roster untuk rentang tanggal (actual).
   */
-  public function generate(string $startDate, string $endDate, array $holidays = [], ?int $userId = null): int
+  public function generate(string $startDate, string $endDate, ?int $userId = null, array $holidays = []): int
   {
     $start = Carbon::parse($startDate)->startOfDay();
     $end = Carbon::parse($endDate)->startOfDay();

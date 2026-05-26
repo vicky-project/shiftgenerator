@@ -43,17 +43,13 @@
 @endsection
 
 @push('scripts')
-<script src="//cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-  eruda.init();
-</script>
 <script>
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
-<script src="{{ secure_url(config('app.url') .'/apps/shift/js/core.js') }}"></script>
-<script src="{{ secure_url(config('app.url') .'/apps/shift/js/page.js') }}"></script>
-<script src="{{ secure_url(config('app.url') .'/apps/shift/js/main.js') }}"></script>
+<script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/core.js') }}"></script>
+<script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/page.js') }}"></script>
+<script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/main.js') }}"></script>
 @endpush
 
 @push('styles')

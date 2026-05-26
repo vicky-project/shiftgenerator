@@ -167,23 +167,6 @@
   .vc-date__btn {
     position: relative;
   }
-  /* ---------- DOT WARNA SHIFT ---------- */
-  .shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-    /* Hijau */
-  }
-  .shift-night .vc-date__btn::after {
-    background-color: #000000;
-    /* Hitam */
-  }
-  .shift-off .vc-date__btn::after {
-    background-color: #e74c3c;
-    /* Merah */
-  }
-  .shift-leave .vc-date__btn::after {
-    background-color: #f1c40f;
-    /* Kuning */
-  }
 
   /* ---------- LEGENDA ---------- */
   #calendar-legend {
@@ -243,7 +226,38 @@
     pointer-events: none;
   }
 
-  /* Semua tanggal di luar bulan kembali ke default */
+  /* ---------- DOT WARNA SHIFT ---------- */
+  .shift-day .vc-date__btn::after {
+    background-color: #2ecc71;
+    /* Hijau */
+  }
+  .shift-night .vc-date__btn::after {
+    background-color: #1e3799;
+    /* Biru tua */
+  }
+  .shift-off .vc-date__btn::after {
+    background-color: #e74c3c;
+    /* Merah */
+  }
+  .shift-leave .vc-date__btn::after {
+    background-color: #f1c40f;
+    /* Kuning */
+  }
+
+  /* ---------- WARNA MERAH HANYA UNTUK LIBUR DI BULAN AKTIF ---------- */
+  [data-vc-date-month="current"].shift-holiday .vc-date__btn {
+    color: #e74c3c !important;
+    font-weight: 600;
+  }
+
+  /* Tanggal di luar bulan tidak ikut berwarna merah */
+  [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
+  [data-vc-date-month="next"].shift-holiday .vc-date__btn {
+    color: inherit !important;
+    font-weight: normal !important;
+  }
+
+  /* Tanggal di luar bulan tampil redup (opsional) */
   [data-vc-date-month="prev"] .vc-date__btn,
   [data-vc-date-month="next"] .vc-date__btn {
     color: #64748b;

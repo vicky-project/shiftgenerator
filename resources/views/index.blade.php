@@ -250,27 +250,21 @@
     font-weight: 600;
   }
 
-  /* Tanggal di luar bulan tidak ikut berwarna merah */
-  [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
-  [data-vc-date-month="next"].shift-holiday .vc-date__btn {
-    --tw-bg-opacity: 1;
-    background-color: rgb(226 232 240/var(--tw-bg-opacity));
-    color: #64748b
+  /* Tanggal di luar bulan tampil redup, termasuk yang libur */
+  [data-vc-date-month="prev"] .vc-date__btn,
+  [data-vc-date-month="next"] .vc-date__btn {
+    opacity: 0.5;
   }
-  [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
-  [data-vc-date-month="next"].shift-holiday .vc-date__btn,
-  [data-vc-theme="dark"] {
-    color: #475569;
+
+  /* Pastikan dot shift juga ikut redup */
+  [data-vc-date-month="prev"] .vc-date__btn::after,
+  [data-vc-date-month="next"] .vc-date__btn::after {
+    opacity: 0.5;
   }
 
   /* Text color helper */
   .text-color {
     color: var(--tg-theme-text-color) !important;
-  }
-
-  /* Pastikan kalender tidak overflow */
-  #shift-calendar {
-    max-width: 100%;
   }
 </style>
 @endpush

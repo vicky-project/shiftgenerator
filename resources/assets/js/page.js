@@ -198,6 +198,7 @@
     try {
       employee = await fetchEmployee(employeeId);
     } catch (err) {
+      console.error(err)
       document.getElementById('app-content').innerHTML = `<div class="alert alert-danger">Gagal memuat data.</div>`;
       return;
     }

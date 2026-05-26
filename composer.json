@@ -2,6 +2,7 @@
   "name": "vicky-project/shiftgenerator-module",
   "description": "",
   "type": "laravel-module",
+  "license": "MIT",
   "authors": [{
     "name": "Vicky Rahman",
     "email": "pratamavr@gmail.com"

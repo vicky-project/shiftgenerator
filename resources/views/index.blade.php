@@ -253,8 +253,9 @@
   /* Tanggal di luar bulan tidak ikut berwarna merah */
   [data-vc-date-month="prev"].shift-holiday .vc-date__btn,
   [data-vc-date-month="next"].shift-holiday .vc-date__btn {
-    color: inherit !important;
-    font-weight: normal !important;
+    --tw-bg-opacity: 1;
+    background-color: rgb(226 232 240/var(--tw-bg-opacity));
+    color: #64748b
   }
 
   /* Tanggal di luar bulan tampil redup (opsional) */

@@ -19,11 +19,10 @@ class ShiftGeneratorService
   * @param int|null $userId   ID user Telegram (untuk filter karyawan)
   * @return int jumlah record yang dibuat
   */
-  public function generate(string $startDate, string $endDate, array $holidays = [], ?int $userId = null): int
+  public function generate(string $startDate, string $endDate, ?int $userId = null): int
   {
     $start = Carbon::parse($startDate)->startOfDay();
     $end = Carbon::parse($endDate)->startOfDay();
-    $holidaySet = collect($holidays)->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
 
     // Hapus jadwal lama dalam range ini untuk user ini
     ShiftSchedule::whereBetween('date', [$startDate, $endDate])
@@ -37,21 +36,17 @@ class ShiftGeneratorService
     $insertData = [];
 
     foreach ($employees as $employee) {
-      // Dapatkan semua periode cuti (normal + override) yang tumpang tindih dengan range
       $leavePeriods = $this->getLeavePeriods($employee, $start, $end);
-
       foreach (CarbonPeriod::create($start, $end) as $date) {
-        $dateStr = $date->format('Y-m-d');
-        $shift = $this->determineShift($employee, $date, $leavePeriods, $holidaySet);
+        $shift = $this->determineShift($employee, $date, $leavePeriods);
         $insertData[] = [
           'employee_id' => $employee->id,
-          'date' => $dateStr,
+          'date' => $date->format('Y-m-d'),
           'shift' => $shift,
         ];
       }
     }
 
-    // Bulk insert untuk performa
     foreach (array_chunk($insertData, 500) as $chunk) {
       ShiftSchedule::insert($chunk);
     }
@@ -59,24 +54,20 @@ class ShiftGeneratorService
     return count($insertData);
   }
 
+
   /**
   * Tentukan shift untuk seorang karyawan pada suatu tanggal.
   */
-  private function determineShift(Employee $employee, Carbon $date, array $leavePeriods, array $holidays): string
+  private function determineShift(Employee $employee, Carbon $date, array $leavePeriods): string
   {
-    // 1. Hari libur nasional -> Off
-    if (in_array($date->format('Y-m-d'), $holidays)) {
-      return ShiftType::Off->value;
-    }
-
-    // 2. Jika tanggal termasuk dalam salah satu periode cuti -> Leave
+    // 1. Cuti siklus -> Leave
     foreach ($leavePeriods as $period) {
       if ($date->between($period['start'], $period['end'])) {
         return ShiftType::Leave->value;
       }
     }
 
-    // 3. Hitung shift dari pola
+    // 2. Pola shift normal
     return $this->calculatePatternShift($employee, $date);
   }
 

@@ -117,11 +117,14 @@
     Pola Shift
     <button type="button" class="btn btn-sm btn-link p-0 ms-1"
     data-info-title="Pola Shift"
-    data-info-content="<p>String yang mewakili shift harian dalam satu siklus.</p><ul><li><strong>D</strong> = Day (siang)</li><li><strong>N</strong> = Night (malam)</li><li><strong>O</strong> atau <strong>-</strong> = Off (libur)</li></ul><p>Contoh: <code>DDDDDDDDNNNNNO</code> berarti 8 Day, 5 Night, 1 Off.</p>">
+    data-info-content="<p>Huruf yang mewakili shift harian dalam satu siklus.</p><ul><li><strong>D</strong> = Day (siang)</li><li><strong>N</strong> = Night (malam)</li><li><strong>O</strong> atau <strong>-</strong> = Off (libur)</li></ul><p>Contoh: <code>DDDDDDDDNNNNNO</code> berarti 8 Day, 5 Night, 1 Off.</p>">
     <i class="bi bi-info-circle"></i>
     </button>
     </label>
-    <input type="text" name="shift_pattern" class="form-control" value="${employee ? escapeHtml(employee.shift_pattern): 'DDDDDDDDNNNNNO'}" required>
+    <input type="text" name="shift_pattern" class="form-control"
+    value="${employee ? escapeHtml(employee.shift_pattern): 'DDDDDDDDNNNNNO'}"
+    required pattern="[DNO]+"
+    title="Hanya boleh huruf D, N, O (kapital)">
     </div>
     <div class="row mb-3">
     <div class="col">

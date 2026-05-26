@@ -6,16 +6,16 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Modules\ShiftGenerator\Enums\ShiftType;
 use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 
-class ShiftScheduleExport implements WithEvents, ShouldAutoSize
+class ShiftScheduleExport implements WithEvents
 {
   use RegistersEventListeners;
 
@@ -58,7 +58,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         $sheet->setCellValue('A1', 'Roster Shift');
         $sheet->mergeCells('A1:' . $lastCol . '1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // ---- Header NRP dan Nama (baris 2-3 merge vertikal) ----
         $sheet->mergeCells('A2:A3');
@@ -66,7 +66,8 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         $sheet->mergeCells('B2:B3');
         $sheet->setCellValue('B2', 'Nama');
         $sheet->getStyle('A2:B3')->getFont()->setBold(true);
-        $sheet->getStyle('A2:B3')->getAlignment()->setVertical('center');
+        $sheet->getStyle('A2:B3')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A2:B3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('A2:B3')->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
@@ -101,6 +102,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         $sheet->getStyle('C2:' . $lastCol . '2')->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FFDDDDDD');
+        $sheet->getStyle('C2:' . $lastCol . '2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // ---- Header tanggal (baris 3) ----
         for ($i = 0; $i < $totalDates; $i++) {
@@ -113,6 +115,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FF4A90E2');
         $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('C3:' . $lastCol . '3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // ---- Data karyawan & shift (mulai baris 4) ----
         $row = 4;
@@ -141,11 +144,7 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
                 };
               }
               $sheet->setCellValue($colLetter . $row, $value);
-              \Log::debug('Data item', [
-                'col' => $colIndex,
-                'row' => $row,
-                'value' => $value
-              ]);
+              $sheet->getStyle($colLetter . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             }
             $row++;
           }
@@ -184,6 +183,12 @@ class ShiftScheduleExport implements WithEvents, ShouldAutoSize
             ],
           ];
           $sheet->getStyle('A1:' . $lastCol . $highestRow)->applyFromArray($styleArray);
+
+          // ---- Autosize manual untuk setiap kolom ----
+          for ($col = 1; $col <= $lastColIndex; $col++) {
+            $colLetter = Coordinate::stringFromColumnIndex($col);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+          }
         },
       ];
     }

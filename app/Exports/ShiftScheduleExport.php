@@ -53,9 +53,8 @@ class ShiftScheduleExport implements WithEvents
           $dates[] = $date;
         }
         $totalDates = count($dates);
-        // Kolom: A=NRP, B=Nama, C=Plan/Actual, D.. = tanggal
         $firstDateColIndex = 4; // kolom D adalah indeks ke-4
-        $lastColIndex = 3 + $totalDates; // 3 kolom tetap + totalDates
+        $lastColIndex = 3 + $totalDates;
         $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
         // Siapkan data libur
@@ -71,7 +70,7 @@ class ShiftScheduleExport implements WithEvents
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // --- Header NRP & Nama (merge vertikal 4 baris: 2,3,4,5) ---
+        // --- Header NRP, Nama, Plan/Actual (merge vertikal 4 baris: 2,3,4,5) ---
         $sheet->mergeCells('A2:A5');
         $sheet->setCellValue('A2', 'NRP');
         $sheet->mergeCells('B2:B5');
@@ -174,15 +173,13 @@ class ShiftScheduleExport implements WithEvents
         // --- Data karyawan (Plan & Actual) mulai baris 6 ---
         $row = 6;
         foreach ($employees as $employee) {
-          // Merge NRP, Nama, Plan/Actual untuk 2 baris
+          // Merge NRP dan Nama untuk 2 baris
           $sheet->mergeCells('A' . $row . ':A' . ($row + 1));
           $sheet->setCellValue('A' . $row, $employee->nrp);
           $sheet->mergeCells('B' . $row . ':B' . ($row + 1));
           $sheet->setCellValue('B' . $row, $employee->name);
-          $sheet->mergeCells('C' . $row . ':C' . ($row + 1));
-          // Tidak perlu mengisi C dengan teks, karena setiap baris akan diisi Plan/Actual
-          // Tapi untuk kejelasan, kita bisa biarkan kosong, atau tulis "Plan / Actual" sekali di row pertama?
-          // Lebih baik kita tulis "Plan" di row dan "Actual" di row+1 di kolom C
+
+          // Tulis "Plan" dan "Actual" langsung di kolom C tanpa merge
           $sheet->setCellValue('C' . $row, 'Plan');
           $sheet->setCellValue('C' . ($row + 1), 'Actual');
 
@@ -222,7 +219,7 @@ class ShiftScheduleExport implements WithEvents
         }
 
         // --- Satu baris kosong sebelum total ---
-        $row++; // lewati satu baris
+        $row++;
 
         // --- Hitung total hanya untuk Actual ---
         $totals = [];
@@ -309,7 +306,7 @@ class ShiftScheduleExport implements WithEvents
           'O' => 'FFe74c3c',
           'CT' => 'FFf1c40f',
         ];
-        $finalDataRow = $totalStartRow - 2; // baris terakhir sebelum baris kosong
+        $finalDataRow = $totalStartRow - 2;
         for ($r = 6; $r <= $finalDataRow; $r++) {
           for ($c = $firstDateColIndex; $c <= $lastColIndex; $c++) {
             $cell = $sheet->getCellByColumnAndRow($c, $r);
@@ -345,7 +342,7 @@ class ShiftScheduleExport implements WithEvents
           $sheet->getColumnDimension($colLetter)->setWidth(5);
         }
 
-        // --- Freeze pane di D6 (setelah kolom Plan/Actual) ---
+        // --- Freeze pane di D6 ---
         $sheet->freezePane('D6');
 
         // --- Auto-filter pada seluruh area data (A5 sampai kolom terakhir, baris akhir data) ---

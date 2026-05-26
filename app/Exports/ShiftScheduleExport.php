@@ -96,28 +96,27 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
           $lastColIndex = 2 + $totalDates;
           $lastCol = Coordinate::stringFromColumnIndex($lastColIndex);
 
-          // Tambah 3 baris di atas (data asli akan mulai dari baris 4)
+          // Sisipkan 3 baris di atas untuk judul dan header
           $sheet->insertNewRowBefore(1, 3);
 
-          // ----- Baris 1: Judul -----
+          // ---- Baris 1: Judul ----
           $sheet->setCellValue('A1', 'Roster Shift');
           $sheet->mergeCells('A1:' . $lastCol . '1');
           $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
           $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-          // ----- Baris 2: Header NRP dan Nama (merge vertikal) -----
+          // ---- Baris 2: Header NRP dan Nama (merge vertikal) ----
           $sheet->mergeCells('A2:A3');
           $sheet->setCellValue('A2', 'NRP');
           $sheet->mergeCells('B2:B3');
           $sheet->setCellValue('B2', 'Nama');
-
           $sheet->getStyle('A2:B3')->getFont()->setBold(true);
           $sheet->getStyle('A2:B3')->getAlignment()->setVertical('center');
           $sheet->getStyle('A2:B3')->getFill()
           ->setFillType(Fill::FILL_SOLID)
           ->getStartColor()->setARGB('FFDDDDDD');
 
-          // ----- Baris 2: Nama bulan (merge horizontal per bulan) -----
+          // ---- Baris 2: Nama bulan (merge horizontal per bulan) ----
           $currentMonth = null;
           $startMonthCol = 3; // Kolom C
           for ($i = 0; $i < $totalDates; $i++) {
@@ -150,7 +149,7 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
           ->setFillType(Fill::FILL_SOLID)
           ->getStartColor()->setARGB('FFDDDDDD');
 
-          // ----- Baris 3: Tanggal (hari) -----
+          // ---- Baris 3: Tanggal (hari) ----
           for ($i = 0; $i < $totalDates; $i++) {
             $colIndex = 3 + $i;
             $colLetter = Coordinate::stringFromColumnIndex($colIndex);
@@ -163,7 +162,7 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
           ->getStartColor()->setARGB('FF4A90E2');
           $sheet->getStyle('C3:' . $lastCol . '3')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-          // ----- Styling warna data shift (mulai baris 4) -----
+          // ---- Warna data shift (mulai baris 4) ----
           $colorMap = [
             'D' => 'FF2ecc71',
             'N' => 'FF000000',
@@ -187,7 +186,7 @@ class ShiftScheduleExport implements FromCollection, WithEvents, ShouldAutoSize
             }
           }
 
-          // ----- Border untuk semua sel -----
+          // ---- Border ----
           $styleArray = [
             'borders' => [
               'allBorders' => [

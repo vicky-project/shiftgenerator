@@ -1,5 +1,4 @@
 <?php
-
 namespace Modules\ShiftGenerator\Exports;
 
 use Carbon\Carbon;

@@ -274,9 +274,14 @@ class ShiftScheduleExport implements WithEvents
           $currentRow = $totalStartRow + $sub;
           $color = $totalColors[$sub];
 
+          // Label di kolom B
           $sheet->setCellValue('B' . $currentRow, $labels[$sub]);
           $sheet->getStyle('B' . $currentRow)->getFont()->setBold(true);
 
+          // Singkatan di kolom C
+          $sheet->setCellValue('C' . $currentRow, $keys[$sub]);
+
+          // Isi nilai total per tanggal
           for ($i = 0; $i < $totalDates; $i++) {
             $dateStr = $dates[$i]->format('Y-m-d');
             $colIndex = $firstDateColIndex + $i;

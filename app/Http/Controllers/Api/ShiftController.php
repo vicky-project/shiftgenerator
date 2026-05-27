@@ -81,8 +81,8 @@ class ShiftController extends Controller
     $tempFile = "temp/exports/{$fileName}";
 
     // Simpan Excel ke storage lokal
-    Excel::store($export, $tempFile, 'local');
-    $tempPath = Storage::disk('local')->path($tempFile);
+    Excel::store($export, $tempFile, 'public');
+    $tempPath = Storage::disk('public')->path($tempFile);
 
     // Kirim via Telegram
     $telegramApi = app(TelegramApi::class);
@@ -93,8 +93,8 @@ class ShiftController extends Controller
     );
 
     // Hapus file setelah dikirim
-    if (Storage::disk('local')->exists($tempFile)) {
-      Storage::disk('local')->delete($tempFile);
+    if (Storage::disk('public')->exists($tempFile)) {
+      Storage::disk('public')->delete($tempFile);
     }
 
     if ($result) {

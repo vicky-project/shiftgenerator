@@ -10,7 +10,7 @@
     </button>
     <h5 id="app-title" class="mb-0">Shift Generator</h5>
   </div>
-  <div id="app-content" class="flex-fill py-3" style="padding-bottom: 70px !important;margin-bottom: 70px;">
+  <div id="app-content" class="flex-fill py-3" style="padding: 70px !important;margin-bottom: 70px;">
     <!-- Konten akan di-render oleh JavaScript -->
   </div>
   <div id="app-tabbar" class="border-top py-2 d-flex justify-content-around fixed-bottom" style="background: var(--tg-theme-secondary-bg-color); z-index: 1030;">

@@ -52,6 +52,25 @@
     }
   }
 
+  function formatShiftPattern(pattern) {
+    // Ubah semua karakter selain D dan N menjadi O
+    const normalized = pattern.toUpperCase().replace(/[^DN]/g, 'O');
+    const counts = [];
+    let currentChar = null;
+    let count = 0;
+    for (const char of normalized) {
+      if (char !== currentChar) {
+        if (currentChar) counts.push(`${count}${currentChar}`);
+        currentChar = char;
+        count = 1;
+      } else {
+        count++;
+      }
+    }
+    if (currentChar) counts.push(`${count}${currentChar}`);
+    return counts.join('') || pattern;
+  }
+
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList(page = 1) {
     destroyCalendar();
@@ -72,7 +91,7 @@
         lastPage
       };
 
-      let html = `<div class="d-flex justify-content-end mb-3">
+      let html = `<div class="d-flex justify-content-end mb-3 p-3">
       <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
       </div>`;
 
@@ -86,7 +105,7 @@
           <div>
           <strong>${escapeHtml(emp.name)}</strong>
           <div class="text-muted small">NRP: ${escapeHtml(emp.nrp)}</div>
-          <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
+          <div class="text-muted small">Pola: ${formatShiftPattern(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
           </div>
           <div class="btn-group btn-group-sm">
           <button data-nav="overrides:${emp.id}" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>
@@ -164,7 +183,7 @@
 
     const content = document.getElementById('app-content');
     content.innerHTML = `
-    <form id="employee-form">
+    <form id="employee-form" class="p-3">
     <div class="mb-3">
     <label class="form-label">Nama</label>
     <input type="text" name="name" class="form-control" value="${employee ? escapeHtml(employee.name): ''}" required>
@@ -269,7 +288,7 @@
 
     const content = document.getElementById('app-content');
     content.innerHTML = `
-    <div class="mb-3">
+    <div class="mb-3 p-3">
     <label class="form-label">Tambah Pengajuan Cuti (mulai)</label>
     <form id="override-form" class="row g-2">
     <div class="col-8"><input type="date" name="start_date" class="form-control" required></div>
@@ -384,11 +403,11 @@
     <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
     </div>
-    <div id="holiday-box" class="mt-3 d-none">
+    <div id="holiday-box" class="mt-3 d-none p-3">
     <h6>Hari Libur Nasional</h6>
     <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
     </div>
-    <div class="d-flex justify-content-end mt-3">
+    <div class="d-flex justify-content-end mt-3 p-3">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"
     style="border-color: #667eea; color: #667eea;">
     <i class="bi bi-download"></i> Export Excel

@@ -57,157 +57,175 @@
 <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
-  --gradient-start: #667eea;
-  --gradient-end: #764ba2;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --bg-start: #1a1a2e;
+  --bg-end: #16213e;
+  --accent-start: #a8e6cf;
+  --accent-end: #dcedc1;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0c0;
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
   body, #app-shell {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e) !important;
-    color: var(--tg-theme-text-color, #e0e0e0) !important;
-    }
+    background: linear-gradient(135deg, var(--bg-start), var(--bg-end)) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
 
-    /* Header */
-    #app-header {
-    background: rgba(15, 12, 41, 0.7) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--glass-border);
-    }
-
-    /* Tab Bar Fixed */
-    #app-tabbar {
-    background: rgba(15, 12, 41, 0.8) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid var(--glass-border);
-    }
-    #app-tabbar .nav-link {
-    color: var(--tg-theme-hint-color, #a0a0c0) !important;
-    transition: all 0.3s ease;
-    border-radius: 12px;
-    }
-    #app-tabbar .nav-link.active {
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)) !important;
-    color: #fff !important;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Kartu */
-    .card {
-    background: rgba(255, 255, 255, 0.03);
+  /* Header */
+  #app-header {
+    background: rgba(26, 26, 46, 0.6) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  /* Tab Bar */
+  #app-tabbar {
+    background: rgba(26, 26, 46, 0.7) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--glass-border);
+  }
+  #app-tabbar .nav-link {
+    color: var(--text-secondary) !important;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+  }
+  #app-tabbar .nav-link.active {
+    color: #fff !important;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.2), rgba(220, 237, 193, 0.1)) !important;
+    box-shadow: 0 2px 10px rgba(168, 230, 207, 0.1);
+  }
+
+  /* Kartu */
+  .card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
-    transition: all 0.3s ease;
-    }
-    .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.15);
-    }
+    transition: all 0.25s ease;
+  }
+  .card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(168, 230, 207, 0.15);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  }
 
-    /* Tombol Umum */
-    .btn {
+  /* Tombol Umum */
+  .btn {
     border-radius: 12px;
     font-weight: 500;
-    transition: all 0.3s ease;
-    }
-    .btn-primary {
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)) !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
-    }
-    .btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.55);
-    transform: translateY(-1px);
-    }
-    .btn-success {
-    background: linear-gradient(135deg, #11998e, #38ef7d) !important;
-    border: none !important;
-    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
-    }
-    .btn-outline-info, .btn-outline-warning, .btn-outline-danger {
-    backdrop-filter: blur(4px);
+    transition: all 0.25s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.25), rgba(220, 237, 193, 0.15)) !important;
+    border: 1px solid rgba(168, 230, 207, 0.3) !important;
+    color: var(--text-primary) !important;
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.4), rgba(220, 237, 193, 0.25)) !important;
+    box-shadow: 0 4px 15px rgba(168, 230, 207, 0.15);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.3), rgba(119, 221, 119, 0.2)) !important;
+    border: 1px solid rgba(168, 230, 207, 0.35) !important;
+    color: var(--text-primary) !important;
+  }
+  .btn-success:hover {
+    background: linear-gradient(135deg, rgba(168, 230, 207, 0.45), rgba(119, 221, 119, 0.3)) !important;
+  }
+  .btn-outline-info, .btn-outline-warning, .btn-outline-danger {
     background: rgba(255,255,255,0.03);
-    }
-    .btn-outline-info {
-    color: #3498db;
-    border-color: #3498db;
-    }
-    .btn-outline-info:hover {
-    background: #3498db;
+    backdrop-filter: blur(4px);
+  }
+  .btn-outline-info {
+    color: #7ec8e3;
+    border-color: rgba(126, 200, 227, 0.5);
+  }
+  .btn-outline-info:hover {
+    background: rgba(126, 200, 227, 0.15);
     color: #fff;
-    }
-    .btn-outline-warning {
-    color: #f39c12;
-    border-color: #f39c12;
-    }
-    .btn-outline-warning:hover {
-    background: #f39c12;
+  }
+  .btn-outline-warning {
+    color: #f4d03f;
+    border-color: rgba(244, 208, 63, 0.5);
+  }
+  .btn-outline-warning:hover {
+    background: rgba(244, 208, 63, 0.15);
     color: #fff;
-    }
-    .btn-outline-danger {
-    color: #e74c3c;
-    border-color: #e74c3c;
-    }
-    .btn-outline-danger:hover {
-    background: #e74c3c;
+  }
+  .btn-outline-danger {
+    color: #f8a5a5;
+    border-color: rgba(248, 165, 165, 0.5);
+  }
+  .btn-outline-danger:hover {
+    background: rgba(248, 165, 165, 0.15);
     color: #fff;
-    }
+  }
 
-    /* Form */
-    .form-control, .form-select {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Form */
+  .form-control, .form-select {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: #fff;
     border-radius: 12px;
-    backdrop-filter: blur(4px);
-    }
-    .form-control:focus, .form-select:focus {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--gradient-start);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
-    }
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(168, 230, 207, 0.4);
+    box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.1);
+  }
 
-    /* Modal */
-    .modal-content {
+  /* Modal */
+  .modal-content {
     background: linear-gradient(145deg, #1e1e2f, #2a2a40) !important;
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(15px);
+    border-radius: 16px;
     }
 
-    /* Kalender (wrapper saja) */
+    /* Kalender (pembungkus) */
     #calendar-instance {
-    background: var(--tg-theme-secondary-bg-color, #1e1e2f);
+    background: var(--tg-theme-secondary-bg-color, rgba(26, 26, 46, 0.8));
     border-radius: 16px;
     padding: 0.5rem;
     }
 
-    /* Legend dot dengan gradien */
+    /* Legend dot */
     #calendar-legend .legend-dot.day {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    background: linear-gradient(135deg, #a8e6cf, #88d8b0);
     }
     #calendar-legend .legend-dot.night {
-    background: linear-gradient(135deg, #1e3799, #0c2461);
+    background: linear-gradient(135deg, #6c7ce0, #4a5bc0);
     }
     #calendar-legend .legend-dot.off {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: linear-gradient(135deg, #f8a5a5, #e87a7a);
     }
     #calendar-legend .legend-dot.leave {
-    background: linear-gradient(135deg, #f1c40f, #f39c12);
+    background: linear-gradient(135deg, #f4d03f, #e6b800);
     }
 
     /* Alert */
     .alert {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(8px);
     border-radius: 12px;
+    }
+
+    /* Tombol info (ikon ?) */
+    [data-info-title] {
+    color: var(--text-secondary);
+    transition: color 0.2s;
+    }
+    [data-info-title]:hover {
+    color: #a8e6cf;
     }
     </style>
     <style>

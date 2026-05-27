@@ -59,7 +59,7 @@
     let currentChar = null;
     let count = 0;
     for (const char of pattern.toUpperCase()) {
-      const c = (char === '-' || char === 'O') ? 'O': char;
+      const c = (char !== 'D' || char !== 'N') ? 'O': char;
       if (c !== currentChar) {
         if (currentChar) counts.push(`${count}${currentChar}`);
         currentChar = c;

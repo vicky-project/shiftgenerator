@@ -53,16 +53,15 @@
   }
 
   function formatShiftPattern(pattern) {
-    // Hitung jumlah D, N, O (atau - sebagai O) berturut-turut?
-    // Contoh: "DDDDDDDDNNNNNO" -> "8D5N1O"
+    // Ubah semua karakter selain D dan N menjadi O
+    const normalized = pattern.toUpperCase().replace(/[^DN]/g, 'O');
     const counts = [];
     let currentChar = null;
     let count = 0;
-    for (const char of pattern.toUpperCase()) {
-      const c = (char !== 'D' || char !== 'N') ? 'O': char;
-      if (c !== currentChar) {
+    for (const char of normalized) {
+      if (char !== currentChar) {
         if (currentChar) counts.push(`${count}${currentChar}`);
-        currentChar = c;
+        currentChar = char;
         count = 1;
       } else {
         count++;

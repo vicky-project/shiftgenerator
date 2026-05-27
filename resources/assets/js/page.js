@@ -52,6 +52,26 @@
     }
   }
 
+  function formatShiftPattern(pattern) {
+    // Hitung jumlah D, N, O (atau - sebagai O) berturut-turut?
+    // Contoh: "DDDDDDDDNNNNNO" -> "8D5N1O"
+    const counts = [];
+    let currentChar = null;
+    let count = 0;
+    for (const char of pattern.toUpperCase()) {
+      const c = (char === '-' || char === 'O') ? 'O': char;
+      if (c !== currentChar) {
+        if (currentChar) counts.push(`${count}${currentChar}`);
+        currentChar = c;
+        count = 1;
+      } else {
+        count++;
+      }
+    }
+    if (currentChar) counts.push(`${count}${currentChar}`);
+    return counts.join('') || pattern;
+  }
+
   // ---------- Render daftar karyawan ----------
   async function renderEmployeeList(page = 1) {
     destroyCalendar();
@@ -86,7 +106,7 @@
           <div>
           <strong>${escapeHtml(emp.name)}</strong>
           <div class="text-muted small">NRP: ${escapeHtml(emp.nrp)}</div>
-          <div class="text-muted small">Pola: ${escapeHtml(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
+          <div class="text-muted small">Pola: ${formatShiftPattern(emp.shift_pattern)} | Siklus: ${emp.work_days}H/${emp.leave_days}H</div>
           </div>
           <div class="btn-group btn-group-sm">
           <button data-nav="overrides:${emp.id}" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i> Cuti</button>

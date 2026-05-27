@@ -269,7 +269,7 @@
 
     const content = document.getElementById('app-content');
     content.innerHTML = `
-    <div class="mb-3">
+    <div class="mb-3 p-3">
     <label class="form-label">Tambah Pengajuan Cuti (mulai)</label>
     <form id="override-form" class="row g-2">
     <div class="col-8"><input type="date" name="start_date" class="form-control" required></div>
@@ -384,9 +384,9 @@
     <div id="shift-calendar-wrapper">
     <div id="shift-calendar" style="margin-bottom: 1rem;"></div>
     </div>
-    <div id="holiday-box" class="mt-3 d-none">
+    <div id="holiday-box" class="mt-3 d-none p-3">
     <h6>Hari Libur Nasional</h6>
-    <div id="holiday-list" class="d-flex flex-wrap gap-2 p-3"></div>
+    <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
     </div>
     <div class="d-flex justify-content-end mt-3 p-3">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"

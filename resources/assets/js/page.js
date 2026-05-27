@@ -568,7 +568,7 @@
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar(targetEl, {
       type: 'default',
-      firstDayOfWeek: 1,
+      firstDayOfWeek: 0,
       selectedWeekends: [0],
       settings: {
         visibility: {

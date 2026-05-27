@@ -386,9 +386,9 @@
     </div>
     <div id="holiday-box" class="mt-3 d-none">
     <h6>Hari Libur Nasional</h6>
-    <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
+    <div id="holiday-list" class="d-flex flex-wrap gap-2 p-3"></div>
     </div>
-    <div class="d-flex justify-content-end mt-3">
+    <div class="d-flex justify-content-end mt-3 p-3">
     <button class="btn btn-sm btn-outline-primary" id="btn-export"
     style="border-color: #667eea; color: #667eea;">
     <i class="bi bi-download"></i> Export Excel

@@ -164,7 +164,7 @@
 
     const content = document.getElementById('app-content');
     content.innerHTML = `
-    <form id="employee-form">
+    <form id="employee-form" class="p-3">
     <div class="mb-3">
     <label class="form-label">Nama</label>
     <input type="text" name="name" class="form-control" value="${employee ? escapeHtml(employee.name): ''}" required>

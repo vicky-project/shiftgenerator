@@ -72,7 +72,7 @@
         lastPage
       };
 
-      let html = `<div class="d-flex justify-content-end mb-3">
+      let html = `<div class="d-flex justify-content-end mb-3 p-3">
       <button data-nav="create-employee" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah</button>
       </div>`;
 

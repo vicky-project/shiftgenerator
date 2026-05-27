@@ -367,7 +367,11 @@
     <div class="col-6"><label class="form-label">Mulai</label><input type="date" id="start_date" class="form-control" placeholder="01/01/2026"></div>
     <div class="col-6"><label class="form-label">Selesai</label><input type="date" id="end_date" class="form-control" placeholder="01/01/2026"></div>
     </div>
-    <button class="btn btn-success mt-3 w-100" id="btn-generate"><i class="bi bi-gear"></i> Generate</button>
+    <button class="btn btn-success mt-3 w-100" id="btn-generate"
+    style="background: linear-gradient(135deg, #11998e, #38ef7d); border:none;
+    box-shadow: 0 4px 15px rgba(56,239,125,0.3);">
+    <i class="bi bi-gear"></i> Generate
+    </button>
     </div>
     </div>
     <div id="result-container" class="d-none">
@@ -385,7 +389,10 @@
     <div id="holiday-list" class="d-flex flex-wrap gap-2"></div>
     </div>
     <div class="d-flex justify-content-end mt-3">
-    <button class="btn btn-sm btn-outline-primary" id="btn-export"><i class="bi bi-download"></i> Export Excel</button>
+    <button class="btn btn-sm btn-outline-primary" id="btn-export"
+    style="border-color: #667eea; color: #667eea;">
+    <i class="bi bi-download"></i> Export Excel
+    </button>
     </div>
     </div>`;
   }
@@ -568,7 +575,7 @@
     } = window.VanillaCalendarPro;
     calendarInstance = new Calendar(targetEl, {
       type: 'default',
-      firstDayOfWeek: 0,
+      firstWeekday: 0,
       selectedWeekends: [0],
       settings: {
         visibility: {

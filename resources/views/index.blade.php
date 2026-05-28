@@ -57,191 +57,191 @@
 <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
-  --bg-start: #1a1a2e;
-  --bg-end: #16213e;
-  --accent-start: #a8e6cf;
-  --accent-end: #dcedc1;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0c0;
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --bg-deep: #0B1A2A;
+  --bg-surface: #13273B;
+  --accent-electric: #38BDF8;
+  --accent-mint: #34D399;
+  --accent-soft: #A7F3D0;
+  --text-main: #F0F9FF;
+  --text-muted: #94A3B8;
+  --border-subtle: rgba(56, 189, 248, 0.12);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
   body, #app-shell {
-    background: linear-gradient(135deg, var(--bg-start), var(--bg-end)) !important;
-    color: var(--text-primary) !important;
+    background: linear-gradient(160deg, #0B1A2A 0%, #13273B 45%, #0B1A2A 100%) !important;
+    color: var(--text-main) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
+    min-height: 100vh;
+    }
 
-  /* Header */
-  #app-header {
-    background: rgba(26, 26, 46, 0.6) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--glass-border);
-  }
+    /* Header */
+    #app-header {
+    background: rgba(11, 26, 42, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    }
 
-  /* Tab Bar */
-  #app-tabbar {
-    background: rgba(26, 26, 46, 0.7) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--glass-border);
-  }
-  #app-tabbar .nav-link {
-    color: var(--text-secondary) !important;
+    /* Tab Bar */
+    #app-tabbar {
+    background: rgba(11, 26, 42, 0.9) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-subtle);
+    }
+    #app-tabbar .nav-link {
+    color: var(--text-muted) !important;
     transition: all 0.3s ease;
-    border-radius: 12px;
-    padding: 0.5rem 1rem;
-  }
-  #app-tabbar .nav-link.active {
-    color: #fff !important;
+    border-radius: 14px;
+    padding: 0.4rem 1.2rem;
+    margin: 0 0.2rem;
+    }
+    #app-tabbar .nav-link.active {
+    color: #FFFFFF !important;
     font-weight: 600;
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.2), rgba(220, 237, 193, 0.1)) !important;
-    box-shadow: 0 2px 10px rgba(168, 230, 207, 0.1);
-  }
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(52, 211, 153, 0.2)) !important;
+    box-shadow: 0 2px 18px rgba(56, 189, 248, 0.25);
+    }
 
-  /* Kartu */
-  .card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    transition: all 0.25s ease;
-  }
-  .card:hover {
+    /* Kartu */
+    .card {
     background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(168, 230, 207, 0.15);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  }
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    }
+    .card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+    }
 
-  /* Tombol Umum */
-  .btn {
+    /* Tombol Umum */
+    .btn {
     border-radius: 12px;
     font-weight: 500;
-    transition: all 0.25s ease;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.25), rgba(220, 237, 193, 0.15)) !important;
-    border: 1px solid rgba(168, 230, 207, 0.3) !important;
-    color: var(--text-primary) !important;
-  }
-  .btn-primary:hover {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.4), rgba(220, 237, 193, 0.25)) !important;
-    box-shadow: 0 4px 15px rgba(168, 230, 207, 0.15);
-  }
-  .btn-success {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.3), rgba(119, 221, 119, 0.2)) !important;
-    border: 1px solid rgba(168, 230, 207, 0.35) !important;
-    color: var(--text-primary) !important;
-  }
-  .btn-success:hover {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.45), rgba(119, 221, 119, 0.3)) !important;
-  }
-  .btn-outline-info, .btn-outline-warning, .btn-outline-danger {
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+    }
+    .btn-primary {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.45), rgba(52, 211, 153, 0.35)) !important;
+    border: 1px solid rgba(56, 189, 248, 0.6) !important;
+    color: #FFFFFF !important;
+    }
+    .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.7), rgba(52, 211, 153, 0.6)) !important;
+    box-shadow: 0 4px 22px rgba(56, 189, 248, 0.35);
+    }
+    .btn-success {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.5), rgba(56, 189, 248, 0.4)) !important;
+    border: 1px solid rgba(52, 211, 153, 0.6) !important;
+    color: #FFFFFF !important;
+    }
+    .btn-success:hover {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.8), rgba(56, 189, 248, 0.7)) !important;
+    box-shadow: 0 4px 22px rgba(52, 211, 153, 0.35);
+    }
+    .btn-outline-info {
+    color: #38BDF8;
+    border-color: rgba(56, 189, 248, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
-  }
-  .btn-outline-info {
-    color: #7ec8e3;
-    border-color: rgba(126, 200, 227, 0.5);
-  }
-  .btn-outline-info:hover {
-    background: rgba(126, 200, 227, 0.15);
-    color: #fff;
-  }
-  .btn-outline-warning {
-    color: #f4d03f;
-    border-color: rgba(244, 208, 63, 0.5);
-  }
-  .btn-outline-warning:hover {
-    background: rgba(244, 208, 63, 0.15);
-    color: #fff;
-  }
-  .btn-outline-danger {
-    color: #f8a5a5;
-    border-color: rgba(248, 165, 165, 0.5);
-  }
-  .btn-outline-danger:hover {
-    background: rgba(248, 165, 165, 0.15);
-    color: #fff;
-  }
+    }
+    .btn-outline-info:hover {
+    background: rgba(56, 189, 248, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(56, 189, 248, 0.8);
+    }
+    .btn-outline-warning {
+    color: #34D399;
+    border-color: rgba(52, 211, 153, 0.5);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(4px);
+    }
+    .btn-outline-warning:hover {
+    background: rgba(52, 211, 153, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(52, 211, 153, 0.8);
+    }
+    .btn-outline-danger {
+    color: #FCA5A5;
+    border-color: rgba(252, 165, 165, 0.5);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(4px);
+    }
+    .btn-outline-danger:hover {
+    background: rgba(252, 165, 165, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(252, 165, 165, 0.8);
+    }
 
-  /* Form */
-  .form-control, .form-select {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #fff;
-    border-radius: 12px;
-  }
-  .form-control:focus, .form-select:focus {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(168, 230, 207, 0.4);
-    box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.1);
-  }
+    /* Form */
+    .form-control, .form-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
 
-  /* Modal */
-  .modal-content {
-    background: linear-gradient(145deg, #1e1e2f, #2a2a40) !important;
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
+    /* Modal */
+    .modal-content {
+    background: linear-gradient(145deg, #13273B, #0B1A2A) !important;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(24px);
+    border-radius: 20px;
     }
 
     /* Kalender (pembungkus) */
     #calendar-instance {
-    background: var(--tg-theme-secondary-bg-color, rgba(26, 26, 46, 0.8));
+    background: rgba(19, 39, 59, 0.7);
+    backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 0.5rem;
     }
 
     /* Legend dot */
     #calendar-legend .legend-dot.day {
-    background: linear-gradient(135deg, #a8e6cf, #88d8b0);
+    background: linear-gradient(135deg, #34D399, #10B981);
     }
     #calendar-legend .legend-dot.night {
-    background: linear-gradient(135deg, #6c7ce0, #4a5bc0);
+    background: linear-gradient(135deg, #38BDF8, #0EA5E9);
     }
     #calendar-legend .legend-dot.off {
-    background: linear-gradient(135deg, #f8a5a5, #e87a7a);
+    background: linear-gradient(135deg, #F87171, #EF4444);
     }
     #calendar-legend .legend-dot.leave {
-    background: linear-gradient(135deg, #f4d03f, #e6b800);
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
     }
 
     /* Alert */
     .alert {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
     backdrop-filter: blur(8px);
-    border-radius: 12px;
+    border-radius: 14px;
+    color: var(--text-main);
     }
 
     /* Tombol info (ikon ?) */
     [data-info-title] {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     transition: color 0.2s;
     }
     [data-info-title]:hover {
-    color: #a8e6cf;
-    }
-    </style>
-    <style>
-    /* Tombol info */
-    [data-info-title] {
-    color: var(--tg-theme-hint-color);
-    text-decoration: none;
-    font-size: 1rem;
-    vertical-align: middle;
-    }
-    [data-info-title]:hover {
-    color: var(--shift-primary);
+    color: #38BDF8;
     }
 
     /* ========== KALENDER ========== */
-    /* Dot warna shift */
     .vc-date__btn {
     position: relative;
     }
@@ -258,6 +258,7 @@
     align-items: center;
     gap: 0.4rem;
     font-size: 0.85rem;
+    color: var(--text-muted);
     }
     #calendar-legend .legend-dot {
     width: 14px;
@@ -265,18 +266,8 @@
     border-radius: 4px;
     display: inline-block;
     }
-    .shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
-    }
-    .shift-holiday .vc-date__btn:hover {
-    color: #fff !important;
-    font-weight: 600;
-    }
-    .shift-holiday[data-vc-date-selected] .vc-date__btn {
-    color: #fff !important;
-    font-weight: 600;
-    }
+
+    /* ---------- DOT WARNA SHIFT ---------- */
     .shift-day .vc-date__btn::after,
     .shift-night .vc-date__btn::after,
     .shift-leave .vc-date__btn::after,
@@ -291,41 +282,41 @@
     border-radius: 50%;
     pointer-events: none;
     }
-
-    /* ---------- DOT WARNA SHIFT ---------- */
     .shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-    /* Hijau */
+    background-color: #34D399;
     }
     .shift-night .vc-date__btn::after {
-    background-color: #1e3799;
-    /* Biru tua */
+    background-color: #38BDF8;
     }
     .shift-off .vc-date__btn::after {
-    background-color: #e74c3c;
-    /* Merah */
+    background-color: #F87171;
     }
     .shift-leave .vc-date__btn::after {
-    background-color: #f1c40f;
-    /* Kuning */
+    background-color: #FBBF24;
     }
 
     /* ---------- WARNA MERAH HANYA UNTUK LIBUR DI BULAN AKTIF ---------- */
     [data-vc-date-month="current"].shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
+    color: #F87171 !important;
+    font-weight: 600;
+    }
+    .shift-holiday .vc-date__btn:hover {
+    color: #fff !important;
+    font-weight: 600;
+    }
+    .shift-holiday[data-vc-date-selected] .vc-date__btn {
+    color: #fff !important;
     font-weight: 600;
     }
 
-    /* Tanggal di luar bulan tampil redup, termasuk yang libur */
+    /* Tanggal di luar bulan tampil redup */
     [data-vc-date-month="prev"] .vc-date__btn,
     [data-vc-date-month="next"] .vc-date__btn {
-    opacity: 0.5;
+    opacity: 0.4;
     }
-
-    /* Pastikan dot shift juga ikut redup */
     [data-vc-date-month="prev"] .vc-date__btn::after,
     [data-vc-date-month="next"] .vc-date__btn::after {
-    opacity: 0.5;
+    opacity: 0.4;
     }
 
     /* Text color helper */

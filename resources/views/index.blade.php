@@ -57,187 +57,188 @@
 <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
-  --bg-start: #1a1a2e;
-  --bg-end: #16213e;
-  --accent-start: #a8e6cf;
-  --accent-end: #dcedc1;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0c0;
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --bg-deep: #1E1B2E;
+  --bg-surface: #26233A;
+  --accent-soft: #C4A7E7;
+  --accent-glow: #9B8EC4;
+  --gold-light: #F2D398;
+  --text-main: #F0EDF4;
+  --text-muted: #9A95B5;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
   body, #app-shell {
-    background: linear-gradient(135deg, var(--bg-start), var(--bg-end)) !important;
-    color: var(--text-primary) !important;
+    background: linear-gradient(165deg, #1A1625 0%, #252036 50%, #1E1B2E 100%) !important;
+    color: var(--text-main) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
+    min-height: 100vh;
+    }
 
-  /* Header */
-  #app-header {
-    background: rgba(26, 26, 46, 0.6) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--glass-border);
-  }
+    /* Header */
+    #app-header {
+    background: rgba(30, 27, 46, 0.7) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--border-subtle);
+    }
 
-  /* Tab Bar */
-  #app-tabbar {
-    background: rgba(26, 26, 46, 0.7) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--glass-border);
-  }
-  #app-tabbar .nav-link {
-    color: var(--text-secondary) !important;
+    /* Tab Bar */
+    #app-tabbar {
+    background: rgba(30, 27, 46, 0.8) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid var(--border-subtle);
+    }
+    #app-tabbar .nav-link {
+    color: var(--text-muted) !important;
     transition: all 0.3s ease;
-    border-radius: 12px;
-    padding: 0.5rem 1rem;
-  }
-  #app-tabbar .nav-link.active {
-    color: #fff !important;
+    border-radius: 14px;
+    padding: 0.4rem 1rem;
+    margin: 0 0.2rem;
+    }
+    #app-tabbar .nav-link.active {
+    color: #FFFFFF !important;
     font-weight: 600;
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.2), rgba(220, 237, 193, 0.1)) !important;
-    box-shadow: 0 2px 10px rgba(168, 230, 207, 0.1);
-  }
+    background: linear-gradient(135deg, rgba(196, 167, 231, 0.25), rgba(155, 142, 196, 0.15)) !important;
+    box-shadow: 0 2px 12px rgba(196, 167, 231, 0.2);
+    }
 
-  /* Kartu */
-  .card {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    transition: all 0.25s ease;
-  }
-  .card:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(168, 230, 207, 0.15);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-  }
+    /* Kartu */
+    .card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    }
+    .card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(196, 167, 231, 0.25);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+    }
 
-  /* Tombol Umum */
-  .btn {
+    /* Tombol Umum */
+    .btn {
     border-radius: 12px;
     font-weight: 500;
-    transition: all 0.25s ease;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.25), rgba(220, 237, 193, 0.15)) !important;
-    border: 1px solid rgba(168, 230, 207, 0.3) !important;
-    color: var(--text-primary) !important;
-  }
-  .btn-primary:hover {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.4), rgba(220, 237, 193, 0.25)) !important;
-    box-shadow: 0 4px 15px rgba(168, 230, 207, 0.15);
-  }
-  .btn-success {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.3), rgba(119, 221, 119, 0.2)) !important;
-    border: 1px solid rgba(168, 230, 207, 0.35) !important;
-    color: var(--text-primary) !important;
-  }
-  .btn-success:hover {
-    background: linear-gradient(135deg, rgba(168, 230, 207, 0.45), rgba(119, 221, 119, 0.3)) !important;
-  }
-  .btn-outline-info, .btn-outline-warning, .btn-outline-danger {
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+    }
+    .btn-primary {
+    background: linear-gradient(135deg, rgba(196, 167, 231, 0.3), rgba(155, 142, 196, 0.2)) !important;
+    border: 1px solid rgba(196, 167, 231, 0.4) !important;
+    color: #FFFFFF !important;
+    }
+    .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(196, 167, 231, 0.5), rgba(155, 142, 196, 0.35)) !important;
+    box-shadow: 0 4px 18px rgba(196, 167, 231, 0.25);
+    }
+    .btn-success {
+    background: linear-gradient(135deg, rgba(196, 167, 231, 0.35), rgba(242, 211, 152, 0.2)) !important;
+    border: 1px solid rgba(242, 211, 152, 0.4) !important;
+    color: #FFFFFF !important;
+    }
+    .btn-success:hover {
+    background: linear-gradient(135deg, rgba(196, 167, 231, 0.55), rgba(242, 211, 152, 0.35)) !important;
+    box-shadow: 0 4px 18px rgba(242, 211, 152, 0.2);
+    }
+    .btn-outline-info {
+    color: #C4A7E7;
+    border-color: rgba(196, 167, 231, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
-  }
-  .btn-outline-info {
-    color: #7ec8e3;
-    border-color: rgba(126, 200, 227, 0.5);
-  }
-  .btn-outline-info:hover {
-    background: rgba(126, 200, 227, 0.15);
-    color: #fff;
-  }
-  .btn-outline-warning {
-    color: #f4d03f;
-    border-color: rgba(244, 208, 63, 0.5);
-  }
-  .btn-outline-warning:hover {
-    background: rgba(244, 208, 63, 0.15);
-    color: #fff;
-  }
-  .btn-outline-danger {
-    color: #f8a5a5;
-    border-color: rgba(248, 165, 165, 0.5);
-  }
-  .btn-outline-danger:hover {
-    background: rgba(248, 165, 165, 0.15);
-    color: #fff;
-  }
+    }
+    .btn-outline-info:hover {
+    background: rgba(196, 167, 231, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(196, 167, 231, 0.8);
+    }
+    .btn-outline-warning {
+    color: #F2D398;
+    border-color: rgba(242, 211, 152, 0.5);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(4px);
+    }
+    .btn-outline-warning:hover {
+    background: rgba(242, 211, 152, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(242, 211, 152, 0.8);
+    }
+    .btn-outline-danger {
+    color: #F4A5A5;
+    border-color: rgba(244, 165, 165, 0.5);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(4px);
+    }
+    .btn-outline-danger:hover {
+    background: rgba(244, 165, 165, 0.2);
+    color: #FFFFFF;
+    border-color: rgba(244, 165, 165, 0.8);
+    }
 
-  /* Form */
-  .form-control, .form-select {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #fff;
-    border-radius: 12px;
-  }
-  .form-control:focus, .form-select:focus {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(168, 230, 207, 0.4);
-    box-shadow: 0 0 0 3px rgba(168, 230, 207, 0.1);
-  }
+    /* Form */
+    .form-control, .form-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(196, 167, 231, 0.5);
+    box-shadow: 0 0 0 3px rgba(196, 167, 231, 0.15);
+    }
 
-  /* Modal */
-  .modal-content {
-    background: linear-gradient(145deg, #1e1e2f, #2a2a40) !important;
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
+    /* Modal */
+    .modal-content {
+    background: linear-gradient(145deg, #26233A, #1E1B2E) !important;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     }
 
     /* Kalender (pembungkus) */
     #calendar-instance {
-    background: var(--tg-theme-secondary-bg-color, rgba(26, 26, 46, 0.8));
+    background: rgba(38, 35, 58, 0.7);
+    backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 0.5rem;
     }
 
     /* Legend dot */
     #calendar-legend .legend-dot.day {
-    background: linear-gradient(135deg, #a8e6cf, #88d8b0);
+    background: linear-gradient(135deg, #A8E6CF, #7BC8A4);
     }
     #calendar-legend .legend-dot.night {
-    background: linear-gradient(135deg, #6c7ce0, #4a5bc0);
+    background: linear-gradient(135deg, #9B8EC4, #6C63FF);
     }
     #calendar-legend .legend-dot.off {
-    background: linear-gradient(135deg, #f8a5a5, #e87a7a);
+    background: linear-gradient(135deg, #F4A5A5, #E07A7A);
     }
     #calendar-legend .legend-dot.leave {
-    background: linear-gradient(135deg, #f4d03f, #e6b800);
+    background: linear-gradient(135deg, #F2D398, #E6B800);
     }
 
     /* Alert */
     .alert {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
     backdrop-filter: blur(8px);
-    border-radius: 12px;
+    border-radius: 14px;
+    color: var(--text-main);
     }
 
     /* Tombol info (ikon ?) */
     [data-info-title] {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     transition: color 0.2s;
     }
     [data-info-title]:hover {
-    color: #a8e6cf;
-    }
-    </style>
-    <style>
-    /* Tombol info */
-    [data-info-title] {
-    color: var(--tg-theme-hint-color);
-    text-decoration: none;
-    font-size: 1rem;
-    vertical-align: middle;
-    }
-    [data-info-title]:hover {
-    color: var(--shift-primary);
+    color: #C4A7E7;
     }
 
     /* ========== KALENDER ========== */
@@ -258,6 +259,7 @@
     align-items: center;
     gap: 0.4rem;
     font-size: 0.85rem;
+    color: var(--text-muted);
     }
     #calendar-legend .legend-dot {
     width: 14px;
@@ -294,20 +296,20 @@
 
     /* ---------- DOT WARNA SHIFT ---------- */
     .shift-day .vc-date__btn::after {
-    background-color: #2ecc71;
-    /* Hijau */
+    background-color: #7BC8A4;
+    /* Hijau lembut */
     }
     .shift-night .vc-date__btn::after {
-    background-color: #1e3799;
-    /* Biru tua */
+    background-color: #6C63FF;
+    /* Ungu */
     }
     .shift-off .vc-date__btn::after {
-    background-color: #e74c3c;
+    background-color: #E07A7A;
     /* Merah */
     }
     .shift-leave .vc-date__btn::after {
-    background-color: #f1c40f;
-    /* Kuning */
+    background-color: #F2D398;
+    /* Emas */
     }
 
     /* ---------- WARNA MERAH HANYA UNTUK LIBUR DI BULAN AKTIF ---------- */
@@ -319,13 +321,13 @@
     /* Tanggal di luar bulan tampil redup, termasuk yang libur */
     [data-vc-date-month="prev"] .vc-date__btn,
     [data-vc-date-month="next"] .vc-date__btn {
-    opacity: 0.5;
+    opacity: 0.4;
     }
 
     /* Pastikan dot shift juga ikut redup */
     [data-vc-date-month="prev"] .vc-date__btn::after,
     [data-vc-date-month="next"] .vc-date__btn::after {
-    opacity: 0.5;
+    opacity: 0.4;
     }
 
     /* Text color helper */

@@ -57,19 +57,19 @@
 <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
-  --bg-deep: #1a231a;
-  --bg-surface: #243024;
-  --accent-green: #b8d0a8;
-  --accent-gold: #c9b079;
-  --accent-cream: #e6d5a8;
-  --text-main: #f0f2e8;
-  --text-muted: #b0b8a0;
-  --border-subtle: rgba(180, 200, 160, 0.15);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --bg-deep: #0B1A2A;
+  --bg-surface: #13273B;
+  --accent-electric: #38BDF8;
+  --accent-mint: #34D399;
+  --accent-soft: #A7F3D0;
+  --text-main: #F0F9FF;
+  --text-muted: #94A3B8;
+  --border-subtle: rgba(56, 189, 248, 0.12);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
   body, #app-shell {
-    background: linear-gradient(155deg, #1a231a 0%, #243024 50%, #1a231a 100%) !important;
+    background: linear-gradient(160deg, #0B1A2A 0%, #13273B 45%, #0B1A2A 100%) !important;
     color: var(--text-main) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
@@ -77,7 +77,7 @@
 
     /* Header */
     #app-header {
-    background: rgba(26, 35, 26, 0.8) !important;
+    background: rgba(11, 26, 42, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
@@ -85,7 +85,7 @@
 
     /* Tab Bar */
     #app-tabbar {
-    background: rgba(26, 35, 26, 0.85) !important;
+    background: rgba(11, 26, 42, 0.9) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-subtle);
@@ -100,8 +100,8 @@
     #app-tabbar .nav-link.active {
     color: #FFFFFF !important;
     font-weight: 600;
-    background: linear-gradient(135deg, rgba(184, 208, 168, 0.3), rgba(201, 176, 121, 0.2)) !important;
-    box-shadow: 0 2px 15px rgba(184, 208, 168, 0.2);
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(52, 211, 153, 0.2)) !important;
+    box-shadow: 0 2px 18px rgba(56, 189, 248, 0.25);
     }
 
     /* Kartu */
@@ -115,7 +115,7 @@
     }
     .card:hover {
     background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(184, 208, 168, 0.4);
+    border-color: rgba(56, 189, 248, 0.4);
     box-shadow: var(--shadow-card);
     transform: translateY(-2px);
     }
@@ -128,74 +128,74 @@
     letter-spacing: 0.3px;
     }
     .btn-primary {
-    background: linear-gradient(135deg, rgba(184, 208, 168, 0.4), rgba(201, 176, 121, 0.3)) !important;
-    border: 1px solid rgba(184, 208, 168, 0.5) !important;
-    color: #1a231a !important;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.45), rgba(52, 211, 153, 0.35)) !important;
+    border: 1px solid rgba(56, 189, 248, 0.6) !important;
+    color: #FFFFFF !important;
     }
     .btn-primary:hover {
-    background: linear-gradient(135deg, rgba(184, 208, 168, 0.7), rgba(201, 176, 121, 0.6)) !important;
-    box-shadow: 0 4px 20px rgba(184, 208, 168, 0.3);
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.7), rgba(52, 211, 153, 0.6)) !important;
+    box-shadow: 0 4px 22px rgba(56, 189, 248, 0.35);
     }
     .btn-success {
-    background: linear-gradient(135deg, rgba(184, 208, 168, 0.5), rgba(230, 213, 168, 0.4)) !important;
-    border: 1px solid rgba(230, 213, 168, 0.5) !important;
-    color: #1a231a !important;
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.5), rgba(56, 189, 248, 0.4)) !important;
+    border: 1px solid rgba(52, 211, 153, 0.6) !important;
+    color: #FFFFFF !important;
     }
     .btn-success:hover {
-    background: linear-gradient(135deg, rgba(184, 208, 168, 0.8), rgba(230, 213, 168, 0.7)) !important;
-    box-shadow: 0 4px 20px rgba(230, 213, 168, 0.3);
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.8), rgba(56, 189, 248, 0.7)) !important;
+    box-shadow: 0 4px 22px rgba(52, 211, 153, 0.35);
     }
     .btn-outline-info {
-    color: #b8d0a8;
-    border-color: rgba(184, 208, 168, 0.5);
+    color: #38BDF8;
+    border-color: rgba(56, 189, 248, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-info:hover {
-    background: rgba(184, 208, 168, 0.2);
+    background: rgba(56, 189, 248, 0.2);
     color: #FFFFFF;
-    border-color: rgba(184, 208, 168, 0.8);
+    border-color: rgba(56, 189, 248, 0.8);
     }
     .btn-outline-warning {
-    color: #e6d5a8;
-    border-color: rgba(230, 213, 168, 0.5);
+    color: #34D399;
+    border-color: rgba(52, 211, 153, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-warning:hover {
-    background: rgba(230, 213, 168, 0.2);
+    background: rgba(52, 211, 153, 0.2);
     color: #FFFFFF;
-    border-color: rgba(230, 213, 168, 0.8);
+    border-color: rgba(52, 211, 153, 0.8);
     }
     .btn-outline-danger {
-    color: #d4a5a5;
-    border-color: rgba(212, 165, 165, 0.5);
+    color: #FCA5A5;
+    border-color: rgba(252, 165, 165, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-danger:hover {
-    background: rgba(212, 165, 165, 0.2);
+    background: rgba(252, 165, 165, 0.2);
     color: #FFFFFF;
-    border-color: rgba(212, 165, 165, 0.8);
+    border-color: rgba(252, 165, 165, 0.8);
     }
 
     /* Form */
     .form-control, .form-select {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(184, 208, 168, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.15);
     color: #FFFFFF;
     border-radius: 14px;
     padding: 0.7rem 1rem;
     }
     .form-control:focus, .form-select:focus {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(184, 208, 168, 0.6);
-    box-shadow: 0 0 0 3px rgba(184, 208, 168, 0.15);
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
     }
 
     /* Modal */
     .modal-content {
-    background: linear-gradient(145deg, #243024, #1a231a) !important;
+    background: linear-gradient(145deg, #13273B, #0B1A2A) !important;
     border: 1px solid var(--border-subtle);
     backdrop-filter: blur(24px);
     border-radius: 20px;
@@ -203,7 +203,7 @@
 
     /* Kalender (pembungkus) */
     #calendar-instance {
-    background: rgba(36, 48, 36, 0.7);
+    background: rgba(19, 39, 59, 0.7);
     backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 0.5rem;
@@ -211,16 +211,16 @@
 
     /* Legend dot */
     #calendar-legend .legend-dot.day {
-    background: linear-gradient(135deg, #8fbc8f, #7ca87c);
+    background: linear-gradient(135deg, #34D399, #10B981);
     }
     #calendar-legend .legend-dot.night {
-    background: linear-gradient(135deg, #7b9eb3, #5d7f96);
+    background: linear-gradient(135deg, #38BDF8, #0EA5E9);
     }
     #calendar-legend .legend-dot.off {
-    background: linear-gradient(135deg, #d4a5a5, #b87c7c);
+    background: linear-gradient(135deg, #F87171, #EF4444);
     }
     #calendar-legend .legend-dot.leave {
-    background: linear-gradient(135deg, #e6c97e, #d4a843);
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
     }
 
     /* Alert */
@@ -238,7 +238,7 @@
     transition: color 0.2s;
     }
     [data-info-title]:hover {
-    color: #b8d0a8;
+    color: #38BDF8;
     }
 
     /* ========== KALENDER ========== */
@@ -283,21 +283,21 @@
     pointer-events: none;
     }
     .shift-day .vc-date__btn::after {
-    background-color: #8fbc8f;
+    background-color: #34D399;
     }
     .shift-night .vc-date__btn::after {
-    background-color: #7b9eb3;
+    background-color: #38BDF8;
     }
     .shift-off .vc-date__btn::after {
-    background-color: #d4a5a5;
+    background-color: #F87171;
     }
     .shift-leave .vc-date__btn::after {
-    background-color: #e6c97e;
+    background-color: #FBBF24;
     }
 
     /* ---------- WARNA MERAH HANYA UNTUK LIBUR DI BULAN AKTIF ---------- */
     [data-vc-date-month="current"].shift-holiday .vc-date__btn {
-    color: #d4a5a5 !important;
+    color: #F87171 !important;
     font-weight: 600;
     }
     .shift-holiday .vc-date__btn:hover {

@@ -43,22 +43,13 @@
 @endsection
 
 @push('scripts')
-<script src="//cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-  eruda.init();
-</script>
 <script>
   window.API_BASE = '{{ rtrim(config("app.url"), "/") }}';
 </script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
 <script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/core.js') }}"></script>
 <script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/page.js') }}"></script>
-<script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/main.js') }}"></script> -->
-<script>
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/core.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/page.js')); !!}
-  {!! file_get_contents(module_path('shiftgenerator', 'resources/assets/js/main.js')); !!}
-</script>
+<script src="{{ secure_url(rtrim(config("app.url"), "/") .'/apps/shift/js/main.js') }}"></script>
 @endpush
 
 @push('styles')
@@ -66,19 +57,19 @@
 <link href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/styles/index.css" rel="stylesheet">
 <style>
 :root {
-  --bg-deep: #1E1B2E;
-  --bg-surface: #26233A;
-  --accent-soft: #C4A7E7;
-  --accent-glow: #9B8EC4;
-  --gold-light: #F2D398;
-  --text-main: #F0EDF4;
-  --text-muted: #9A95B5;
+  --bg-deep: #0F172A;
+  --bg-surface: #1E293B;
+  --accent-teal: #2DD4BF;
+  --accent-coral: #FB7185;
+  --accent-gold: #FBBF24;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
   body, #app-shell {
-    background: linear-gradient(165deg, #1A1625 0%, #252036 50%, #1E1B2E 100%) !important;
+    background: linear-gradient(150deg, #0F172A 0%, #1E293B 40%, #0F172A 100%) !important;
     color: var(--text-main) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
@@ -86,47 +77,47 @@
 
     /* Header */
     #app-header {
-    background: rgba(30, 27, 46, 0.7) !important;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
     }
 
     /* Tab Bar */
     #app-tabbar {
-    background: rgba(30, 27, 46, 0.8) !important;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-subtle);
     }
     #app-tabbar .nav-link {
     color: var(--text-muted) !important;
     transition: all 0.3s ease;
     border-radius: 14px;
-    padding: 0.4rem 1rem;
+    padding: 0.4rem 1.2rem;
     margin: 0 0.2rem;
     }
     #app-tabbar .nav-link.active {
     color: #FFFFFF !important;
     font-weight: 600;
-    background: linear-gradient(135deg, rgba(196, 167, 231, 0.25), rgba(155, 142, 196, 0.15)) !important;
-    box-shadow: 0 2px 12px rgba(196, 167, 231, 0.2);
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.25), rgba(251, 113, 133, 0.15)) !important;
+    box-shadow: 0 2px 15px rgba(45, 212, 191, 0.2);
     }
 
     /* Kartu */
     .card {
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-subtle);
     border-radius: 18px;
     transition: all 0.3s ease;
     }
     .card:hover {
     background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(196, 167, 231, 0.25);
+    border-color: rgba(45, 212, 191, 0.25);
     box-shadow: var(--shadow-card);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     }
 
     /* Tombol Umum */
@@ -137,55 +128,55 @@
     letter-spacing: 0.3px;
     }
     .btn-primary {
-    background: linear-gradient(135deg, rgba(196, 167, 231, 0.3), rgba(155, 142, 196, 0.2)) !important;
-    border: 1px solid rgba(196, 167, 231, 0.4) !important;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.3), rgba(45, 212, 191, 0.15)) !important;
+    border: 1px solid rgba(45, 212, 191, 0.5) !important;
     color: #FFFFFF !important;
     }
     .btn-primary:hover {
-    background: linear-gradient(135deg, rgba(196, 167, 231, 0.5), rgba(155, 142, 196, 0.35)) !important;
-    box-shadow: 0 4px 18px rgba(196, 167, 231, 0.25);
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.5), rgba(45, 212, 191, 0.3)) !important;
+    box-shadow: 0 4px 20px rgba(45, 212, 191, 0.3);
     }
     .btn-success {
-    background: linear-gradient(135deg, rgba(196, 167, 231, 0.35), rgba(242, 211, 152, 0.2)) !important;
-    border: 1px solid rgba(242, 211, 152, 0.4) !important;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.4), rgba(251, 184, 36, 0.2)) !important;
+    border: 1px solid rgba(251, 184, 36, 0.45) !important;
     color: #FFFFFF !important;
     }
     .btn-success:hover {
-    background: linear-gradient(135deg, rgba(196, 167, 231, 0.55), rgba(242, 211, 152, 0.35)) !important;
-    box-shadow: 0 4px 18px rgba(242, 211, 152, 0.2);
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.6), rgba(251, 184, 36, 0.35)) !important;
+    box-shadow: 0 4px 20px rgba(251, 184, 36, 0.25);
     }
     .btn-outline-info {
-    color: #C4A7E7;
-    border-color: rgba(196, 167, 231, 0.5);
+    color: #2DD4BF;
+    border-color: rgba(45, 212, 191, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-info:hover {
-    background: rgba(196, 167, 231, 0.2);
+    background: rgba(45, 212, 191, 0.2);
     color: #FFFFFF;
-    border-color: rgba(196, 167, 231, 0.8);
+    border-color: rgba(45, 212, 191, 0.8);
     }
     .btn-outline-warning {
-    color: #F2D398;
-    border-color: rgba(242, 211, 152, 0.5);
+    color: #FB7185;
+    border-color: rgba(251, 113, 133, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-warning:hover {
-    background: rgba(242, 211, 152, 0.2);
+    background: rgba(251, 113, 133, 0.2);
     color: #FFFFFF;
-    border-color: rgba(242, 211, 152, 0.8);
+    border-color: rgba(251, 113, 133, 0.8);
     }
     .btn-outline-danger {
-    color: #F4A5A5;
-    border-color: rgba(244, 165, 165, 0.5);
+    color: #FCA5A5;
+    border-color: rgba(252, 165, 165, 0.5);
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(4px);
     }
     .btn-outline-danger:hover {
-    background: rgba(244, 165, 165, 0.2);
+    background: rgba(252, 165, 165, 0.2);
     color: #FFFFFF;
-    border-color: rgba(244, 165, 165, 0.8);
+    border-color: rgba(252, 165, 165, 0.8);
     }
 
     /* Form */
@@ -198,21 +189,21 @@
     }
     .form-control:focus, .form-select:focus {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(196, 167, 231, 0.5);
-    box-shadow: 0 0 0 3px rgba(196, 167, 231, 0.15);
+    border-color: rgba(45, 212, 191, 0.6);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
     }
 
     /* Modal */
     .modal-content {
-    background: linear-gradient(145deg, #26233A, #1E1B2E) !important;
+    background: linear-gradient(145deg, #1E293B, #0F172A) !important;
     border: 1px solid var(--border-subtle);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
     border-radius: 20px;
     }
 
     /* Kalender (pembungkus) */
     #calendar-instance {
-    background: rgba(38, 35, 58, 0.7);
+    background: rgba(30, 41, 59, 0.6);
     backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 0.5rem;
@@ -220,16 +211,16 @@
 
     /* Legend dot */
     #calendar-legend .legend-dot.day {
-    background: linear-gradient(135deg, #A8E6CF, #7BC8A4);
+    background: linear-gradient(135deg, #2DD4BF, #14B8A6);
     }
     #calendar-legend .legend-dot.night {
-    background: linear-gradient(135deg, #9B8EC4, #6C63FF);
+    background: linear-gradient(135deg, #818CF8, #6366F1);
     }
     #calendar-legend .legend-dot.off {
-    background: linear-gradient(135deg, #F4A5A5, #E07A7A);
+    background: linear-gradient(135deg, #FB7185, #E11D48);
     }
     #calendar-legend .legend-dot.leave {
-    background: linear-gradient(135deg, #F2D398, #E6B800);
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
     }
 
     /* Alert */
@@ -247,11 +238,10 @@
     transition: color 0.2s;
     }
     [data-info-title]:hover {
-    color: #C4A7E7;
+    color: #2DD4BF;
     }
 
     /* ========== KALENDER ========== */
-    /* Dot warna shift */
     .vc-date__btn {
     position: relative;
     }
@@ -276,18 +266,8 @@
     border-radius: 4px;
     display: inline-block;
     }
-    .shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
-    font-weight: 600;
-    }
-    .shift-holiday .vc-date__btn:hover {
-    color: #fff !important;
-    font-weight: 600;
-    }
-    .shift-holiday[data-vc-date-selected] .vc-date__btn {
-    color: #fff !important;
-    font-weight: 600;
-    }
+
+    /* ---------- DOT WARNA SHIFT ---------- */
     .shift-day .vc-date__btn::after,
     .shift-night .vc-date__btn::after,
     .shift-leave .vc-date__btn::after,
@@ -302,28 +282,34 @@
     border-radius: 50%;
     pointer-events: none;
     }
-
-    /* ---------- DOT WARNA SHIFT ---------- */
     .shift-day .vc-date__btn::after {
-    background-color: #7BC8A4;
-    /* Hijau lembut */
+    background-color: #14B8A6;
+    /* Teal */
     }
     .shift-night .vc-date__btn::after {
-    background-color: #6C63FF;
-    /* Ungu */
+    background-color: #818CF8;
+    /* Indigo */
     }
     .shift-off .vc-date__btn::after {
-    background-color: #E07A7A;
-    /* Merah */
+    background-color: #FB7185;
+    /* Coral */
     }
     .shift-leave .vc-date__btn::after {
-    background-color: #F2D398;
+    background-color: #FBBF24;
     /* Emas */
     }
 
     /* ---------- WARNA MERAH HANYA UNTUK LIBUR DI BULAN AKTIF ---------- */
     [data-vc-date-month="current"].shift-holiday .vc-date__btn {
-    color: #e74c3c !important;
+    color: #FB7185 !important;
+    font-weight: 600;
+    }
+    .shift-holiday .vc-date__btn:hover {
+    color: #fff !important;
+    font-weight: 600;
+    }
+    .shift-holiday[data-vc-date-selected] .vc-date__btn {
+    color: #fff !important;
     font-weight: 600;
     }
 
@@ -332,8 +318,6 @@
     [data-vc-date-month="next"] .vc-date__btn {
     opacity: 0.4;
     }
-
-    /* Pastikan dot shift juga ikut redup */
     [data-vc-date-month="prev"] .vc-date__btn::after,
     [data-vc-date-month="next"] .vc-date__btn::after {
     opacity: 0.4;

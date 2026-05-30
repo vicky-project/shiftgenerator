@@ -69,4 +69,10 @@ Route::middleware(['auth'])->prefix('shift')->name('shift.')->group(function () 
   Route::get('/export',
     [ShiftController::class,
       'export'])->name('generate.export');
+  Route::post('/generate-api',
+    [ShiftController::class,
+      'apiGenerate'])->name('generate.api');
+  Route::get('/schedules-api',
+    [ShiftController::class,
+      'apiSchedules'])->name('generate.schedules-api');
 });

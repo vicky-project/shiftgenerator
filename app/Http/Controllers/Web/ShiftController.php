@@ -40,4 +40,35 @@ class ShiftController extends Controller
       'shift_roster.xlsx'
     );
   }
+
+  public function apiGenerate(Request $request, ShiftGeneratorService $service) {
+    $validated = $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
+
+    return response()->json(['message' => 'Roster berhasil dibuat']);
+  }
+
+  public function apiSchedules(Request $request, HolidayService $holidayService) {
+    $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $user = auth()->user();
+    $schedules = ShiftSchedule::with('employee')
+    ->whereHas('employee', fn($q) => $q->where('telegram_user_id', $user->id))
+    ->whereBetween('date', [$request->start_date, $request->end_date])
+    ->orderBy('date')
+    ->orderBy('employee_id')
+    ->get();
+
+    return response()->json([
+      'schedules' => $schedules,
+      'holidays' => $holidayService->getHolidays(),
+    ]);
+  }
 }

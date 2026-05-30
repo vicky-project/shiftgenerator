@@ -48,16 +48,14 @@ class ShiftController extends Controller
     ]);
 
     try {
-      $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
-
-      return response()->json(['message' => 'Roster berhasil dibuat']);
-    } catch(\Exception $e) {
-      \Log::error('Failed to generate roster.', [
-        'message' => $e->getMessage(),
-        'trace' => $e->getTrace()
-      ]);
-
-      return response()->json(['message' => $e->getMessage()], 500);
+      $service->generate(
+        $validated['start_date'],
+        $validated['end_date'],
+        auth()->id()
+      );
+      return response()->json(['message' => 'Roster berhasil dibuat'], 200);
+    } catch (\Exception $e) {
+      return response()->json(['message' => 'Gagal generate: ' . $e->getMessage()], 500);
     }
   }
 

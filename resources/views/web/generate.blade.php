@@ -72,35 +72,41 @@
   method: 'POST',
   headers: {
   'Content-Type': 'application/json',
-  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content || '{{ csrf_token() }}'
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+  'Accept': 'application/json'
   },
   body: JSON.stringify({ start_date: startDate, end_date: endDate })
   });
-  if (!genRes.ok) throw new Error('Generate gagal');
+
+  if (!genRes.ok) {
+  const errorData = await genRes.json().catch(() => ({ message: 'Unknown error' }));
+  throw new Error(errorData.message || 'Generate gagal');
+  }
 
   // Ambil data schedules
-  const schedRes = await fetch(`{{ route("shift.generate.schedules-api") }}?start_date=${startDate}&end_date=${endDate}`,
+  const schedRes = await fetch(`{{ route("shift.generate.schedules-api") }}?start_date=${startDate}&end_date=${endDate}`, {
   headers: {
-  'Content-Type': 'application/json',
-  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content || '{{ csrf_token() }}'
+  'Accept': 'application/json',
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
   }
-  );
-  if (!schedRes.ok) throw new Error('Gagal mengambil data roster');
+  });
+
+  if (!schedRes.ok) {
+  const errorData = await schedRes.json().catch(() => ({ message: 'Unknown error' }));
+  throw new Error(errorData.message || 'Gagal mengambil data roster');
+  }
+
   const data = await schedRes.json();
   const schedules = data.schedules;
   const holidays = data.holidays || [];
 
-  // Tampilkan container hasil
   document.getElementById('result-container').style.display = 'block';
-  // Atur link ekspor
-  const exportBtn = document.getElementById('export-btn');
-  exportBtn.href = `{{ route("shift.generate.export") }}?start_date=${startDate}&end_date=${endDate}`;
+  document.getElementById('export-btn').href = `{{ route("shift.generate.export") }}?start_date=${startDate}&end_date=${endDate}`;
 
-  // Render kalender
   renderCalendar(startDate, endDate, schedules, holidays);
 
   } catch (err) {
-  alert('Gagal: ' + err.message);
+  alert('Error: ' + err.message);
   console.error(err);
   } finally {
   showLoading(false);

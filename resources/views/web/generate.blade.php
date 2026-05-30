@@ -57,6 +57,8 @@
 <script>
   const API_BASE = '{{ rtrim(config("app.url"), "/") }}';
   let calendar = null;
+  let currentObserver = null;
+  let currentEmpKey = null;
 
   // Form submit dengan fetch
   document.getElementById('generate-form').addEventListener('submit', async function(e) {
@@ -84,8 +86,8 @@
   throw new Error(errorData.message || 'Generate gagal');
   }
 
-  // Ambil data schedules
-  const schedRes = await fetch(API_BASE + `/shift/schedules-api?start_date=${startDate}&end_date=${endDate}`, {
+  // Ambil data schedules dan holidays
+  const schedRes = await fetch(`${API_BASE}/shift/schedules-api?start_date=${startDate}&end_date=${endDate}`, {
   headers: {
   'Accept': 'application/json',
   'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -104,6 +106,7 @@
   document.getElementById('result-container').style.display = 'block';
   document.getElementById('export-btn').href = `{{ route("shift.generate.export") }}?start_date=${startDate}&end_date=${endDate}`;
 
+  // Render kalender
   renderCalendar(startDate, endDate, schedules, holidays);
 
   } catch (err) {
@@ -138,13 +141,13 @@
     });
     const employeeKeys = Object.keys(byEmployee);
 
-    // Bangun popups untuk karyawan pertama (atau bisa dropdown nanti)
+    // Fungsi untuk membangun popups
     function buildPopups(empKey) {
       const empSchedules = byEmployee[empKey].schedules;
       const holidayDates = new Set(holidays.map(h => h.date));
       const popups = {};
       empSchedules.forEach(s => {
-      const dateKey = s.date.substring(0,10);
+      const dateKey = s.date.substring(0, 10);
       let modifier = s.shift === 'Day' ? 'shift-day' :
       s.shift === 'Night' ? 'shift-night' :
       s.shift === 'Leave' ? 'shift-leave' : 'shift-off';
@@ -165,15 +168,32 @@
       container.innerHTML = dropdownHtml + '<div id="calendar-instance-inner"></div>';
       document.getElementById('employee-select').addEventListener('change', function(e) {
       const idx = parseInt(e.target.value);
+      if (currentEmpKey !== employeeKeys[idx]) {
       updateCalendar(employeeKeys[idx]);
+      }
       });
     } else {
       container.innerHTML = '<div id="calendar-instance-inner"></div>';
     }
 
+    // Fungsi update kalender (dipanggil pertama kali dan saat ganti karyawan)
     function updateCalendar(empKey) {
       const inner = document.getElementById('calendar-instance-inner');
-      if (calendar) calendar.destroy();
+      if (!inner) return;
+
+      // Hancurkan observer lama
+      if (currentObserver) {
+        currentObserver.disconnect();
+        currentObserver = null;
+      }
+
+      // Hancurkan instance kalender sebelumnya
+      if (calendar) {
+        calendar.destroy();
+        calendar = null;
+      }
+
+      currentEmpKey = empKey;
       const popups = buildPopups(empKey);
 
       calendar = new VanillaCalendarPro.Calendar(inner, {
@@ -196,7 +216,7 @@
       });
       calendar.init();
 
-      // Fungsi untuk menerapkan modifier
+      // Fungsi untuk menerapkan modifier class
       function applyModifiers() {
         const dateElements = inner.querySelectorAll('[data-vc-date]');
         dateElements.forEach(el => {
@@ -213,11 +233,11 @@
       // Terapkan segera
       applyModifiers();
 
-      // Observer untuk perubahan DOM (navigasi bulan)
-      const observer = new MutationObserver(() => {
+      // Pasang observer untuk mempertahankan modifier saat navigasi bulan
+      currentObserver = new MutationObserver(() => {
         applyModifiers();
       });
-      observer.observe(inner, { childList: true, subtree: true });
+      currentObserver.observe(inner, { childList: true, subtree: true });
     }
 
     // Tampilkan karyawan pertama

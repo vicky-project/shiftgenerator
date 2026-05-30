@@ -22,12 +22,6 @@
             <p class="text-muted mb-1">
               NRP: {{ $emp->nrp }}
             </p>
-            <p class="text-muted mb-1">
-              Pola: {{ $emp->formatted_pattern }} | Siklus: {{ $emp->work_days }}H/{{ $emp->leave_days }}H
-            </p>
-            <p class="text-muted">
-              Shift Start: {{ $emp->shift_start_date->format('d/m/Y') }} ({{ $emp->shift_start->value }})
-            </p>
           </div>
           <div class="btn-group btn-group-sm align-self-start">
             <a href="{{ route('shift.employees.overrides', $emp) }}" class="btn btn-outline-info" title="Pengajuan Cuti">
@@ -42,6 +36,12 @@
             </form>
           </div>
         </div>
+        <p class="text-muted mb-1">
+          Pola: {{ $emp->formatted_pattern }} | Siklus: {{ $emp->work_days }}H/{{ $emp->leave_days }}H
+        </p>
+        <p class="text-muted">
+          Shift Start: {{ $emp->shift_start_date->format('d/m/Y') }} ({{ $emp->shift_start->value }})
+        </p>
       </div>
     </div>
   </div>

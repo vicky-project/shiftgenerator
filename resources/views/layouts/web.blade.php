@@ -92,21 +92,6 @@
       margin-left: 0;
       padding: 1rem;
       }
-      .sidebar-toggle {
-      display: block;
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      z-index: 1100;
-      background: var(--accent-electric);
-      border: none;
-      color: #fff;
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      font-size: 1.3rem;
-      cursor: pointer;
-      }
       }
       .card {
       background: rgba(255, 255, 255, 0.04);
@@ -207,15 +192,23 @@
       border-radius: 4px;
       display: inline-block;
       }
+
+      /* Perbaikan bug */
+      .text-muted {
+      color: var(--text-muted) !important;
+      }
+      a, .btn-link {
+      color: var(--accent-electric);
+      }
+      .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%);
+      }
       </style>
       @stack('styles')
       </head>
       <body>
-      <button class="sidebar-toggle d-md-none" onclick="document.querySelector('.sidebar').classList.toggle('open')">
-      <i class="bi bi-list"></i>
-      </button>
-
       <div class="app-container">
+      <!-- Sidebar -->
       <aside class="sidebar">
       <div class="sidebar-logo">
       <h4><i class="bi bi-calendar-check me-2" style="color: var(--accent-mint);"></i>Shift Generator</h4>
@@ -230,26 +223,31 @@
       <a href="{{ route('shift.generate.web') }}" class="nav-link {{ request()->routeIs('shift.generate.*') ? 'active' : '' }}">
       <i class="bi bi-calendar-check"></i> Generate Roster
       </a>
-      <form action="{{ url('/logout') }}" method="POST" class="mt-auto mx-3">
-      @csrf
-      <button type="submit" class="nav-link w-100 border-0 bg-transparent text-start">
-      <i class="bi bi-box-arrow-right"></i> Logout
-      </button>
-      </form>
+      <a href="{{ route('shift.web') }}" class="nav-link mt-auto mx-3">
+      <i class="bi bi-house-door"></i> Beranda
+      </a>
       </nav>
       </aside>
 
+      <!-- Main Content -->
       <main class="main-content">
+      {{-- Tombol menu mobile --}}
+      <div class="d-md-none mb-3">
+      <button class="btn btn-sm btn-outline-info" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <i class="bi bi-list"></i> Menu
+      </button>
+      </div>
+
       @if(session('success'))
       <div class="alert alert-success alert-dismissible fade show" role="alert">
       {{ session('success') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
       </div>
       @endif
       @if(session('error'))
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ session('error') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
       </div>
       @endif
 

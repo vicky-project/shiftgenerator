@@ -23,7 +23,7 @@ Route::prefix('apps/shift')->group(function () {
       return view('shiftgenerator::index');
     })->where('any',
     '.*');
-}); < ?php
+});
 
 Route::middleware(['auth'])->prefix('shift')->name('shift.')->group(function () {
   Route::get('/web',

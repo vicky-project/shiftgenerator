@@ -36,4 +36,41 @@ class Employee extends Model
   public function schedules() {
     return $this->hasMany(ShiftSchedule::class);
   }
+
+  /**
+  * Accessor untuk menampilkan pola shift dalam format singkat (misal 8D5N1O).
+  */
+  public function getFormattedPatternAttribute(): string
+  {
+    $pattern = $this->shift_pattern;
+    if (empty($pattern)) {
+      return '';
+    }
+
+    // Ubah semua karakter selain D/N menjadi O
+    $normalized = strtoupper($pattern);
+    $normalized = preg_replace('/[^DN]/', 'O', $normalized);
+
+    $counts = [];
+    $currentChar = null;
+    $count = 0;
+    $len = strlen($normalized);
+    for ($i = 0; $i < $len; $i++) {
+      $char = $normalized[$i];
+      if ($char !== $currentChar) {
+        if ($currentChar !== null) {
+          $counts[] = $count . $currentChar;
+        }
+        $currentChar = $char;
+        $count = 1;
+      } else {
+        $count++;
+      }
+    }
+    if ($currentChar !== null) {
+      $counts[] = $count . $currentChar;
+    }
+
+    return implode('', $counts);
+  }
 }

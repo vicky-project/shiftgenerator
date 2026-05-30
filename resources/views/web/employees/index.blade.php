@@ -30,8 +30,12 @@
             </p>
           </div>
           <div class="btn-group btn-group-sm align-self-start">
-            <a href="{{ route('shift.employees.overrides', $emp) }}" class="btn btn-outline-info" title="Cuti"><i class="bi bi-pencil-square"></i></a>
-            <a href="{{ route('shift.employees.edit', $emp) }}" class="btn btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="{{ route('shift.employees.overrides', $emp) }}" class="btn btn-outline-info" title="Pengajuan Cuti">
+              <i class="bi bi-calendar-minus"></i>
+            </a>
+            <a href="{{ route('shift.employees.edit', $emp) }}" class="btn btn-outline-warning" title="Edit Karyawan">
+              <i class="bi bi-pencil"></i>
+            </a>
             <form action="{{ route('shift.employees.destroy', $emp) }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
               @csrf @method('DELETE')
               <button class="btn btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button>

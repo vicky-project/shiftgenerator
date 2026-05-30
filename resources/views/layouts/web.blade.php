@@ -62,6 +62,7 @@
       align-items: center;
       gap: 0.7rem;
       font-weight: 500;
+      text-decoration: none;
       }
       .sidebar .nav-link:hover {
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(52, 211, 153, 0.1));
@@ -102,7 +103,7 @@
       right: 1rem;
       background: transparent;
       border: none;
-      color: var(--text-muted);
+      color: #fff;
       font-size: 1.5rem;
       cursor: pointer;
       z-index: 2;
@@ -211,7 +212,6 @@
       border-radius: 4px;
       display: inline-block;
       }
-
       /* Perbaikan bug */
       .text-muted {
       color: var(--text-muted) !important;
@@ -222,11 +222,10 @@
       .btn-close {
       filter: invert(1) grayscale(100%) brightness(200%);
       }
-      /* Pastikan tombol tanggal memiliki posisi relatif agar pseudo-element bisa ditempatkan */
+      /* Pastikan tombol tanggal memiliki posisi relatif */
       #calendar-instance .vc-date__btn {
       position: relative;
       }
-
       /* Dot marker untuk setiap shift */
       #calendar-instance .shift-day .vc-date__btn::after,
       #calendar-instance .shift-night .vc-date__btn::after,
@@ -242,7 +241,6 @@
       border-radius: 50%;
       pointer-events: none;
       }
-
       /* Warna dot per shift */
       #calendar-instance .shift-day .vc-date__btn::after {
       background-color: #34D399; /* Hijau */
@@ -256,13 +254,11 @@
       #calendar-instance .shift-leave .vc-date__btn::after {
       background-color: #FBBF24; /* Kuning */
       }
-
       /* Hari libur: teks merah hanya untuk bulan yang sedang aktif */
       #calendar-instance [data-vc-date-month="current"].shift-holiday .vc-date__btn {
       color: #F87171 !important;
       font-weight: 600;
       }
-
       /* Tanggal di luar bulan tampil redup */
       #calendar-instance [data-vc-date-month="prev"] .vc-date__btn,
       #calendar-instance [data-vc-date-month="next"] .vc-date__btn {
@@ -297,9 +293,12 @@
       <a href="{{ route('shift.generate.web') }}" class="nav-link {{ request()->routeIs('shift.generate.*') ? 'active' : '' }}">
       <i class="bi bi-calendar-check"></i> Generate Roster
       </a>
-      @if(config('shiftgenerator.back_home_route'))
-      <a href="{{ route(config('shiftgenerator.back_home_route')) }}" class="nav-link mt-auto mx-3">
-      @endif
+
+      {{-- Navigasi kembali --}}
+      @php
+      $backRoute = config('shiftgenerator.back_home_route', 'shift.web');
+      @endphp
+      <a href="{{ route($backRoute) }}" class="nav-link mt-auto mx-3">
       <i class="bi bi-arrow-left"></i> Beranda
       </a>
       </nav>
@@ -330,8 +329,7 @@
       @yield('content')
       </main>
       </div>
-      <script src="//cdn.jsdelivr.net/npm/eruda"></script>
-      <script>eruda.init();</script>
+
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
       <script>

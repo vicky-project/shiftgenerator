@@ -55,7 +55,7 @@
 
 @push('scripts')
 <script>
-  API_BASE = '{{ rtrim(config("app.url"), "/") }}';
+  const API_BASE = '{{ rtrim(config("app.url"), "/") }}';
   let calendar = null;
 
   // Form submit dengan fetch

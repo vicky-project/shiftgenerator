@@ -175,6 +175,10 @@
       const inner = document.getElementById('calendar-instance-inner');
       if (calendar) calendar.destroy();
       const popups = buildPopups(empKey);
+
+      // Debug: lihat popups yang dibuat
+      console.log('popups:', popups);
+
       calendar = new VanillaCalendarPro.Calendar(inner, {
       type: 'default',
       firstDayOfWeek: 1,
@@ -194,6 +198,15 @@
       popups,
       });
       calendar.init();
+
+      // Debug: periksa apakah class shift muncul
+      setTimeout(() => {
+      const dateElements = inner.querySelectorAll('.vc-date');
+      console.log('Jumlah elemen tanggal:', dateElements.length);
+      if (dateElements.length > 0) {
+      console.log('Class dari elemen pertama:', dateElements[0].classList.toString());
+      }
+      }, 100);
     }
 
     // Tampilkan karyawan pertama

@@ -19,7 +19,7 @@
         <div class="d-flex justify-content-between">
           <div>
             <h5>{{ $emp->name }}</h5>
-            <p class="text-muted mb-1">
+            <p class="small text-muted mb-1">
               NRP: {{ $emp->nrp }}
             </p>
           </div>

@@ -79,7 +79,12 @@
   if (!genRes.ok) throw new Error('Generate gagal');
 
   // Ambil data schedules
-  const schedRes = await fetch(`{{ route("shift.generate.schedules-api") }}?start_date=${startDate}&end_date=${endDate}`);
+  const schedRes = await fetch(`{{ route("shift.generate.schedules-api") }}?start_date=${startDate}&end_date=${endDate}`,
+  headers: {
+  'Content-Type': 'application/json',
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content || '{{ csrf_token() }}'
+  }
+  );
   if (!schedRes.ok) throw new Error('Gagal mengambil data roster');
   const data = await schedRes.json();
   const schedules = data.schedules;

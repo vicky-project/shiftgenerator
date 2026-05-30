@@ -31,16 +31,4 @@
     </div>
   </div>
 </div>
-<div class="row mt-4">
-  <div class="col-12">
-    <div class="card p-4">
-      <h5 class="mb-3">Aksi Cepat</h5>
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('shift.employees.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Tambah Karyawan</a>
-        <a href="{{ route('shift.generate.web') }}" class="btn btn-success"><i class="bi bi-gear me-1"></i> Generate Roster</a>
-        <a href="{{ route('shift.generate.export') }}" class="btn btn-outline-info"><i class="bi bi-download me-1"></i> Export Excel</a>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection

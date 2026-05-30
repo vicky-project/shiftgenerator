@@ -69,7 +69,7 @@
   showLoading(true);
   try {
   // Generate roster
-  const genRes = await fetch(API_BASE. '/shift/generate-api', {
+  const genRes = await fetch(API_BASE + '/shift/generate-api', {
   method: 'POST',
   headers: {
   'Content-Type': 'application/json',
@@ -85,7 +85,7 @@
   }
 
   // Ambil data schedules
-  const schedRes = await fetch(API_BASE. `/shift/schedules-api?start_date=${startDate}&end_date=${endDate}`, {
+  const schedRes = await fetch(API_BASE + `/shift/schedules-api?start_date=${startDate}&end_date=${endDate}`, {
   headers: {
   'Accept': 'application/json',
   'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')

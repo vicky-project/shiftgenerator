@@ -222,6 +222,55 @@
       .btn-close {
       filter: invert(1) grayscale(100%) brightness(200%);
       }
+      /* Posisi dot */
+      .vc-date__btn {
+      position: relative;
+      }
+
+      .vc-date__btn::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      pointer-events: none;
+      }
+
+      /* Warna dot sesuai shift */
+      .shift-day .vc-date__btn::after {
+      background-color: #34D399;
+      }
+
+      .shift-night .vc-date__btn::after {
+      background-color: #38BDF8;
+      }
+
+      .shift-off .vc-date__btn::after {
+      background-color: #F87171;
+      }
+
+      .shift-leave .vc-date__btn::after {
+      background-color: #FBBF24;
+      }
+
+      /* Hari libur: teks merah hanya bulan aktif */
+      [data-vc-date-month="current"].shift-holiday .vc-date__btn {
+      color: #F87171 !important;
+      font-weight: 600;
+      }
+
+      /* Tanggal di luar bulan redup */
+      [data-vc-date-month="prev"] .vc-date__btn,
+      [data-vc-date-month="next"] .vc-date__btn {
+      opacity: 0.4;
+      }
+      [data-vc-date-month="prev"] .vc-date__btn::after,
+      [data-vc-date-month="next"] .vc-date__btn::after {
+      opacity: 0.4;
+      }
       </style>
       @stack('styles')
       </head>

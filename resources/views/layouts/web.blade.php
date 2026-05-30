@@ -247,7 +247,9 @@
       <a href="{{ route('shift.generate.web') }}" class="nav-link {{ request()->routeIs('shift.generate.*') ? 'active' : '' }}">
       <i class="bi bi-calendar-check"></i> Generate Roster
       </a>
+      @if(config('shiftgenerator.back_home_route'))
       <a href="{{ route(config('shiftgenerator.back_home_route')) }}" class="nav-link mt-auto mx-3">
+      @endif
       <i class="bi bi-arrow-left"></i> Beranda
       </a>
       </nav>

@@ -42,14 +42,23 @@ class ShiftController extends Controller
   }
 
   public function apiGenerate(Request $request, ShiftGeneratorService $service) {
-    $validated = $request->validate([
-      'start_date' => 'required|date',
-      'end_date' => 'required|date|after_or_equal:start_date',
-    ]);
+    try {
+      $validated = $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+      ]);
 
-    $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
+      $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
 
-    return response()->json(['message' => 'Roster berhasil dibuat']);
+      return response()->json(['message' => 'Roster berhasil dibuat']);
+    } catch(\Exception $e) {
+      \Log::error('Failed to generate roster.', [
+        'message' => $e->getMessage(),
+        'trace' => $e->getTrace()
+      ]);
+
+      return response()->json(['message' => $e->getMessage()], 500);
+    }
   }
 
   public function apiSchedules(Request $request, HolidayService $holidayService) {

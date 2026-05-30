@@ -176,9 +176,6 @@
       if (calendar) calendar.destroy();
       const popups = buildPopups(empKey);
 
-      // Debug: lihat popups yang dibuat
-      console.log('popups:', popups);
-
       calendar = new VanillaCalendarPro.Calendar(inner, {
       type: 'default',
       firstDayOfWeek: 1,
@@ -199,13 +196,16 @@
       });
       calendar.init();
 
-      // Debug: periksa apakah class shift muncul
+      // Fallback manual untuk menambahkan class modifier
       setTimeout(() => {
-      const dateElements = inner.querySelectorAll('.vc-date');
-      console.log('Jumlah elemen tanggal:', dateElements.length);
-      if (dateElements.length > 0) {
-      console.log('Class dari elemen pertama:', dateElements[0].classList.toString());
+      const dateElements = inner.querySelectorAll('[data-vc-date]');
+      dateElements.forEach(el => {
+      const date = el.getAttribute('data-vc-date');
+      if (popups[date] && popups[date].modifier) {
+      const classes = popups[date].modifier.split(' ');
+      el.classList.add(...classes);
       }
+      });
       }, 100);
     }
 

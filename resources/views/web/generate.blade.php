@@ -72,7 +72,7 @@
   method: 'POST',
   headers: {
   'Content-Type': 'application/json',
-  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content || '{{ csrf_token() }}'
   },
   body: JSON.stringify({ start_date: startDate, end_date: endDate })
   });

@@ -1,0 +1,46 @@
+@extends('shiftgenerator::layouts.web')
+@section('title', 'Dashboard')
+@section('content')
+<h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <i class="bi bi-people fs-1" style="color: #38BDF8;"></i>
+      <h5 class="mt-3 mb-1">{{ $employeeCount }}</h5>
+      <p class="text-muted mb-0">
+        Total Karyawan
+      </p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <i class="bi bi-calendar-check fs-1" style="color: #34D399;"></i>
+      <h5 class="mt-3 mb-1">{{ $rosterCount }}</h5>
+      <p class="text-muted mb-0">
+        Total Roster
+      </p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <i class="bi bi-calendar-x fs-1" style="color: #FBBF24;"></i>
+      <h5 class="mt-3 mb-1">{{ $overrideCount }}</h5>
+      <p class="text-muted mb-0">
+        Pengajuan Cuti
+      </p>
+    </div>
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card p-4">
+      <h5 class="mb-3">Aksi Cepat</h5>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('shift.employees.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Tambah Karyawan</a>
+        <a href="{{ route('shift.generate.web') }}" class="btn btn-success"><i class="bi bi-gear me-1"></i> Generate Roster</a>
+        <a href="{{ route('shift.generate.export') }}" class="btn btn-outline-info"><i class="bi bi-download me-1"></i> Export Excel</a>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection

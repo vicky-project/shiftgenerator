@@ -222,12 +222,16 @@
       .btn-close {
       filter: invert(1) grayscale(100%) brightness(200%);
       }
-      /* Posisi dot */
-      .vc-date__btn {
+      /* Pastikan tombol tanggal memiliki posisi relatif agar pseudo-element bisa ditempatkan */
+      #calendar-instance .vc-date__btn {
       position: relative;
       }
 
-      .vc-date__btn::after {
+      /* Dot marker untuk setiap shift */
+      #calendar-instance .shift-day .vc-date__btn::after,
+      #calendar-instance .shift-night .vc-date__btn::after,
+      #calendar-instance .shift-off .vc-date__btn::after,
+      #calendar-instance .shift-leave .vc-date__btn::after {
       content: '';
       position: absolute;
       bottom: 3px;
@@ -239,36 +243,33 @@
       pointer-events: none;
       }
 
-      /* Warna dot sesuai shift */
-      .shift-day .vc-date__btn::after {
-      background-color: #34D399;
+      /* Warna dot per shift */
+      #calendar-instance .shift-day .vc-date__btn::after {
+      background-color: #34D399; /* Hijau */
+      }
+      #calendar-instance .shift-night .vc-date__btn::after {
+      background-color: #38BDF8; /* Biru */
+      }
+      #calendar-instance .shift-off .vc-date__btn::after {
+      background-color: #F87171; /* Merah */
+      }
+      #calendar-instance .shift-leave .vc-date__btn::after {
+      background-color: #FBBF24; /* Kuning */
       }
 
-      .shift-night .vc-date__btn::after {
-      background-color: #38BDF8;
-      }
-
-      .shift-off .vc-date__btn::after {
-      background-color: #F87171;
-      }
-
-      .shift-leave .vc-date__btn::after {
-      background-color: #FBBF24;
-      }
-
-      /* Hari libur: teks merah hanya bulan aktif */
-      [data-vc-date-month="current"].shift-holiday .vc-date__btn {
+      /* Hari libur: teks merah hanya untuk bulan yang sedang aktif */
+      #calendar-instance [data-vc-date-month="current"].shift-holiday .vc-date__btn {
       color: #F87171 !important;
       font-weight: 600;
       }
 
-      /* Tanggal di luar bulan redup */
-      [data-vc-date-month="prev"] .vc-date__btn,
-      [data-vc-date-month="next"] .vc-date__btn {
+      /* Tanggal di luar bulan tampil redup */
+      #calendar-instance [data-vc-date-month="prev"] .vc-date__btn,
+      #calendar-instance [data-vc-date-month="next"] .vc-date__btn {
       opacity: 0.4;
       }
-      [data-vc-date-month="prev"] .vc-date__btn::after,
-      [data-vc-date-month="next"] .vc-date__btn::after {
+      #calendar-instance [data-vc-date-month="prev"] .vc-date__btn::after,
+      #calendar-instance [data-vc-date-month="next"] .vc-date__btn::after {
       opacity: 0.4;
       }
       </style>

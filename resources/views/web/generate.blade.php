@@ -196,17 +196,28 @@
       });
       calendar.init();
 
-      // Fallback manual untuk menambahkan class modifier
-      setTimeout(() => {
-      const dateElements = inner.querySelectorAll('[data-vc-date]');
-      dateElements.forEach(el => {
-      const date = el.getAttribute('data-vc-date');
-      if (popups[date] && popups[date].modifier) {
-      const classes = popups[date].modifier.split(' ');
-      el.classList.add(...classes);
+      // Fungsi untuk menerapkan modifier
+      function applyModifiers() {
+        const dateElements = inner.querySelectorAll('[data-vc-date]');
+        dateElements.forEach(el => {
+        // Hapus class shift sebelumnya
+        el.classList.remove('shift-day', 'shift-night', 'shift-off', 'shift-leave', 'shift-holiday');
+        const date = el.getAttribute('data-vc-date');
+        if (popups[date] && popups[date].modifier) {
+        const classes = popups[date].modifier.split(' ');
+        el.classList.add(...classes);
+        }
+        });
       }
+
+      // Terapkan segera
+      applyModifiers();
+
+      // Observer untuk perubahan DOM (navigasi bulan)
+      const observer = new MutationObserver(() => {
+        applyModifiers();
       });
-      }, 100);
+      observer.observe(inner, { childList: true, subtree: true });
     }
 
     // Tampilkan karyawan pertama

@@ -42,12 +42,12 @@ class ShiftController extends Controller
   }
 
   public function apiGenerate(Request $request, ShiftGeneratorService $service) {
-    try {
-      $validated = $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-      ]);
+    $validated = $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
 
+    try {
       $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
 
       return response()->json(['message' => 'Roster berhasil dibuat']);

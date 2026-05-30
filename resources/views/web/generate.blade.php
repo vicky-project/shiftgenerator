@@ -96,6 +96,7 @@
 
   } catch (err) {
   alert('Gagal: ' + err.message);
+  console.error(err);
   } finally {
   showLoading(false);
   }

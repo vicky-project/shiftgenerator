@@ -40,6 +40,7 @@
       left: 0;
       bottom: 0;
       z-index: 1000;
+      overflow-y: auto;
       }
       .sidebar-logo {
       padding: 0 1.5rem 2rem;
@@ -91,6 +92,24 @@
       .main-content {
       margin-left: 0;
       padding: 1rem;
+      }
+      }
+      /* Tombol close sidebar (mobile) */
+      .sidebar-close-btn {
+      display: none;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 2;
+      }
+      @media (max-width: 768px) {
+      .sidebar-close-btn {
+      display: block;
       }
       }
       .card {
@@ -210,6 +229,11 @@
       <div class="app-container">
       <!-- Sidebar -->
       <aside class="sidebar">
+      <!-- Tombol close (hanya mobile) -->
+      <button class="sidebar-close-btn" onclick="document.querySelector('.sidebar').classList.remove('open')">
+      <i class="bi bi-x-lg"></i>
+      </button>
+
       <div class="sidebar-logo">
       <h4><i class="bi bi-calendar-check me-2" style="color: var(--accent-mint);"></i>Shift Generator</h4>
       </div>
@@ -254,10 +278,23 @@
       @yield('content')
       </main>
       </div>
-      <script src="//cdn.jsdelivr.net/npm/eruda"></script>
-      <script>eruda.init();</script>
+
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/index.js"></script>
+      <script>
+      // Menutup sidebar saat klik di luar area sidebar
+      (function() {
+      const sidebar = document.querySelector('.sidebar');
+      document.addEventListener('click', function(e) {
+      if (sidebar.classList.contains('open') &&
+      !sidebar.contains(e.target) &&
+      !e.target.closest('.btn-outline-info') &&
+      !e.target.closest('.sidebar-close-btn')) {
+      sidebar.classList.remove('open');
+      }
+      });
+      })();
+      </script>
       @stack('scripts')
       </body>
       </html>

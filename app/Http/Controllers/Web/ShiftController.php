@@ -32,11 +32,40 @@ class ShiftController extends Controller
   }
 
   public function export(Request $request) {
-    $start = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
-    $end = $request->input('end_date', now()->endOfMonth()->format('Y-m-d'));
+    $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $socialAccountService = \Modules\SocialAccount\Services\SocialAccountService::class;
+
+    if (!class_exists($socialAccountService)) {
+      return back()->with('error', 'Fitur Social Account belum ada.');
+    }
+
+    $userId = $request->user()->id;
+    $service = app($socialAccount);
+    $socialAccounts = $service->getByUserId($userId);
+    // Social Account not exists
+    if (!$socialAccounts || $socialAccounts->isEmpty()) {
+      return back()->with('error', 'Tidak ada Akun Sosial yang terhubung.');
+    }
+
+    $telegram = $socialAccounts->where("provider", \Modules\SocialAccount\Enums\Provider::TELEGRAM)->first();
+
+    // Social Account not have provider
+    if (!$telegram || !$telegram->providerable) {
+      return back()->with('error', 'Telegram tidak terhubung. Hubungkan akun telegram di menu profile.');
+    }
+
+    // Cek apakah user memiliki karyawan
+    $employeeCount = Employee::where('telegram_user_id', $telegram->telegram_id)->count();
+    if ($employeeCount === 0) {
+      return back()->with('error', 'Tidak ada karyawan yang tersedia. Silakan tambahkan karyawan terlebih dahulu.');
+    }
 
     return Excel::download(
-      new ShiftScheduleExport($start, $end, auth()->id()),
+      new ShiftScheduleExport($request->start_date, $request->end_date, $userId),
       'shift_roster.xlsx'
     );
   }

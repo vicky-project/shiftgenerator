@@ -75,4 +75,7 @@ Route::middleware(['auth'])->prefix('shift')->name('shift.')->group(function () 
   Route::get('/schedules-api',
     [ShiftController::class,
       'apiSchedules'])->name('generate.schedules-api');
+  Route::get('/validate-export',
+    [ShiftController::class,
+      'validateExport'])->name('generate.validate-export');
 });

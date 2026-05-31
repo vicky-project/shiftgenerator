@@ -2,10 +2,11 @@
 
 namespace Modules\ShiftGenerator\Http\Controllers\Web;
 
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\ShiftGenerator\Services\ShiftGeneratorService;
 use Modules\ShiftGenerator\Services\HolidayService;
+use Modules\ShiftGenerator\Models\Employee;
 use Modules\ShiftGenerator\Models\ShiftSchedule;
 use Modules\ShiftGenerator\Exports\ShiftScheduleExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -22,52 +23,8 @@ class ShiftController extends Controller
       'end_date' => 'required|date|after_or_equal:start_date',
     ]);
 
-    $service->generate(
-      $validated['start_date'],
-      $validated['end_date'],
-      auth()->id()
-    );
-
+    $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
     return back()->with('success', 'Roster berhasil dibuat.');
-  }
-
-  public function export(Request $request) {
-    $request->validate([
-      'start_date' => 'required|date',
-      'end_date' => 'required|date|after_or_equal:start_date',
-    ]);
-
-    $socialAccountService = \Modules\SocialAccount\Services\SocialAccountService::class;
-
-    if (!class_exists($socialAccountService)) {
-      return back()->with('error', 'Fitur Social Account belum ada.');
-    }
-
-    $userId = $request->user()->id;
-    $service = app($socialAccountService);
-    $socialAccounts = $service->getByUserId($userId);
-    // Social Account not exists
-    if (!$socialAccounts || $socialAccounts->isEmpty()) {
-      return back()->with('error', 'Tidak ada Akun Sosial yang terhubung.');
-    }
-
-    $telegram = $socialAccounts->where("provider", \Modules\SocialAccount\Enums\Provider::TELEGRAM)->first();
-
-    // Social Account not have provider
-    if (!$telegram || !$telegram->providerable) {
-      return back()->with('error', 'Telegram tidak terhubung. Hubungkan akun telegram di menu profile.');
-    }
-
-    // Cek apakah user memiliki karyawan
-    $employeeCount = Employee::where('telegram_user_id', $telegram->telegram_id)->count();
-    if ($employeeCount === 0) {
-      return back()->with('error', 'Tidak ada karyawan yang tersedia. Silakan tambahkan karyawan terlebih dahulu.');
-    }
-
-    return Excel::download(
-      new ShiftScheduleExport($request->start_date, $request->end_date, $userId),
-      'shift_roster.xlsx'
-    );
   }
 
   public function apiGenerate(Request $request, ShiftGeneratorService $service) {
@@ -77,11 +34,7 @@ class ShiftController extends Controller
     ]);
 
     try {
-      $service->generate(
-        $validated['start_date'],
-        $validated['end_date'],
-        auth()->id()
-      );
+      $service->generate($validated['start_date'], $validated['end_date'], auth()->id());
       return response()->json(['message' => 'Roster berhasil dibuat'], 200);
     } catch (\Exception $e) {
       return response()->json(['message' => 'Gagal generate: ' . $e->getMessage()], 500);
@@ -106,5 +59,73 @@ class ShiftController extends Controller
       'schedules' => $schedules,
       'holidays' => $holidayService->getHolidays(),
     ]);
+  }
+
+  public function validateExport(Request $request) {
+    $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $result = $this->checkExportEligibility();
+    return response()->json($result, $result['valid'] ? 200 : 422);
+  }
+
+  public function export(Request $request) {
+    $request->validate([
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $result = $this->checkExportEligibility();
+    if (!$result['valid']) {
+      return back()->with('error', $result['message']);
+    }
+
+    return Excel::download(
+      new ShiftScheduleExport(
+        $request->start_date,
+        $request->end_date,
+        $result['telegram_user_id']
+      ),
+      'shift_roster.xlsx'
+    );
+  }
+
+  /**
+  * Pengecekan kelayakan export (digunakan bersama).
+  */
+  private function checkExportEligibility(): array
+  {
+    $socialAccountService = \Modules\SocialAccount\Services\SocialAccountService::class;
+
+    if (!class_exists($socialAccountService)) {
+      return ['valid' => false,
+        'message' => 'Fitur Social Account belum tersedia.'];
+    }
+
+    $service = app($socialAccountService);
+    $socialAccounts = $service->getByUserId(auth()->id());
+
+    if (!$socialAccounts || $socialAccounts->isEmpty()) {
+      return ['valid' => false,
+        'message' => 'Tidak ada Akun Sosial yang terhubung. Hubungkan akun Telegram di menu Profile.'];
+    }
+
+    $telegram = $socialAccounts->where('provider', \Modules\SocialAccount\Enums\Provider::TELEGRAM)->first();
+    if (!$telegram || !$telegram->providerable) {
+      return ['valid' => false,
+        'message' => 'Akun Telegram belum terhubung. Hubungkan di menu Profile.'];
+    }
+
+    $telegramUserId = $telegram->telegram_id;
+    $employeeCount = Employee::where('telegram_user_id', $telegramUserId)->count();
+    if ($employeeCount === 0) {
+      return ['valid' => false,
+        'message' => 'Tidak ada karyawan yang tersedia. Silakan tambahkan karyawan terlebih dahulu.'];
+    }
+
+    return ['valid' => true,
+      'telegram_user_id' => $telegramUserId];
   }
 }

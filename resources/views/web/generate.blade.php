@@ -28,7 +28,7 @@
   <div class="card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">Hasil Roster</h5>
-      <a href="" id="export-btn" class="btn btn-outline-info btn-sm">
+      <a href="#" id="export-btn" class="btn btn-outline-info btn-sm">
         <i class="bi bi-download me-1"></i> Export Excel
       </a>
     </div>
@@ -104,7 +104,28 @@
   const holidays = data.holidays || [];
 
   document.getElementById('result-container').style.display = 'block';
-  document.getElementById('export-btn').href = `{{ route("shift.generate.export") }}?start_date=${startDate}&end_date=${endDate}`;
+  document.getElementById('export-btn').addEventListener('click', async function(e) {
+  e.preventDefault();
+  const startDate = document.getElementById('start_date').value;
+  const endDate = document.getElementById('end_date').value;
+
+  try {
+  // Cek apakah ada karyawan
+  const checkRes = await fetch(`/shift/check-employees`);
+  if (!checkRes.ok) throw new Error('Gagal memeriksa karyawan');
+  const checkData = await checkRes.json();
+  if (!checkData.hasEmployees) {
+  alert('Tidak ada karyawan yang tersedia. Silakan tambahkan karyawan terlebih dahulu.');
+  return;
+  }
+
+  // Jika ada, langsung download
+  window.location.href = `{{ route("shift.generate.export") }}?start_date=${startDate}&end_date=${endDate}`;
+
+  } catch (err) {
+  alert('Error: ' + err.message);
+  }
+  });
 
   // Render kalender
   renderCalendar(startDate, endDate, schedules, holidays);

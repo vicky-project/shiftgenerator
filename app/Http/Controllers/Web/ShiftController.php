@@ -44,7 +44,7 @@ class ShiftController extends Controller
     }
 
     $userId = $request->user()->id;
-    $service = app($socialAccount);
+    $service = app($socialAccountService);
     $socialAccounts = $service->getByUserId($userId);
     // Social Account not exists
     if (!$socialAccounts || $socialAccounts->isEmpty()) {
